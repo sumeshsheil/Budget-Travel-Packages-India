@@ -6,6 +6,7 @@
   --color-primary: #01ff70;
   --color-secondary: #98050b;
   --color-secondary-text: #1d1c1c;
+  --color-accent: #fed618;
 
   /* Fonts */
   --font-inter: var(--font-inter);

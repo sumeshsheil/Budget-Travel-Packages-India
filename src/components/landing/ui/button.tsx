@@ -1,9 +1,9 @@
-"use client"
+"use client";
 import React, { ComponentProps, forwardRef } from "react";
 import { motion } from "motion/react";
 
 // Define the variant types logic manually since we don't have cva/clsx
-type ButtonVariant = "primary" | "secondary";
+type ButtonVariant = "primary" | "secondary" | "outline";
 type ButtonSize = "sm" | "md" | "lg";
 type ButtonRounded = "default" | "full";
 
@@ -27,7 +27,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ) => {
     // Base styles
     const baseStyles =
-      "inline-flex items-center justify-center font-bold transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border-none outline-none";
+      "inline-flex items-center justify-center font-bold transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ";
 
     // Variant styles
     const variants = {
@@ -35,6 +35,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         "bg-[var(--color-primary)] text-[var(--color-secondary-text)] hover:shadow-lg hover:brightness-105",
       secondary:
         "bg-[var(--color-secondary)] text-white hover:bg-opacity-90 hover:shadow-lg",
+      outline:
+        "bg-transparent border border-gray-200 text-black hover:bg-gray-50 hover:shadow-md",
     };
 
     // Size styles

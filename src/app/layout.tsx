@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Open_Sans } from "next/font/google";
+import { StoreProvider } from "@/lib/redux/StoreProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -24,10 +25,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${inter.variable} ${openSans.variable} antialiased`}
-      >
-        {children}
+      <body className={`${inter.variable} ${openSans.variable} antialiased`}>
+        <StoreProvider>{children}</StoreProvider>
       </body>
     </html>
   );

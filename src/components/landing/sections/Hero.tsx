@@ -1,8 +1,7 @@
-import Image from "next/image";
 import React from "react";
-import HeroBg from "@/../public/images/heros/hero-background.png";
 import Marquee from "../ui/Marquee";
 import HeroContent from "./HeroContent";
+import HeroBackground from "./HeroBackground";
 
 const Hero: React.FC = () => {
   return (
@@ -12,19 +11,12 @@ const Hero: React.FC = () => {
         className="hero-section-bg-overlay-gradient z-1 pointer-events-none"
         aria-hidden="true"
       />
-      {/* Background Image */}
-      <div className="absolute h-[calc(100dvh-54px)] w-full z-0">
-        <Image
-          src={HeroBg}
-          alt="Scenic travel destination background"
-          fill
-          className="object-cover"
-          priority
-          sizes="100vw"
-        />
-      </div>
+
+      {/* Background Media */}
+      <HeroBackground />
+
       {/* Content */}
-      <div className="container-box max-w-[830px] w-full mx-auto relative z-2 text-center h-full flex flex-col justify-center items-center pt-32 pb-20 lg:pt-0 min-h-dvh">
+      <div className="container-box max-w-max w-full mx-auto relative z-2 text-center h-full flex flex-col justify-center items-center pt-32 pb-20 lg:pt-0 min-h-dvh">
         <HeroContent />
       </div>
       {/* Infinity Red Carousel */}
