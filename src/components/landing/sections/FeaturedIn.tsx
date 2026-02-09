@@ -14,6 +14,14 @@ const brands = [
   { name: "Entrepreneur Street", logo: enterpreneur },
   { name: "Medium", logo: hindustan },
   { name: "Hindustan Times", logo: trind },
+  // { name: "Dailyhunt", logo: dailyhunt },
+  // { name: "Entrepreneur Street", logo: enterpreneur },
+  // { name: "Medium", logo: hindustan },
+  // { name: "Hindustan Times", logo: trind },
+  // { name: "Dailyhunt", logo: dailyhunt },
+  // { name: "Entrepreneur Street", logo: enterpreneur },
+  // { name: "Medium", logo: hindustan },
+  // { name: "Hindustan Times", logo: trind },
 ];
 
 const FeaturedIn: React.FC = () => {
@@ -38,7 +46,6 @@ const FeaturedIn: React.FC = () => {
           aria-label="Featured media partners carousel"
         >
           <div className="flex items-center">
-            {/* First set of brands */}
             <motion.div
               initial={{ x: 0 }}
               animate={{ x: "-100%" }}
@@ -47,26 +54,24 @@ const FeaturedIn: React.FC = () => {
                 repeat: Infinity,
                 ease: "linear",
               }}
-              className="flex shrink-0 items-center gap-8 md:gap-16 group-hover:[animation-play-state:paused]"
+              className="flex shrink-0 items-center group-hover:[animation-play-state:paused]"
               style={{ willChange: "transform" }}
             >
               {brands.map((brand, index) => (
                 <div
                   key={`brand-${index}`}
-                  className="flex items-center justify-center px-6 py-4 min-w-[150px] md:min-w-[200px] border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow"
+                  className="flex items-center justify-center ml-8 md:ml-16 px-6 py-4 w-[277px] rounded-[5px] bg-[#f5f5f5]"
                 >
                   <Image
                     src={brand.logo}
                     alt={`${brand.name} logo`}
                     width={150}
                     height={50}
-                    className="h-8 md:h-10 w-auto object-contain"
+                    className="h-auto w-auto object-cover"
                   />
                 </div>
               ))}
             </motion.div>
-
-            {/* Duplicate set for seamless loop */}
             <motion.div
               initial={{ x: 0 }}
               animate={{ x: "-100%" }}
@@ -75,21 +80,21 @@ const FeaturedIn: React.FC = () => {
                 repeat: Infinity,
                 ease: "linear",
               }}
-              className="flex shrink-0 items-center gap-8 md:gap-16 group-hover:[animation-play-state:paused]"
+              className="flex shrink-0 items-center  group-hover:[animation-play-state:paused]"
               style={{ willChange: "transform" }}
               aria-hidden="true"
             >
               {brands.map((brand, index) => (
                 <div
                   key={`brand-dup-${index}`}
-                  className="flex items-center justify-center px-6 py-4 min-w-[150px] md:min-w-[200px] border border-gray-200 rounded-lg bg-white hover:shadow-md transition-shadow"
+                  className="flex items-center justify-center px-6 py-4 ml-8 md:ml-16 w-[276px] rounded-[5px] bg-[#f5f5f5]"
                 >
                   <Image
                     src={brand.logo}
                     alt=""
                     width={150}
                     height={50}
-                    className="h-8 md:h-10 w-auto object-contain"
+                    className="h-auto w-auto object-cover"
                   />
                 </div>
               ))}
@@ -99,7 +104,7 @@ const FeaturedIn: React.FC = () => {
 
         {/* Spotlight Badge */}
         <div className="flex justify-center mt-10">
-          <span className="inline-flex items-center px-6 py-2 bg-primary/10 text-secondary font-semibold text-sm md:text-base rounded-full border border-primary">
+          <span className="inline-flex items-center px-6 py-2 bg-primary/16 text-black font-open-sans font-bold text-sm md:text-base lg:text-xl rounded-full">
             Our Brand In The Spotlight
           </span>
         </div>
