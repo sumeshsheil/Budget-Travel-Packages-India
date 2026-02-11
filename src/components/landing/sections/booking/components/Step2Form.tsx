@@ -1,17 +1,20 @@
 "use client";
 
 import React from "react";
+import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
 import {
   setSpecialRequests,
   addTraveler,
   setCurrentStep,
+  resetForm,
 } from "@/lib/redux/features/bookingSlice";
 import { FormTextarea } from "./FormTextarea";
 import { TravelerCard } from "./TravelerCard";
 import { useBookingValidation } from "../hooks/useBookingValidation";
 import Button from "@/components/landing/ui/button";
 import { labelClass, errorTextClass } from "../styles";
+import { toast } from "sonner";
 
 export const Step2Form: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -24,21 +27,50 @@ export const Step2Form: React.FC = () => {
     (state) => state.booking.validation.step2Errors,
   );
   const { validateStep2 } = useBookingValidation();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const router = useRouter();
 
   const handleBack = () => {
     dispatch(setCurrentStep(1));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateStep2()) {
-      // TODO: Integrate with API for booking submission
-      const formData = {
-        step1,
-        step2: { specialRequests, travelers },
+    if (!validateStep2()) return;
+
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        ...step1,
+        guests: Number(step1.guests),
+        budget: Number(step1.budget),
+        specialRequests,
+        travelers,
       };
-      console.log("Form submitted:", formData);
-      alert("Booking submitted successfully!");
+
+      const response = await fetch("/api/leads/submit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to submit booking");
+      }
+
+      toast.success("Booking submitted successfully! Redirecting...");
+      dispatch(resetForm()); // Reset form in Redux
+
+      // Redirect to thank you page
+      router.push("/thank-you");
+    } catch (error: any) {
+      toast.error(error.message || "Something went wrong. Please try again.");
+      console.error("Submission error:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -92,15 +124,24 @@ export const Step2Form: React.FC = () => {
         <button
           type="button"
           onClick={handleBack}
-          className="flex-1 border border-primary text-black font-bold py-4 rounded-lg hover:bg-gray-50 transition-colors text-lg"
+          disabled={isSubmitting}
+          className="flex-1 border border-primary text-black font-bold py-4 rounded-lg hover:bg-gray-50 transition-colors text-lg disabled:opacity-50"
         >
           Back
         </button>
         <Button
           type="submit"
-          className="flex-1 bg-primary text-black font-bold py-4 rounded-lg hover:shadow-lg transition-shadow text-lg"
+          disabled={isSubmitting}
+          className="flex-1 bg-primary text-black font-bold py-4 rounded-lg hover:shadow-lg transition-shadow text-lg disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          Submit
+          {isSubmitting ? (
+            <>
+              <span className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" />
+              Submitting...
+            </>
+          ) : (
+            "Submit Booking"
+          )}
         </Button>
       </div>
     </form>
