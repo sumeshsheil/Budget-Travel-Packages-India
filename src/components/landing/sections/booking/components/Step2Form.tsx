@@ -34,7 +34,16 @@ export const Step2Form: React.FC = () => {
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState("");
   const [phoneVerified, setPhoneVerified] = useState(false);
+  const [verificationId, setVerificationId] = useState("");
+  const [cooldown, setCooldown] = useState(0);
   const router = useRouter();
+
+  // Cooldown timer for resend
+  React.useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
 
   const handleChange = (field: keyof Traveler, value: string | number) => {
     dispatch(updatePrimaryContact({ field, value }));
@@ -44,6 +53,8 @@ export const Step2Form: React.FC = () => {
       setOtpSent(false);
       setOtp("");
       setOtpError("");
+      setVerificationId("");
+      setCooldown(0);
     }
   };
 
@@ -54,40 +65,63 @@ export const Step2Form: React.FC = () => {
       dispatch(
         updatePrimaryContact({ field: "phone", value: primaryContact.phone }),
       );
+      toast.error("Please enter a valid 10-digit phone number");
       return;
     }
 
     setIsVerifying(true);
+    setOtpError("");
     try {
-      // TODO: Implement actual OTP sending logic
-      // await fetch('/api/otp/send', { method: 'POST', body: JSON.stringify({ phone: primaryContact.phone }) });
-      console.log("TODO: Send OTP to", primaryContact.phone);
+      const res = await fetch("/api/otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone: primaryContact.phone }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to send OTP");
+      }
+
+      setVerificationId(data.verificationId);
       setOtpSent(true);
-      toast.success("OTP sent successfully!");
-    } catch {
-      toast.error("Failed to send OTP. Please try again.");
+      setCooldown(30); // 30 second cooldown before resend
+      toast.success("OTP sent to +91 " + primaryContact.phone);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send OTP. Please try again.");
     } finally {
       setIsVerifying(false);
     }
   };
 
   const handleVerifyOtp = async () => {
-    if (otp.length !== 6) {
-      setOtpError("Please enter a valid 6-digit OTP");
+    if (otp.length < 4 || otp.length > 6) {
+      setOtpError("Please enter a valid OTP");
       return;
     }
 
     setIsVerifying(true);
+    setOtpError("");
     try {
-      // TODO: Implement actual OTP verification logic
-      // await fetch('/api/otp/verify', { method: 'POST', body: JSON.stringify({ phone: primaryContact.phone, otp }) });
-      console.log("TODO: Verify OTP", otp, "for", primaryContact.phone);
+      const res = await fetch("/api/otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ verificationId, otp }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "OTP verification failed");
+      }
+
       setPhoneVerified(true);
       setOtpSent(false);
       setOtpError("");
       toast.success("Phone number verified!");
-    } catch {
-      setOtpError("Invalid OTP. Please try again.");
+    } catch (err: any) {
+      setOtpError(err.message || "Invalid OTP. Please try again.");
     } finally {
       setIsVerifying(false);
     }
@@ -96,6 +130,23 @@ export const Step2Form: React.FC = () => {
   const handleBack = () => {
     dispatch(setCurrentStep(1));
   };
+
+  // Check if all contact fields are valid before enabling Verify button
+  const isReadyToVerify = React.useMemo(() => {
+    const { firstName, lastName, gender, age, email, phone } = primaryContact;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^[6-9]\d{9}$/;
+
+    return (
+      firstName.trim().length >= 2 &&
+      lastName.trim().length >= 1 &&
+      gender !== "" &&
+      age > 0 &&
+      age <= 120 &&
+      emailRegex.test(email) &&
+      phoneRegex.test(phone)
+    );
+  }, [primaryContact]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -231,7 +282,7 @@ export const Step2Form: React.FC = () => {
               <button
                 type="button"
                 onClick={handleSendOtp}
-                disabled={isVerifying || phoneVerified || !primaryContact.phone}
+                disabled={isVerifying || phoneVerified || !isReadyToVerify}
                 className={`mt-0.5 px-5 py-3 rounded-lg font-bold text-sm transition-all whitespace-nowrap ${
                   phoneVerified
                     ? "bg-green-500 text-white cursor-default"
@@ -248,30 +299,50 @@ export const Step2Form: React.FC = () => {
 
             {/* OTP Input */}
             {otpSent && !phoneVerified && (
-              <div className="flex gap-3 items-start animate-in slide-in-from-top-2 duration-300">
-                <div className="flex-1">
-                  <input
-                    type="text"
-                    value={otp}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, "").slice(0, 6);
-                      setOtp(val);
-                      setOtpError("");
-                    }}
-                    placeholder="Enter 6-digit OTP"
-                    maxLength={6}
-                    className="w-full border border-primary rounded-lg px-4 py-3 bg-[#FFFFF0] bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder-gray-400 tracking-widest text-center font-bold text-lg"
-                  />
-                  {otpError && <p className={errorTextSmClass}>{otpError}</p>}
+              <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+                <div className="flex gap-3 items-start">
+                  <div className="flex-1">
+                    <input
+                      type="text"
+                      value={otp}
+                      onChange={(e) => {
+                        const val = e.target.value
+                          .replace(/\D/g, "")
+                          .slice(0, 6);
+                        setOtp(val);
+                        setOtpError("");
+                      }}
+                      placeholder="Enter OTP"
+                      maxLength={6}
+                      className="w-full border border-primary rounded-lg px-4 py-3 bg-[#FFFFF0] bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder-gray-400 tracking-widest text-center font-bold text-lg"
+                    />
+                    {otpError && <p className={errorTextSmClass}>{otpError}</p>}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleVerifyOtp}
+                    disabled={isVerifying || otp.length < 4}
+                    className="px-5 py-3 rounded-lg font-bold text-sm bg-new-blue text-white hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  >
+                    {isVerifying ? "Verifying..." : "Submit OTP"}
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleVerifyOtp}
-                  disabled={isVerifying || otp.length !== 6}
-                  className="px-5 py-3 rounded-lg font-bold text-sm bg-new-blue text-white hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                >
-                  {isVerifying ? "Verifying..." : "Submit OTP"}
-                </button>
+                <div className="text-right">
+                  {cooldown > 0 ? (
+                    <span className="text-xs text-gray-400">
+                      Resend OTP in {cooldown}s
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleSendOtp}
+                      disabled={isVerifying}
+                      className="text-xs text-primary font-semibold hover:underline disabled:opacity-50"
+                    >
+                      Resend OTP
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>

@@ -43,7 +43,7 @@ export const GuestCounter: React.FC = () => {
 
   return (
     <div className="space-y-2">
-      <label className={labelClass}>Total Person</label>
+      <label className={labelClass}>Total Person*</label>
       <div
         className={`flex items-center justify-between gap-4 border rounded-lg px-2 py-2 bg-[#FFFFF0] bg-opacity-80 ${error ? "border-red-500" : "border-primary"}`}
       >
