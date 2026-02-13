@@ -20,7 +20,10 @@ import arrowLineShape from "@/../public/images/shapes/arrow-line.svg";
  */
 const BookYourTripSection: React.FC = () => {
   return (
-    <section className="py-20 relative bg-white overflow-hidden">
+    <section
+      id="start-planning"
+      className="py-20 relative bg-white overflow-hidden"
+    >
       {/* Decorative Parachute (Left Top) */}
       <div className="absolute top-10 -left-10 md:left-10 w-32 md:w-48 opacity-80 pointer-events-none z-0">
         <Image src={parachuteShape} alt="" className="w-full h-auto" />

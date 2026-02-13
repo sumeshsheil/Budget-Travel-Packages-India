@@ -16,7 +16,7 @@ const Hero: React.FC = () => {
       <HeroBackground />
 
       {/* Content */}
-      <div className="container-box max-w-max w-full mx-auto relative z-2 text-center h-full flex flex-col justify-center items-center pt-32 pb-20 lg:pt-0 min-h-dvh">
+      <div className="container-box max-w-max w-full mx-auto relative z-2 text-center h-full flex flex-col justify-center items-center pt-0 pb-20 lg:pt-0 min-h-dvh">
         <HeroContent />
       </div>
       {/* Infinity Red Carousel */}

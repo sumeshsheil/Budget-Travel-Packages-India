@@ -77,6 +77,7 @@
   --color-secondary: #98050b;
   --color-secondary-text: #1d1c1c;
   --color-accent: #fed618;
+  --color-new-blue: #0055ff;
 
   /* Fonts */
   --font-inter: var(--font-inter);
@@ -219,4 +220,26 @@
   .admin-panel-p {
     @apply text-sm leading-relaxed text-muted-foreground font-open-sans;
   }
+}
+
+/* Lenis Smooth Scroll */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
 }

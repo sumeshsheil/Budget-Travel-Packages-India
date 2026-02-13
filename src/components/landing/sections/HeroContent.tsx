@@ -1,8 +1,6 @@
 "use client";
 
 import React from "react";
-import Button from "../ui/button";
-import PokeIcon from "@/components/icons/PokeIcon";
 import { motion } from "motion/react";
 
 const HeroContent: React.FC = () => {
@@ -13,18 +11,21 @@ const HeroContent: React.FC = () => {
       transition={{ duration: 0.6, ease: "easeOut" }}
       className="flex flex-col items-center"
     >
-      <h1 className="text-white max-w-[1110px] font-inter font-bold text-3xl md:text-4xl lg:text-5xl leading-tight">
+      <h1 className="text-white max-w-5xl xl:max-w-6xl font-inter font-extrabold text-4xl md:text-6xl  leading-tight tracking-tight drop-shadow-lg">
         Customized Domestic & International Tour Plan with{" "}
-        <span className="text-accent">Budget Travel Packages</span>
+        <span className="text-primary">Budget Travel Packages</span>
       </h1>
 
-      <p className="font-open-sans font-semibold text-lg md:text-xl lg:text-2xl mt-6 mb-6 max-w-[828px] text-white px-4">
+      <p className="font-open-sans font-semibold text-lg md:text-2xl mt-6 mb-8 max-w-3xl text-white/90 px-4 leading-relaxed drop-shadow-md">
         Book customized domestic & international vacation plan from India.
-        Flights, Trains, Hotels, Sightseeing & much more...(As you like it)
+        Flights, Trains, Hotels, Sightseeing & much more...
       </p>
-      <p className="font-open-sans font-bold text-primary text-lg md:text-xl lg:text-2xl  px-4">
-        Explore More, Spend Less!
-      </p>
+
+      <div className="inline-block px-6 py-2">
+        <p className="font-open-sans font-bold text-accent text-lg md:text-2xl lg:text-4xl tracking-wide drop-shadow-sm">
+          Explore More, Spend Less!
+        </p>
+      </div>
     </motion.div>
   );
 };

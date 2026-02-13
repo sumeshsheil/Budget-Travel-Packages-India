@@ -5,27 +5,11 @@ import { motion } from "motion/react";
 const Marquee: React.FC = () => {
   const titles = [
     {
-      title: "Domestic & International Tours",
+      title: "Book Domestic Packages @ ₹599",
       icon: YellowStar,
     },
     {
-      title: "Flights, Trains & Hotel Bookings",
-      icon: YellowStar,
-    },
-    {
-      title: "Transfers, Sightseeing & Activities",
-      icon: YellowStar,
-    },
-    {
-      title: "Hotels, Resorts & Cruise Ships ",
-      icon: YellowStar,
-    },
-    {
-      title: "Domestic & International Tours",
-      icon: YellowStar,
-    },
-    {
-      title: "Flights, Trains & Hotel Bookings",
+      title: "Book International Packages @ ₹999",
       icon: YellowStar,
     },
     {
@@ -33,15 +17,15 @@ const Marquee: React.FC = () => {
       icon: YellowStar,
     },
     {
-      title: "Hotels, Resorts & Cruise Ships ",
+      title: "Book Devotional Packages @ ₹333",
       icon: YellowStar,
     },
     {
-      title: "Domestic & International Tours",
+      title: "Book Domestic Packages @ ₹599",
       icon: YellowStar,
     },
     {
-      title: "Flights, Trains & Hotel Bookings",
+      title: "Book International Packages @ ₹999",
       icon: YellowStar,
     },
     {
@@ -49,9 +33,25 @@ const Marquee: React.FC = () => {
       icon: YellowStar,
     },
     {
-      title: "Hotels, Resorts & Cruise Ships ",
+      title: "Book Devotional Packages @ ₹333",
       icon: YellowStar,
     },
+    {
+      title: "Book Domestic Packages @ ₹599",
+      icon: YellowStar,
+    },
+    {
+      title: "Book International Packages @ ₹999",
+      icon: YellowStar,
+    },
+    {
+      title: "Transfers, Sightseeing & Activities",
+      icon: YellowStar,
+    },
+    {
+      title: "Book Devotional Packages @ ₹333",
+      icon: YellowStar,
+    }
   ];
   return (
     <div
@@ -65,7 +65,7 @@ const Marquee: React.FC = () => {
             initial={{ x: 0 }}
             animate={{ x: "-100%" }}
             transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-            className="flex shrink-0 items-center group-hover:[animation-play-state:paused]"
+            className="flex shrink-0 items-center group-hover:pause"
           >
             {titles.map((title, index) => (
               <div key={`original-${index}`} className="flex items-center pr-8">

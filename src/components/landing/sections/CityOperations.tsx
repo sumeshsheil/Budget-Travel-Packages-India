@@ -4,12 +4,11 @@ import React from "react";
 import Image from "next/image";
 import { motion } from "motion/react";
 import Button from "../ui/button";
+import LottieAnimation from "../../ui/LottieAnimation";
 
 import kolkataImg from "@/../public/images/city/kolkata.png";
 import delhiImg from "@/../public/images/city/delhi.png";
 import mumbaiImg from "@/../public/images/city/mumbai.png";
-import planeShape from "@/../public/images/shapes/plane.svg";
-import arrowLineShape from "@/../public/images/shapes/arrow-line.svg";
 
 const cityData = [
   {
@@ -49,36 +48,42 @@ const cityData = [
 
 const CityOperations: React.FC = () => {
   return (
-    <section className="py-20 relative overflow-hidden bg-white">
-      {/* Decorative Shapes */}
-      <div className="absolute top-10 left-4 md:left-10 w-[145px] opacity-20 md:opacity-100 pointer-events-none">
-        <Image
-          src={arrowLineShape}
-          alt=""
-          width={145}
-          height={246}
-          className="w-full h-auto"
-        />
-      </div>
-      <div className="absolute top-20 right-4 md:right-10 w-32 md:w-48 opacity-20 md:opacity-100 pointer-events-none">
-        <Image src={planeShape} alt="" width={200} height={150} />
-      </div>
+    <section className="md:pt-20 pb-10 relative overflow-hidden bg-white">
+      <div className="relative z-10 mb-0 md:mb-16 px-4 flex flex-col md:block">
+        {/* Train Animation */}
+        <div className="order-1 md:order-0 relative md:absolute md:top-20 xl:-top-10 md:left-4 lg:left-10 w-[170px] md:w-[250px] mx-auto md:mx-0 pointer-events-none mb-2 md:mb-0">
+          <LottieAnimation
+            src="/animations/train.json"
+            width="100%"
+            height="auto"
+            className="w-full h-auto opacity-65"
+          />
+        </div>
 
-      <div className="relative z-10 mb-16 md:mb-24 px-4">
         {/* Header */}
-        <div className="text-center">
-          <h2 className="text-3xl md:text-4xl lg:text-[40px] font-inter font-bold text-black leading-tight mb-6">
+        <div className="text-center order-2 md:order-0">
+          <h2 className="text-3xl md:text-4xl lg:text-[40px] xl:text-[48px] font-inter font-semibold text-black leading-tight mb-6">
             Why Budget Travel Packages Is One Of
             <br className="hidden md:block" /> The{" "}
             <span className="text-primary">
               Best Travel Companies In India?
             </span>
           </h2>
-          <div className="inline-block bg-primary px-6 py-2 rounded-full shadow-md transform hover:scale-105 transition-transform duration-300">
-            <p className="font-bold text-black text-sm md:text-base">
+          <div className="inline-block bg-primary px-6 py-2.5 rounded-full">
+            <p className="font-semibold font-inter text-black text-lg md:text-xl lg:text-2xl">
               Multi City Operations - #Kolkata | #Delhi | #Mumbai
             </p>
           </div>
+        </div>
+
+        {/* Plane Animation */}
+        <div className="order-3 md:order-0 relative md:absolute md:top-20 xl:-top-10 md:right-4 lg:right-10 w-48 md:w-72 mx-auto md:mx-0 pointer-events-none mt-0 md:mt-0">
+          <LottieAnimation
+            src="/animations/plane.json"
+            width="100%"
+            height="auto"
+            className="w-full h-auto opacity-65"
+          />
         </div>
       </div>
 
@@ -86,7 +91,10 @@ const CityOperations: React.FC = () => {
       <div className="space-y-0">
         {cityData.map((city) => (
           <div key={city.id} className="relative w-full py-16 md:py-24">
-            <div className="absolute bottom-0 left-0 w-full border-b-2 border-dashed border-secondary/50 z-20" />
+            {city.id === "kolkata" && (
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 container-box  w-full border-b-2 border-dashed border-secondary/50 z-20" />
+            )}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 container-box  w-full border-b-2 border-dashed border-secondary/50 z-20" />
 
             <div
               className={`absolute top-0 bottom-0 w-full h-full flex items-center ${
@@ -98,6 +106,14 @@ const CityOperations: React.FC = () => {
                   src={city.image}
                   alt={city.alt}
                   className="h-full w-auto object-contain object-bottom"
+                  style={
+                    city.id === "delhi"
+                      ? {
+                          filter:
+                            "brightness(0) saturate(100%) invert(54%) sepia(91%) saturate(500%) hue-rotate(359deg) brightness(103%) contrast(105%)",
+                        }
+                      : undefined
+                  }
                 />
               </div>
             </div>
@@ -118,10 +134,15 @@ const CityOperations: React.FC = () => {
                     {city.description}
                   </p>
                   <Button
-                    variant="outline"
-                    className="bg-white border border-primary text-black  text-sm md:text-base px-8 py-2 rounded-full transition-all"
+                    variant="primary"
+                    className="bg-new-blue text-white  text-sm md:text-base px-8 lg:px-16 py-2 rounded-full transition-all"
+                    onClick={() => {
+                      document
+                        .getElementById("start-planning")
+                        ?.scrollIntoView({ behavior: "smooth" });
+                    }}
                   >
-                    Customize My Trip <span className="ml-2">👉</span>
+                    Customize My Trip
                   </Button>
                 </div>
               </div>
