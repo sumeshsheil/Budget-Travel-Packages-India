@@ -17,17 +17,14 @@ const leadSchema = z.object({
   guests: z.number().min(1),
   budget: z.number().min(1),
   specialRequests: z.string().optional(),
-  travelers: z
-    .array(
-      z.object({
-        name: z.string().min(2),
-        age: z.number().min(1),
-        gender: z.enum(["male", "female", "other"]),
-        email: z.string().email(),
-        phone: z.string().min(10), // Basic check, better regex later
-      }),
-    )
-    .min(1),
+  primaryContact: z.object({
+    firstName: z.string().min(2),
+    lastName: z.string().min(1),
+    age: z.number().min(1),
+    gender: z.enum(["male", "female", "other"]),
+    email: z.string().email(),
+    phone: z.string().min(10),
+  }),
 });
 
 export async function POST(request: Request) {
@@ -64,9 +61,19 @@ export async function POST(request: Request) {
       );
     }
 
-    // 4. Create Lead
+    // 4. Transform primaryContact into travelers array for DB compatibility
+    const { primaryContact, ...rest } = validatedData;
     const lead = await Lead.create({
-      ...validatedData,
+      ...rest,
+      travelers: [
+        {
+          name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
+          age: primaryContact.age,
+          gender: primaryContact.gender,
+          email: primaryContact.email,
+          phone: primaryContact.phone,
+        },
+      ],
       source: "website",
       ipAddress: ip,
     });

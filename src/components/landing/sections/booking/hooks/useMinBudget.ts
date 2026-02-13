@@ -15,7 +15,7 @@ export const useMinBudget = () => {
   }, [duration]);
 
   const minBudget = useMemo(() => {
-    const ratePerPersonPerDay = tripType === "international" ? 1000 : 500;
+    const ratePerPersonPerDay = tripType === "international" ? 7000 : 3000;
     return guests * days * ratePerPersonPerDay;
   }, [guests, days, tripType]);
 

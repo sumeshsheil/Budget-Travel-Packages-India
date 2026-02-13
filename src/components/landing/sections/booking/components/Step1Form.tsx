@@ -20,9 +20,15 @@ import { labelClass, getInputClass, errorTextClass } from "../styles";
 
 export const Step1Form: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { destination, budget, tripType, guests } = useAppSelector(
-    (state) => state.booking.step1,
-  );
+  const {
+    destination,
+    budget,
+    tripType,
+    guests,
+    departureCity,
+    travelDate,
+    duration,
+  } = useAppSelector((state) => state.booking.step1);
   const { step1Errors, budgetError } = useAppSelector(
     (state) => state.booking.validation,
   );
@@ -54,6 +60,33 @@ export const Step1Form: React.FC = () => {
     }
   };
 
+  const isFormValid = React.useMemo(() => {
+    const budgetValue = parseFloat(budget);
+    const hasErrors = Object.keys(step1Errors).length > 0 || !!budgetError;
+    const hasEmptyFields =
+      !destination ||
+      !tripType ||
+      !departureCity ||
+      !travelDate ||
+      !duration ||
+      !budget;
+    const validGuests = guests > 0 && guests <= 30;
+    const validBudget = !isNaN(budgetValue) && budgetValue >= minBudget;
+
+    return !hasErrors && !hasEmptyFields && validGuests && validBudget;
+  }, [
+    step1Errors,
+    budgetError,
+    destination,
+    tripType,
+    departureCity,
+    travelDate,
+    duration,
+    budget,
+    guests,
+    minBudget,
+  ]);
+
   return (
     <form className="space-y-6" onSubmit={handleSubmit}>
       {/* Trip Type */}
@@ -70,6 +103,7 @@ export const Step1Form: React.FC = () => {
             onChange={(e) => dispatch(setDestination(e.target.value))}
             className={getInputClass(!!step1Errors.destination)}
             placeholder="Enter destination"
+            maxLength={15}
           />
           {step1Errors.destination && (
             <p className={errorTextClass}>{step1Errors.destination}</p>
@@ -101,7 +135,12 @@ export const Step1Form: React.FC = () => {
 
       <Button
         type="submit"
-        className="w-full bg-primary text-black font-bold py-4 rounded-lg hover:shadow-lg transition-shadow text-lg"
+        disabled={!isFormValid}
+        className={`w-full font-bold py-4 rounded-lg transition-all text-lg ${
+          isFormValid
+            ? "bg-primary text-black hover:shadow-lg"
+            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+        }`}
       >
         Next
       </Button>

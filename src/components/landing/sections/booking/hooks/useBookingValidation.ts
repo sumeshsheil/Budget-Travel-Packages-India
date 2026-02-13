@@ -3,16 +3,11 @@ import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
 import {
   setStep1Errors,
   setStep2Errors,
-  setTravelerErrors,
+  setContactErrors,
   setBudgetError,
 } from "@/lib/redux/features/bookingSlice";
-import { step1Schema, step2Schema, travelerSchema } from "../schemas";
-import type {
-  Step1Data,
-  Step2Data,
-  FieldErrors,
-  TravelerErrors,
-} from "../types";
+import { step1Schema, primaryContactSchema } from "../schemas";
+import type { Step1Data, FieldErrors, TravelerErrors } from "../types";
 import { useMinBudget } from "./useMinBudget";
 
 /**
@@ -66,57 +61,26 @@ export const useBookingValidation = () => {
   }, [dispatch, step1, days, minBudget]);
 
   const validateStep2 = useCallback((): boolean => {
-    // Validate each traveler
-    const newTravelerErrors: TravelerErrors[] = step2.travelers.map(
-      (traveler) => {
-        const result = travelerSchema.safeParse({
-          ...traveler,
-          age: traveler.age || 0,
-        });
+    const contact = step2.primaryContact;
 
-        if (!result.success) {
-          const errors: TravelerErrors = {};
-          result.error.issues.forEach((err) => {
-            const field = err.path[0] as keyof TravelerErrors;
-            if (!errors[field]) {
-              errors[field] = err.message;
-            }
-          });
-          return errors;
-        }
-        return {};
-      },
-    );
-
-    dispatch(setTravelerErrors(newTravelerErrors as Record<string, string>[]));
-
-    // Check if any traveler has errors
-    const hasErrors = newTravelerErrors.some(
-      (errors) => Object.keys(errors).length > 0,
-    );
-
-    if (hasErrors) {
-      return false;
-    }
-
-    // Validate step 2 overall
-    const result = step2Schema.safeParse({
-      specialRequests: step2.specialRequests.trim(),
-      travelers: step2.travelers,
+    const result = primaryContactSchema.safeParse({
+      ...contact,
+      age: contact.age || 0,
     });
 
     if (!result.success) {
-      const errors: FieldErrors<Step2Data> = {};
+      const errors: TravelerErrors = {};
       result.error.issues.forEach((err) => {
-        const field = err.path[0] as keyof Step2Data;
+        const field = err.path[0] as keyof TravelerErrors;
         if (!errors[field]) {
           errors[field] = err.message;
         }
       });
-      dispatch(setStep2Errors(errors as Record<string, string>));
+      dispatch(setContactErrors(errors as Record<string, string>));
       return false;
     }
 
+    dispatch(setContactErrors({}));
     dispatch(setStep2Errors({}));
     return true;
   }, [dispatch, step2]);

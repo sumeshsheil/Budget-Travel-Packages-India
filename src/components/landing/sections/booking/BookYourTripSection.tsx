@@ -48,7 +48,7 @@ const BookYourTripSection: React.FC = () => {
         <div className="flex justify-center items-center my-6">
           <span className="text-2xl">🔒</span>{" "}
           <span className="text-sm font-bold ml-2">
-            100% Best Deal with Guaranteed
+            100% Best Deal with satisfaction Guaranteed
           </span>
         </div>
       </div>

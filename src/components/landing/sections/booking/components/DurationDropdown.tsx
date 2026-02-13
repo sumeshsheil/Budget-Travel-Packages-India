@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
 import {
   setDuration,
@@ -11,6 +11,7 @@ import { labelClass, errorTextClass } from "../styles";
 
 export const DurationDropdown: React.FC = () => {
   const dispatch = useAppDispatch();
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const duration = useAppSelector((state) => state.booking.step1.duration);
   const isDurationOpen = useAppSelector(
     (state) => state.booking.ui.isDurationOpen,
@@ -19,19 +20,38 @@ export const DurationDropdown: React.FC = () => {
     (state) => state.booking.validation.step1Errors.duration,
   );
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        dispatch(closeDurationDropdown());
+      }
+    };
+
+    if (isDurationOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDurationOpen, dispatch]);
+
   const handleSelect = (value: string) => {
     dispatch(setDuration(value));
     dispatch(closeDurationDropdown());
   };
 
-  const buttonClass = `w-full border rounded-lg px-4 py-3 bg-[#F0FFF4] bg-opacity-30 flex items-center justify-between text-left focus:outline-none focus:ring-2 text-gray-700 font-medium ${
+  const buttonClass = `w-full border rounded-lg px-4 py-3 bg-[#FFFFF0] bg-opacity-80 flex items-center justify-between text-left focus:outline-none focus:ring-2 text-gray-700 font-medium ${
     error
       ? "border-red-500 focus:ring-red-500/50"
       : "border-primary focus:ring-primary/50"
   }`;
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" ref={dropdownRef}>
       <label className={labelClass}>Trip Duration *</label>
       <div className="relative">
         <button
@@ -59,8 +79,12 @@ export const DurationDropdown: React.FC = () => {
           </svg>
         </button>
         {isDurationOpen && (
-          <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto">
-            {Array.from({ length: 15 }, (_, i) => i + 1).map((day) => {
+          <div
+            data-lenis-prevent
+            className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto scrollbar-thin"
+            style={{ overscrollBehavior: "contain" }}
+          >
+            {Array.from({ length: 30 }, (_, i) => i + 1).map((day) => {
               const value = `${day} Day${day > 1 ? "s" : ""}`;
               return (
                 <div

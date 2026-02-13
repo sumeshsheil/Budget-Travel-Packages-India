@@ -12,7 +12,6 @@ export * from "./components/StepIndicator";
 export * from "./components/TripTypeSelector";
 export * from "./components/DurationDropdown";
 export * from "./components/GuestCounter";
-export * from "./components/TravelerCard";
 export * from "./components/DepartureCityCombobox";
 export * from "./components/TravelDatePicker";
 export * from "./components/FormInput";

@@ -1,7 +1,7 @@
 // ============ INPUT STYLES ============
 
 export const inputBaseClass =
-  "w-full border rounded-lg px-4 py-3 bg-[#F0FFF4] bg-opacity-30 focus:outline-none focus:ring-2 placeholder-gray-400";
+  "w-full border rounded-lg px-4 py-3 bg-[#FFFFF0] bg-opacity-80 focus:outline-none focus:ring-2 placeholder-gray-400";
 
 export const inputNormalClass = `${inputBaseClass} border-primary focus:ring-primary/50`;
 

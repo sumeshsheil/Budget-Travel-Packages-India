@@ -13,21 +13,21 @@ const packages = [
     id: 1,
     title: "Family",
     image: familyImg,
-    alt: "Happy family enjoying a vacation together",
+    alt: "family packages",
     description: "Create lasting memories with our family-friendly tours.",
   },
   {
     id: 2,
     title: "Honeymoon",
     image: honeymoonImg,
-    alt: "Couple enjoying a romantic sunset view",
+    alt: "honeymoon packages",
     description: "Experience the perfect romantic getaway.",
   },
   {
     id: 3,
     title: "Adventure",
     image: adventureImg,
-    alt: "Traveler hiking on a mountain trail",
+    alt: "adventure packages",
     description: "Thrilling adventures for the wild at heart.",
   },
 ];
@@ -47,12 +47,8 @@ const PopularPackages: React.FC = () => {
           >
             Popular Travel Packages For
             <br className="hidden md:block" /> Every{" "}
-            <span className="text-primary">Purpose & Budget</span>
+            <span className="text-secondary">Purpose & Budget</span>
           </h2>
-          <p className="text-gray-600 max-w-2xl mx-auto text-base md:text-lg">
-            Choose from our wide range of customized packages designed to fit
-            every traveler's needs.
-          </p>
         </header>
 
         {/* Packages Grid */}

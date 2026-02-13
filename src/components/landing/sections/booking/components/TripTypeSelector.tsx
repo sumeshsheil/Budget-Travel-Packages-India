@@ -9,7 +9,7 @@ export const TripTypeSelector: React.FC = () => {
   const tripType = useAppSelector((state) => state.booking.step1.tripType);
 
   const buttonBaseClass = "py-3 rounded-lg font-bold border transition-all";
-  const activeClass = "bg-primary border-primary text-black";
+  const activeClass = "bg-accent border-accent text-black";
   const inactiveClass =
     "bg-white border-gray-200 text-gray-500 hover:border-gray-300";
 
@@ -26,7 +26,7 @@ export const TripTypeSelector: React.FC = () => {
             tripType === "domestic" ? activeClass : inactiveClass
           }`}
         >
-          Domestic ₹ 599
+          Domestic
         </button>
         <button
           type="button"
@@ -35,7 +35,7 @@ export const TripTypeSelector: React.FC = () => {
             tripType === "international" ? activeClass : inactiveClass
           }`}
         >
-          International ₹999
+          International
         </button>
       </div>
     </div>

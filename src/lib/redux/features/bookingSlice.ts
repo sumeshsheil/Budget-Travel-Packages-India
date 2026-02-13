@@ -15,7 +15,7 @@ interface Step1State {
 
 interface Step2State {
   specialRequests: string;
-  travelers: Traveler[];
+  primaryContact: Traveler;
 }
 
 interface UIState {
@@ -25,7 +25,7 @@ interface UIState {
 interface ValidationState {
   step1Errors: Record<string, string>;
   step2Errors: Record<string, string>;
-  travelerErrors: Record<string, string>[];
+  contactErrors: Record<string, string>;
   budgetError: string;
 }
 
@@ -39,10 +39,11 @@ interface BookingState {
 
 // ============ INITIAL STATE ============
 
-const initialTraveler: Traveler = {
-  name: "",
+const initialContact: Traveler = {
+  firstName: "",
+  lastName: "",
   age: 0,
-  gender: "male",
+  gender: "", // The initial value is already an empty string.
   email: "",
   phone: "",
 };
@@ -60,7 +61,7 @@ const initialState: BookingState = {
   },
   step2: {
     specialRequests: "",
-    travelers: [{ ...initialTraveler }],
+    primaryContact: { ...initialContact },
   },
   ui: {
     isDurationOpen: false,
@@ -68,7 +69,7 @@ const initialState: BookingState = {
   validation: {
     step1Errors: {},
     step2Errors: {},
-    travelerErrors: [{}],
+    contactErrors: {},
     budgetError: "",
   },
 };
@@ -108,7 +109,7 @@ const bookingSlice = createSlice({
       delete state.validation.step1Errors.duration;
     },
     incrementGuests: (state) => {
-      if (state.step1.guests < 50) {
+      if (state.step1.guests < 30) {
         state.step1.guests += 1;
       }
     },
@@ -116,6 +117,10 @@ const bookingSlice = createSlice({
       if (state.step1.guests > 1) {
         state.step1.guests -= 1;
       }
+    },
+    setGuests: (state, action: PayloadAction<number>) => {
+      state.step1.guests = action.payload;
+      delete state.validation.step1Errors.guests;
     },
     setBudget: (state, action: PayloadAction<string>) => {
       state.step1.budget = action.payload;
@@ -126,33 +131,18 @@ const bookingSlice = createSlice({
     setSpecialRequests: (state, action: PayloadAction<string>) => {
       state.step2.specialRequests = action.payload;
     },
-    addTraveler: (state) => {
-      if (state.step2.travelers.length < state.step1.guests) {
-        state.step2.travelers.push({ ...initialTraveler });
-        state.validation.travelerErrors.push({});
-      }
-    },
-    removeTraveler: (state, action: PayloadAction<number>) => {
-      if (state.step2.travelers.length > 1) {
-        state.step2.travelers.splice(action.payload, 1);
-        state.validation.travelerErrors.splice(action.payload, 1);
-      }
-    },
-    updateTraveler: (
+    updatePrimaryContact: (
       state,
       action: PayloadAction<{
-        index: number;
         field: keyof Traveler;
         value: string | number;
       }>,
     ) => {
-      const { index, field, value } = action.payload;
+      const { field, value } = action.payload;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (state.step2.travelers[index] as any)[field] = value;
+      (state.step2.primaryContact as any)[field] = value;
       // Clear error for this field
-      if (state.validation.travelerErrors[index]) {
-        delete state.validation.travelerErrors[index][field];
-      }
+      delete state.validation.contactErrors[field];
     },
 
     // UI Actions
@@ -170,11 +160,11 @@ const bookingSlice = createSlice({
     setStep2Errors: (state, action: PayloadAction<Record<string, string>>) => {
       state.validation.step2Errors = action.payload;
     },
-    setTravelerErrors: (
+    setContactErrors: (
       state,
-      action: PayloadAction<Record<string, string>[]>,
+      action: PayloadAction<Record<string, string>>,
     ) => {
-      state.validation.travelerErrors = action.payload;
+      state.validation.contactErrors = action.payload;
     },
     setBudgetError: (state, action: PayloadAction<string>) => {
       state.validation.budgetError = action.payload;
@@ -197,16 +187,15 @@ export const {
   setDuration,
   incrementGuests,
   decrementGuests,
+  setGuests,
   setBudget,
   setSpecialRequests,
-  addTraveler,
-  removeTraveler,
-  updateTraveler,
+  updatePrimaryContact,
   toggleDurationDropdown,
   closeDurationDropdown,
   setStep1Errors,
   setStep2Errors,
-  setTravelerErrors,
+  setContactErrors,
   setBudgetError,
   clearStep1Error,
   resetForm,

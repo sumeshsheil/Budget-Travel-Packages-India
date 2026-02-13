@@ -1,9 +1,10 @@
 // ============ TRAVELER TYPES ============
 
 export interface Traveler {
-  name: string;
+  firstName: string;
+  lastName: string;
   age: number;
-  gender: "male" | "female" | "other";
+  gender: "" | "male" | "female" | "other";
   email: string;
   phone: string;
 }
@@ -22,7 +23,7 @@ export interface Step1Data {
 
 export interface Step2Data {
   specialRequests: string;
-  travelers: Traveler[];
+  primaryContact: Traveler;
 }
 
 // ============ ERROR TYPES ============

@@ -48,10 +48,10 @@ const cityData = [
 
 const CityOperations: React.FC = () => {
   return (
-    <section className="md:pt-20 pb-10 relative overflow-hidden bg-white">
-      <div className="relative z-10 mb-0 md:mb-16 px-4 flex flex-col md:block">
+    <section className="xl:pt-20 md:pt-10 pb-10 relative overflow-hidden bg-white">
+      <div className="relative z-10 mb-0 md:mb-16 px-4 flex flex-col md:flex-row md:flex-wrap md:justify-center md:gap-x-10 xl:block">
         {/* Train Animation */}
-        <div className="order-1 md:order-0 relative md:absolute md:top-20 xl:-top-10 md:left-4 lg:left-10 w-[170px] md:w-[250px] mx-auto md:mx-0 pointer-events-none mb-2 md:mb-0">
+        <div className="order-1 md:order-2 relative md:static xl:absolute xl:-top-10 xl:left-2 2xl:left-10 w-[170px] md:w-[250px] mx-auto xl:mx-0 pointer-events-none mb-2 md:mb-8 xl:mb-0">
           <LottieAnimation
             src="/animations/train.json"
             width="100%"
@@ -61,7 +61,7 @@ const CityOperations: React.FC = () => {
         </div>
 
         {/* Header */}
-        <div className="text-center order-2 md:order-0">
+        <div className="text-center order-2 md:order-1 md:w-full xl:w-auto">
           <h2 className="text-3xl md:text-4xl lg:text-[40px] xl:text-[48px] font-inter font-semibold text-black leading-tight mb-6">
             Why Budget Travel Packages Is One Of
             <br className="hidden md:block" /> The{" "}
@@ -69,15 +69,20 @@ const CityOperations: React.FC = () => {
               Best Travel Companies In India?
             </span>
           </h2>
-          <div className="inline-block bg-primary px-6 py-2.5 rounded-full">
-            <p className="font-semibold font-inter text-black text-lg md:text-xl lg:text-2xl">
-              Multi City Operations - #Kolkata | #Delhi | #Mumbai
+          <div className="inline-block bg-new-blue  px-6 py-2.5 mb-4 rounded-full">
+            <p className="font-semibold font-inter text-white text-lg md:text-xl lg:text-2xl">
+              Pan-India Multi-City Services
             </p>
           </div>
+          <p className="text-base md:text-lg max-w-[800px] mx-auto font-inter font-semibold text-gray-600">
+            We proudly serve travelers across 75+ cities in India, with the
+            highest number of satisfied customers from Kolkata, Delhi, and
+            Mumbai.
+          </p>
         </div>
 
         {/* Plane Animation */}
-        <div className="order-3 md:order-0 relative md:absolute md:top-20 xl:-top-10 md:right-4 lg:right-10 w-48 md:w-72 mx-auto md:mx-0 pointer-events-none mt-0 md:mt-0">
+        <div className="order-3 md:order-2 relative md:static xl:absolute xl:-top-10 xl:-right-6 2xl:right-10 w-48 md:w-72 mx-auto xl:mx-0 pointer-events-none mt-0 md:mt-0">
           <LottieAnimation
             src="/animations/plane.json"
             width="100%"

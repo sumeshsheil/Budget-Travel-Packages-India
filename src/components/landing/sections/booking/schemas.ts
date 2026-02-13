@@ -11,7 +11,7 @@ export const step1Schema = z.object({
   destination: z
     .string()
     .min(2, "Destination must be at least 2 characters")
-    .max(100, "Destination is too long"),
+    .max(15, "Destination must be at most 15 characters"),
   travelDate: z
     .string()
     .regex(
@@ -22,17 +22,21 @@ export const step1Schema = z.object({
   guests: z
     .number()
     .min(1, "At least 1 person is required")
-    .max(50, "Maximum 50 persons allowed"),
+    .max(30, "Maximum 30 persons allowed"),
   budget: z.number().min(1, "Budget is required"),
 });
 
-// ============ TRAVELER SCHEMA ============
+// ============ PRIMARY CONTACT SCHEMA ============
 
-export const travelerSchema = z.object({
-  name: z
+export const primaryContactSchema = z.object({
+  firstName: z
     .string()
-    .min(2, "Name must be at least 2 characters")
-    .max(100, "Name is too long"),
+    .min(2, "First name must be at least 2 characters")
+    .max(50, "First name is too long"),
+  lastName: z
+    .string()
+    .min(1, "Last name is required")
+    .max(50, "Last name is too long"),
   age: z
     .number({ error: "Age must be a number" })
     .min(1, "Age must be at least 1")
@@ -53,7 +57,5 @@ export const step2Schema = z.object({
     .string()
     .max(500, "Special requests cannot exceed 500 characters")
     .optional(),
-  travelers: z
-    .array(travelerSchema)
-    .min(1, "At least one traveler is required"),
+  primaryContact: primaryContactSchema,
 });
