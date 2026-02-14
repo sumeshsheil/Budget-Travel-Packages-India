@@ -71,15 +71,21 @@ export async function getAuthToken(): Promise<string> {
 
   const json = await res.json();
 
-  if (json.responseCode !== 200 || !json.data?.token) {
-    console.error("MessageCentral auth response:", json);
+  // MC auth response format: { status: 200, token: "..." }
+  const token: string | undefined = json.token || json.data?.token;
+
+  if (!token) {
+    console.error(
+      "MessageCentral auth response (no token found):",
+      JSON.stringify(json),
+    );
     throw new Error("SMS provider authentication error");
   }
 
-  cachedToken = json.data.token as string;
+  cachedToken = token;
   tokenExpiresAt = now + TOKEN_TTL_MS;
 
-  return cachedToken!;
+  return cachedToken;
 }
 
 // ============ PER-PHONE RATE LIMITER ============

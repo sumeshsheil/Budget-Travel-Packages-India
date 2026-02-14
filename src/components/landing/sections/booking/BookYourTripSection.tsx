@@ -2,11 +2,17 @@
 
 import React from "react";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { BookingFormCard } from "./components/BookingFormCard";
 
-import parachuteShape from "@/../public/images/shapes/parasute.svg";
-import boatShape from "@/../public/images/shapes/boat.svg";
 import arrowLineShape from "@/../public/images/shapes/arrow-line.svg";
+
+// Lazy-load Lottie to avoid SSR issues and reduce initial bundle
+const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
+
+// Import Lottie JSON data
+import parachuteAnimation from "@/../public/animations/parachute.json";
+import boatAnimation from "@/../public/animations/boat.json";
 
 /**
  * BookYourTrip Section
@@ -17,23 +23,24 @@ import arrowLineShape from "@/../public/images/shapes/arrow-line.svg";
  *
  * State is managed via Redux Toolkit (bookingSlice).
  * Validation is handled by Zod schemas.
+ *
+ * Decorative elements use Lottie animations (parachute + boat).
+ * Replace the JSON files in /public/animations/ with real animations.
  */
 const BookYourTripSection: React.FC = () => {
   return (
     <section
       id="start-planning"
-      className="py-20 relative bg-white overflow-hidden"
+      className="pb-20 pt-50 relative bg-white"
     >
-      {/* Decorative Parachute (Left Top) */}
-      <div className="absolute top-10 -left-10 md:left-10 w-32 md:w-48 opacity-80 pointer-events-none z-0">
-        <Image src={parachuteShape} alt="" className="w-full h-auto" />
-      </div>
-      {/* Decorative Arrow (Left) */}
-      <div className="absolute top-40 left-10 md:left-20 w-24 opacity-40 pointer-events-none hidden md:block">
-        <Image
-          src={arrowLineShape}
-          alt=""
-          className="w-full h-auto rotate-90"
+      {/* Decorative Parachute Lottie (Left Top) */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 2xl:left-10 w-64 2xl:w-100 opacity-80 pointer-events-none z-0">
+        <Lottie
+          animationData={parachuteAnimation}
+          loop
+          autoplay
+          className="w-full h-auto"
+          aria-hidden="true"
         />
       </div>
 
@@ -53,9 +60,15 @@ const BookYourTripSection: React.FC = () => {
         </div>
       </div>
 
-      {/* Decorative Boat (Right Bottom) */}
-      <div className="absolute bottom-20 -right-10 md:right-10 w-48 md:w-64 opacity-80 pointer-events-none z-20">
-        <Image src={boatShape} alt="" className="w-full h-auto" />
+      {/* Decorative Boat Lottie (Right Bottom) */}
+      <div className="absolute -bottom-16 right-10 2xl:right-10 w-60 2xl:w-100 opacity-80 pointer-events-none z-20">
+        <Lottie
+          animationData={boatAnimation}
+          loop
+          autoplay
+          className="w-full h-auto"
+          aria-hidden="true"
+        />
       </div>
     </section>
   );

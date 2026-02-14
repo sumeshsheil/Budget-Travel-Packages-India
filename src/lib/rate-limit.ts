@@ -31,7 +31,7 @@ export async function checkRateLimit(
     {
       $inc: { leadCount: 1 },
     },
-    { new: true },
+    { returnDocument: "after" },
   );
 
   // Case 1: Existing window found and incremented successfully
@@ -68,7 +68,7 @@ export async function checkRateLimit(
         blockedUntil: null,
       },
     },
-    { upsert: true, new: true },
+    { upsert: true, returnDocument: "after" },
   );
 
   return { allowed: true, remaining: MAX_LEADS_PER_HOUR - 1 };

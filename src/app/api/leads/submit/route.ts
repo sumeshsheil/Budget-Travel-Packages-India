@@ -6,6 +6,10 @@ import { logLeadActivity } from "@/lib/lead-activity";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import {
+  sendLeadConfirmationEmail,
+  sendLeadNotificationEmail,
+} from "@/lib/email";
 
 // Validation Schema matching the form
 const leadSchema = z.object({
@@ -84,6 +88,31 @@ export async function POST(request: Request) {
       action: "created",
       details: "Lead submitted via website form",
     });
+
+    // Send emails (confirmation to user, notification to admin)
+    const fullName =
+      `${primaryContact.firstName} ${primaryContact.lastName}`.trim();
+
+    // We don't await these strictly to block the response, but in serverless
+    // valid execution requires awaiting. We use Promise.allSettled to not fail the request if email fails.
+    await Promise.allSettled([
+      sendLeadConfirmationEmail({
+        name: fullName,
+        email: primaryContact.email,
+        phone: primaryContact.phone,
+        destination: validatedData.destination,
+        budget: validatedData.budget,
+        guests: validatedData.guests,
+      }),
+      sendLeadNotificationEmail({
+        name: fullName,
+        email: primaryContact.email,
+        phone: primaryContact.phone,
+        destination: validatedData.destination,
+        budget: validatedData.budget,
+        guests: validatedData.guests,
+      }),
+    ]);
 
     // Revalidate admin leads page so new lead shows up immediately
     revalidatePath("/admin/leads");

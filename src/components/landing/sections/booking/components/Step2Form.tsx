@@ -1,5 +1,11 @@
 "use client";
 
+// OTP length from MessageCentral Verify Now API (default is 4).
+const OTP_LENGTH = 4;
+
+// Supported country codes (India Only)
+const INDIA_PHONE_REGEX = /^[6-9]\d{9}$/;
+
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
@@ -16,9 +22,10 @@ import { FormSelect } from "./FormSelect";
 import { OtpInput } from "./OtpInput";
 import { useBookingValidation } from "../hooks/useBookingValidation";
 import Button from "@/components/landing/ui/button";
-import { labelClass } from "../styles";
+import { labelClass, getInputClass } from "../styles";
 import { toast } from "sonner";
 import type { Traveler } from "../types";
+import Image from "next/image";
 
 export const Step2Form: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -37,6 +44,7 @@ export const Step2Form: React.FC = () => {
   const [otpError, setOtpError] = useState("");
   const [verificationId, setVerificationId] = useState("");
   const [cooldown, setCooldown] = useState(0);
+
   const router = useRouter();
 
   // Cooldown timer for resend
@@ -59,13 +67,9 @@ export const Step2Form: React.FC = () => {
   };
 
   const handleSendOtp = async () => {
-    // Validate phone number first
-    const phoneRegex = /^[6-9]\d{9}$/;
-    if (!phoneRegex.test(primaryContact.phone)) {
-      dispatch(
-        updatePrimaryContact({ field: "phone", value: primaryContact.phone }),
-      );
-      toast.error("Please enter a valid 10-digit phone number");
+    // Validate phone number for India
+    if (!INDIA_PHONE_REGEX.test(primaryContact.phone)) {
+      toast.error("Please enter a valid 10-digit Indian phone number");
       return;
     }
 
@@ -75,7 +79,10 @@ export const Step2Form: React.FC = () => {
       const res = await fetch("/api/otp/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ phone: primaryContact.phone }),
+        body: JSON.stringify({
+          phone: primaryContact.phone,
+          countryCode: "91",
+        }),
       });
 
       const data = await res.json();
@@ -87,7 +94,7 @@ export const Step2Form: React.FC = () => {
       setVerificationId(data.verificationId);
       setOtpSent(true);
       setCooldown(30);
-      toast.success("OTP sent to +91 " + primaryContact.phone);
+      toast.success(`OTP sent to +91 ${primaryContact.phone}`);
     } catch (err: unknown) {
       const message =
         err instanceof Error
@@ -100,7 +107,7 @@ export const Step2Form: React.FC = () => {
   };
 
   const handleVerifyOtp = async () => {
-    if (otp.length < 4 || otp.length > 6) {
+    if (otp.length !== OTP_LENGTH) {
       setOtpError("Please enter the complete OTP");
       return;
     }
@@ -111,7 +118,12 @@ export const Step2Form: React.FC = () => {
       const res = await fetch("/api/otp/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ verificationId, otp }),
+        body: JSON.stringify({
+          verificationId,
+          otp,
+          phone: primaryContact.phone,
+          countryCode: "91",
+        }),
       });
 
       const data = await res.json();
@@ -141,7 +153,6 @@ export const Step2Form: React.FC = () => {
   const isReadyToVerify = React.useMemo(() => {
     const { firstName, lastName, gender, age, email, phone } = primaryContact;
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const phoneRegex = /^[6-9]\d{9}$/;
 
     return (
       firstName.trim().length >= 2 &&
@@ -150,7 +161,8 @@ export const Step2Form: React.FC = () => {
       age > 0 &&
       age <= 120 &&
       emailRegex.test(email) &&
-      phoneRegex.test(phone)
+      emailRegex.test(email) &&
+      INDIA_PHONE_REGEX.test(phone)
     );
   }, [primaryContact]);
 
@@ -277,33 +289,47 @@ export const Step2Form: React.FC = () => {
               error={contactErrors.email}
             />
 
-            <div className="flex gap-3 items-start">
-              <div className="flex-1">
-                <FormInput
+            <div className="space-y-1">
+              <div className="relative">
+                <div className="absolute left-2 top-1/2 -translate-y-1/2 z-10 font-medium text-gray-500 flex items-center gap-1 select-none pointer-events-none">
+                  <Image
+                    src="/images/flag/india.jpg"
+                    alt="India"
+                    width={20}
+                    height={20}
+                  />
+                  <span>+91</span>
+                </div>
+                <input
                   type="tel"
                   value={primaryContact.phone}
                   onChange={(e) => handleChange("phone", e.target.value)}
-                  placeholder="Phone No. (10 digits)"
+                  placeholder="Phone"
                   maxLength={10}
-                  error={contactErrors.phone}
+                  className={`${getInputClass(!!contactErrors.phone)} pl-16 pr-24`} // padding for prefix & Verify button
                 />
+                <div className="absolute right-0 top-0 h-full flex items-center pr-1">
+                  <button
+                    type="button"
+                    onClick={handleSendOtp}
+                    disabled={isVerifying || phoneVerified || !isReadyToVerify}
+                    className={`px-4 py-2 rounded-md font-bold text-xs transition-all whitespace-nowrap ${
+                      phoneVerified
+                        ? "bg-green-500 text-white cursor-default"
+                        : "bg-primary text-black hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                    }`}
+                  >
+                    {phoneVerified
+                      ? "✓ Verified"
+                      : isVerifying
+                        ? "Sending..."
+                        : "Verify"}
+                  </button>
+                </div>
               </div>
-              <button
-                type="button"
-                onClick={handleSendOtp}
-                disabled={isVerifying || phoneVerified || !isReadyToVerify}
-                className={`mt-0.5 px-5 py-3 rounded-lg font-bold text-sm transition-all whitespace-nowrap ${
-                  phoneVerified
-                    ? "bg-green-500 text-white cursor-default"
-                    : "bg-primary text-black hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
-                }`}
-              >
-                {phoneVerified
-                  ? "✓ Verified"
-                  : isVerifying
-                    ? "Sending..."
-                    : "Verify"}
-              </button>
+              {contactErrors.phone && (
+                <p className="text-red-500 text-xs">{contactErrors.phone}</p>
+              )}
             </div>
           </div>
 
@@ -312,7 +338,7 @@ export const Step2Form: React.FC = () => {
             <div className="space-y-4 animate-in slide-in-from-top-2 duration-300 pt-2">
               <div className="text-center">
                 <p className="text-sm text-gray-500 mb-3">
-                  Enter the 6-digit OTP sent to{" "}
+                  Enter the {OTP_LENGTH}-digit OTP sent to{" "}
                   <span className="font-semibold text-black">
                     +91 {primaryContact.phone}
                   </span>
@@ -325,7 +351,7 @@ export const Step2Form: React.FC = () => {
                   setOtp(val);
                   setOtpError("");
                 }}
-                length={6}
+                length={OTP_LENGTH}
                 error={otpError}
                 disabled={isVerifying}
               />
@@ -350,8 +376,8 @@ export const Step2Form: React.FC = () => {
                 <button
                   type="button"
                   onClick={handleVerifyOtp}
-                  disabled={isVerifying || otp.length < 6}
-                  className="px-6 py-2.5 rounded-lg font-bold text-sm bg-new-blue text-white hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  disabled={isVerifying || otp.length < OTP_LENGTH}
+                  className="px-6 py-2.5 rounded-lg font-bold text-sm bg-primary text-black hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
                 >
                   {isVerifying ? (
                     <span className="flex items-center gap-2">

@@ -7,28 +7,46 @@ import {
 } from "@/lib/sms";
 
 const MC_BASE_URL = "https://cpaas.messagecentral.com";
+const MC_CUSTOMER_ID = process.env.MC_CUSTOMER_ID!;
+
+// Supported country codes for phone verification
+const SUPPORTED_COUNTRIES: Record<string, { regex: RegExp; label: string }> = {
+  "91": { regex: /^[6-9]\d{9}$/, label: "Indian (10 digits)" },
+  "880": { regex: /^1[3-9]\d{8}$/, label: "Bangladeshi (11 digits)" },
+};
 
 /**
  * POST /api/otp/send
- * Sends an OTP to the given phone number via MessageCentral
+ * Sends an OTP via MessageCentral Verify Now (OTP Service)
  *
- * Body: { phone: string }
+ * Body: { phone: string, countryCode?: string }
  * Returns: { success: true, verificationId: string }
  */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { phone } = body;
+    const { phone, countryCode = "91" } = body;
 
     // --- TEST MODE BYPASS ---
     if (isTestPhone(phone)) {
       return NextResponse.json(getTestSendResponse());
     }
 
-    // Validate phone
-    if (!phone || !/^[6-9]\d{9}$/.test(phone)) {
+    // Validate country code
+    const country = SUPPORTED_COUNTRIES[countryCode];
+    if (!country) {
       return NextResponse.json(
-        { error: "Please provide a valid 10-digit Indian phone number" },
+        {
+          error: `Unsupported country code. Supported: ${Object.keys(SUPPORTED_COUNTRIES).join(", ")}`,
+        },
+        { status: 400 },
+      );
+    }
+
+    // Validate phone number format
+    if (!phone || !country.regex.test(phone)) {
+      return NextResponse.json(
+        { error: `Please provide a valid ${country.label} phone number` },
         { status: 400 },
       );
     }
@@ -48,40 +66,41 @@ export async function POST(request: Request) {
     // 1. Get cached auth token
     const authToken = await getAuthToken();
 
-    // 2. Send OTP via MessageCentral
-    const sendUrl = `${MC_BASE_URL}/verification/v3/send?countryCode=91&flowType=SMS&mobileNumber=${phone}&type=SMS`;
+    // 2. Send OTP via MessageCentral Verify Now (minimal params)
+    const sendUrl = `${MC_BASE_URL}/verification/v3/send?countryCode=${countryCode}&customerId=${encodeURIComponent(MC_CUSTOMER_ID)}&flowType=SMS&mobileNumber=${phone}`;
+
+    console.log("MC Send OTP:", sendUrl);
 
     const sendRes = await fetch(sendUrl, {
       method: "POST",
-      headers: {
-        authToken,
-        accept: "*/*",
-      },
+      headers: { authToken },
     });
-
-    if (!sendRes.ok) {
-      const text = await sendRes.text();
-      console.error("MessageCentral send OTP failed:", sendRes.status, text);
-      return NextResponse.json(
-        { error: "Failed to send OTP. Please try again." },
-        { status: 500 },
-      );
-    }
 
     const sendJson = await sendRes.json();
 
     if (sendJson.responseCode !== 200 || !sendJson.data?.verificationId) {
-      console.error("MessageCentral send OTP response:", sendJson);
+      const mcMessage =
+        sendJson.message || sendJson.data?.errorMessage || "Unknown error";
+      const mcCode = sendJson.responseCode || sendRes.status;
 
-      if (sendJson.responseCode === 800) {
+      console.error(`MessageCentral send OTP failed [${mcCode}]: ${mcMessage}`);
+
+      if (mcCode === 800) {
         return NextResponse.json(
           { error: "Maximum OTP limit reached. Please try again later." },
           { status: 429 },
         );
       }
 
+      if (mcCode === 913 || mcMessage === "SMS_SUBSCRIPTION_NOT_ACTIVE") {
+        return NextResponse.json(
+          { error: "SMS service is not active. Please contact support." },
+          { status: 503 },
+        );
+      }
+
       return NextResponse.json(
-        { error: sendJson.data?.errorMessage || "Failed to send OTP" },
+        { error: "Failed to send OTP. Please try again." },
         { status: 500 },
       );
     }
