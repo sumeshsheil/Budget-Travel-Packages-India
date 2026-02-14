@@ -1,36 +1,12 @@
 import { NextResponse } from "next/server";
+import {
+  isTestPhone,
+  getTestSendResponse,
+  getAuthToken,
+  checkPhoneRateLimit,
+} from "@/lib/sms";
 
 const MC_BASE_URL = "https://cpaas.messagecentral.com";
-const MC_CUSTOMER_ID = process.env.MC_CUSTOMER_ID!;
-const MC_API_KEY = process.env.MC_API_KEY!; // Base64 encoded password
-const MC_SENDER_ID = process.env.MC_SENDER_ID || "UTOMOB";
-
-/**
- * Helper: Fetches a fresh auth token from MessageCentral
- */
-async function getAuthToken(): Promise<string> {
-  const url = `${MC_BASE_URL}/auth/v1/authentication/token?customerId=${encodeURIComponent(MC_CUSTOMER_ID)}&key=${encodeURIComponent(MC_API_KEY)}&scope=NEW&country=91`;
-
-  const res = await fetch(url, {
-    method: "GET",
-    headers: { accept: "*/*" },
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    console.error("MessageCentral auth failed:", res.status, text);
-    throw new Error("Failed to authenticate with SMS provider");
-  }
-
-  const json = await res.json();
-
-  if (json.responseCode !== 200 || !json.data?.token) {
-    console.error("MessageCentral auth response:", json);
-    throw new Error("SMS provider authentication error");
-  }
-
-  return json.data.token;
-}
 
 /**
  * POST /api/otp/send
@@ -44,6 +20,11 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { phone } = body;
 
+    // --- TEST MODE BYPASS ---
+    if (isTestPhone(phone)) {
+      return NextResponse.json(getTestSendResponse());
+    }
+
     // Validate phone
     if (!phone || !/^[6-9]\d{9}$/.test(phone)) {
       return NextResponse.json(
@@ -52,7 +33,19 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. Get auth token
+    // Per-phone rate limit
+    const { allowed } = checkPhoneRateLimit(phone);
+    if (!allowed) {
+      return NextResponse.json(
+        {
+          error:
+            "Too many OTP requests for this number. Please try again later.",
+        },
+        { status: 429 },
+      );
+    }
+
+    // 1. Get cached auth token
     const authToken = await getAuthToken();
 
     // 2. Send OTP via MessageCentral
@@ -80,7 +73,6 @@ export async function POST(request: Request) {
     if (sendJson.responseCode !== 200 || !sendJson.data?.verificationId) {
       console.error("MessageCentral send OTP response:", sendJson);
 
-      // Handle specific error codes
       if (sendJson.responseCode === 800) {
         return NextResponse.json(
           { error: "Maximum OTP limit reached. Please try again later." },

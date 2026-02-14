@@ -16,6 +16,7 @@ interface Step1State {
 interface Step2State {
   specialRequests: string;
   primaryContact: Traveler;
+  phoneVerified: boolean;
 }
 
 interface UIState {
@@ -62,6 +63,7 @@ const initialState: BookingState = {
   step2: {
     specialRequests: "",
     primaryContact: { ...initialContact },
+    phoneVerified: false,
   },
   ui: {
     isDurationOpen: false,
@@ -131,6 +133,9 @@ const bookingSlice = createSlice({
     setSpecialRequests: (state, action: PayloadAction<string>) => {
       state.step2.specialRequests = action.payload;
     },
+    setPhoneVerified: (state, action: PayloadAction<boolean>) => {
+      state.step2.phoneVerified = action.payload;
+    },
     updatePrimaryContact: (
       state,
       action: PayloadAction<{
@@ -143,6 +148,10 @@ const bookingSlice = createSlice({
       (state.step2.primaryContact as any)[field] = value;
       // Clear error for this field
       delete state.validation.contactErrors[field];
+      // Reset phone verification if phone changes
+      if (field === "phone") {
+        state.step2.phoneVerified = false;
+      }
     },
 
     // UI Actions
@@ -190,6 +199,7 @@ export const {
   setGuests,
   setBudget,
   setSpecialRequests,
+  setPhoneVerified,
   updatePrimaryContact,
   toggleDurationDropdown,
   closeDurationDropdown,

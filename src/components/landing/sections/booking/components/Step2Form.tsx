@@ -6,22 +6,24 @@ import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
 import {
   setSpecialRequests,
   updatePrimaryContact,
+  setPhoneVerified,
   setCurrentStep,
   resetForm,
 } from "@/lib/redux/features/bookingSlice";
 import { FormTextarea } from "./FormTextarea";
 import { FormInput } from "./FormInput";
 import { FormSelect } from "./FormSelect";
+import { OtpInput } from "./OtpInput";
 import { useBookingValidation } from "../hooks/useBookingValidation";
 import Button from "@/components/landing/ui/button";
-import { labelClass, errorTextClass, errorTextSmClass } from "../styles";
+import { labelClass } from "../styles";
 import { toast } from "sonner";
 import type { Traveler } from "../types";
 
 export const Step2Form: React.FC = () => {
   const dispatch = useAppDispatch();
   const step1 = useAppSelector((state) => state.booking.step1);
-  const { specialRequests, primaryContact } = useAppSelector(
+  const { specialRequests, primaryContact, phoneVerified } = useAppSelector(
     (state) => state.booking.step2,
   );
   const contactErrors = useAppSelector(
@@ -33,7 +35,6 @@ export const Step2Form: React.FC = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [otpError, setOtpError] = useState("");
-  const [phoneVerified, setPhoneVerified] = useState(false);
   const [verificationId, setVerificationId] = useState("");
   const [cooldown, setCooldown] = useState(0);
   const router = useRouter();
@@ -47,9 +48,8 @@ export const Step2Form: React.FC = () => {
 
   const handleChange = (field: keyof Traveler, value: string | number) => {
     dispatch(updatePrimaryContact({ field, value }));
-    // Reset phone verification if phone changes
+    // Phone change resets verified state in Redux (handled by the slice)
     if (field === "phone") {
-      setPhoneVerified(false);
       setOtpSent(false);
       setOtp("");
       setOtpError("");
@@ -86,10 +86,14 @@ export const Step2Form: React.FC = () => {
 
       setVerificationId(data.verificationId);
       setOtpSent(true);
-      setCooldown(30); // 30 second cooldown before resend
+      setCooldown(30);
       toast.success("OTP sent to +91 " + primaryContact.phone);
-    } catch (err: any) {
-      toast.error(err.message || "Failed to send OTP. Please try again.");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Failed to send OTP. Please try again.";
+      toast.error(message);
     } finally {
       setIsVerifying(false);
     }
@@ -97,7 +101,7 @@ export const Step2Form: React.FC = () => {
 
   const handleVerifyOtp = async () => {
     if (otp.length < 4 || otp.length > 6) {
-      setOtpError("Please enter a valid OTP");
+      setOtpError("Please enter the complete OTP");
       return;
     }
 
@@ -116,12 +120,14 @@ export const Step2Form: React.FC = () => {
         throw new Error(data.error || "OTP verification failed");
       }
 
-      setPhoneVerified(true);
+      dispatch(setPhoneVerified(true));
       setOtpSent(false);
       setOtpError("");
       toast.success("Phone number verified!");
-    } catch (err: any) {
-      setOtpError(err.message || "Invalid OTP. Please try again.");
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Invalid OTP. Please try again.";
+      setOtpError(message);
     } finally {
       setIsVerifying(false);
     }
@@ -179,8 +185,12 @@ export const Step2Form: React.FC = () => {
       dispatch(resetForm());
 
       router.push("/thank-you");
-    } catch (error: any) {
-      toast.error(error.message || "Something went wrong. Please try again.");
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again.";
+      toast.error(message);
       console.error("Submission error:", error);
     } finally {
       setIsSubmitting(false);
@@ -231,32 +241,34 @@ export const Step2Form: React.FC = () => {
             />
           </div>
 
-          {/* Row 2: Gender + Age (half) | Email (half) */}
+          {/* Row 2: Gender + Age */}
+          <div className="grid grid-cols-2 gap-4">
+            <FormSelect
+              value={primaryContact.gender}
+              onChange={(e) =>
+                handleChange(
+                  "gender",
+                  e.target.value as "" | "male" | "female" | "other",
+                )
+              }
+              options={genderOptions}
+              error={contactErrors.gender}
+            />
+            <FormInput
+              type="number"
+              value={primaryContact.age || ""}
+              onChange={(e) =>
+                handleChange("age", parseInt(e.target.value) || 0)
+              }
+              placeholder="Age"
+              min="1"
+              max="120"
+              error={contactErrors.age}
+            />
+          </div>
+
+          {/* Row 3: Email + Phone with Verify */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormSelect
-                value={primaryContact.gender}
-                onChange={(e) =>
-                  handleChange(
-                    "gender",
-                    e.target.value as "" | "male" | "female" | "other",
-                  )
-                }
-                options={genderOptions}
-                error={contactErrors.gender}
-              />
-              <FormInput
-                type="number"
-                value={primaryContact.age || ""}
-                onChange={(e) =>
-                  handleChange("age", parseInt(e.target.value) || 0)
-                }
-                placeholder="Age"
-                min="1"
-                max="120"
-                error={contactErrors.age}
-              />
-            </div>
             <FormInput
               type="email"
               value={primaryContact.email}
@@ -264,10 +276,7 @@ export const Step2Form: React.FC = () => {
               placeholder="Email"
               error={contactErrors.email}
             />
-          </div>
 
-          {/* Row 3: Phone + Verify Button */}
-          <div className="space-y-3">
             <div className="flex gap-3 items-start">
               <div className="flex-1">
                 <FormInput
@@ -296,38 +305,33 @@ export const Step2Form: React.FC = () => {
                     : "Verify"}
               </button>
             </div>
+          </div>
 
-            {/* OTP Input */}
-            {otpSent && !phoneVerified && (
-              <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
-                <div className="flex gap-3 items-start">
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      value={otp}
-                      onChange={(e) => {
-                        const val = e.target.value
-                          .replace(/\D/g, "")
-                          .slice(0, 6);
-                        setOtp(val);
-                        setOtpError("");
-                      }}
-                      placeholder="Enter OTP"
-                      maxLength={6}
-                      className="w-full border border-primary rounded-lg px-4 py-3 bg-[#FFFFF0] bg-opacity-80 focus:outline-none focus:ring-2 focus:ring-primary/50 placeholder-gray-400 tracking-widest text-center font-bold text-lg"
-                    />
-                    {otpError && <p className={errorTextSmClass}>{otpError}</p>}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleVerifyOtp}
-                    disabled={isVerifying || otp.length < 4}
-                    className="px-5 py-3 rounded-lg font-bold text-sm bg-new-blue text-white hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                  >
-                    {isVerifying ? "Verifying..." : "Submit OTP"}
-                  </button>
-                </div>
-                <div className="text-right">
+          {/* OTP Box Input */}
+          {otpSent && !phoneVerified && (
+            <div className="space-y-4 animate-in slide-in-from-top-2 duration-300 pt-2">
+              <div className="text-center">
+                <p className="text-sm text-gray-500 mb-3">
+                  Enter the 6-digit OTP sent to{" "}
+                  <span className="font-semibold text-black">
+                    +91 {primaryContact.phone}
+                  </span>
+                </p>
+              </div>
+
+              <OtpInput
+                value={otp}
+                onChange={(val) => {
+                  setOtp(val);
+                  setOtpError("");
+                }}
+                length={6}
+                error={otpError}
+                disabled={isVerifying}
+              />
+
+              <div className="flex items-center justify-between">
+                <div>
                   {cooldown > 0 ? (
                     <span className="text-xs text-gray-400">
                       Resend OTP in {cooldown}s
@@ -343,14 +347,25 @@ export const Step2Form: React.FC = () => {
                     </button>
                   )}
                 </div>
+                <button
+                  type="button"
+                  onClick={handleVerifyOtp}
+                  disabled={isVerifying || otp.length < 6}
+                  className="px-6 py-2.5 rounded-lg font-bold text-sm bg-new-blue text-white hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                >
+                  {isVerifying ? (
+                    <span className="flex items-center gap-2">
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Verifying...
+                    </span>
+                  ) : (
+                    "Submit OTP"
+                  )}
+                </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
-
-        {contactErrors.phone && !otpSent && (
-          <p className={errorTextClass}>{contactErrors.phone}</p>
-        )}
       </div>
 
       {/* Action Buttons */}

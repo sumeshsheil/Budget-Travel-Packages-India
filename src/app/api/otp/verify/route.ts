@@ -1,32 +1,13 @@
 import { NextResponse } from "next/server";
+import {
+  isTestVerification,
+  getTestVerifyResponse,
+  getAuthToken,
+  MC_ERROR_MESSAGES,
+  getMCErrorStatus,
+} from "@/lib/sms";
 
 const MC_BASE_URL = "https://cpaas.messagecentral.com";
-const MC_CUSTOMER_ID = process.env.MC_CUSTOMER_ID!;
-const MC_API_KEY = process.env.MC_API_KEY!; // Base64 encoded password
-
-/**
- * Helper: Fetches a fresh auth token from MessageCentral
- */
-async function getAuthToken(): Promise<string> {
-  const url = `${MC_BASE_URL}/auth/v1/authentication/token?customerId=${encodeURIComponent(MC_CUSTOMER_ID)}&key=${encodeURIComponent(MC_API_KEY)}&scope=NEW&country=91`;
-
-  const res = await fetch(url, {
-    method: "GET",
-    headers: { accept: "*/*" },
-  });
-
-  if (!res.ok) {
-    throw new Error("Failed to authenticate with SMS provider");
-  }
-
-  const json = await res.json();
-
-  if (json.responseCode !== 200 || !json.data?.token) {
-    throw new Error("SMS provider authentication error");
-  }
-
-  return json.data.token;
-}
 
 /**
  * POST /api/otp/verify
@@ -39,6 +20,11 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { verificationId, otp } = body;
+
+    // --- TEST MODE BYPASS ---
+    if (isTestVerification(verificationId, otp)) {
+      return NextResponse.json(getTestVerifyResponse());
+    }
 
     // Validate inputs
     if (!verificationId || typeof verificationId !== "string") {
@@ -55,7 +41,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // 1. Get auth token
+    // 1. Get cached auth token
     const authToken = await getAuthToken();
 
     // 2. Validate OTP via MessageCentral
@@ -80,16 +66,8 @@ export async function POST(request: Request) {
     }
 
     // Error handling based on MessageCentral response codes
-    const errorMessages: Record<number, string> = {
-      700: "Verification failed. Please request a new OTP.",
-      702: "Wrong OTP entered. Please try again.",
-      703: "This number has already been verified.",
-      705: "OTP has expired. Please request a new one.",
-      800: "Maximum attempts reached. Please try again later.",
-    };
-
     const errorMessage =
-      errorMessages[validateJson.responseCode] ||
+      MC_ERROR_MESSAGES[validateJson.responseCode] ||
       validateJson.data?.errorMessage ||
       "OTP verification failed";
 
@@ -98,16 +76,7 @@ export async function POST(request: Request) {
         error: errorMessage,
         code: validateJson.responseCode,
       },
-      {
-        status:
-          validateJson.responseCode === 702
-            ? 400
-            : validateJson.responseCode === 705
-              ? 410
-              : validateJson.responseCode === 800
-                ? 429
-                : 400,
-      },
+      { status: getMCErrorStatus(validateJson.responseCode) },
     );
   } catch (error: unknown) {
     console.error(
