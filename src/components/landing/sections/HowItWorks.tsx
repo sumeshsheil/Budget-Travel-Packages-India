@@ -91,7 +91,7 @@ const HowItWorks: React.FC = () => {
           </p>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 ">
+        <div className="flex flex-col-reverse items-center gap-y-16 xl:flex-row xl:justify-between">
           {/* Timeline */}
           <div
             ref={timelineRef}
@@ -114,7 +114,7 @@ const HowItWorks: React.FC = () => {
                   aria-label={`Step ${step.id}: ${step.title}`}
                 >
                   <div
-                    className={`lg:w-20 lg:h-20 w-14 h-14 rounded-full before:content-[''] before:absolute lg:before:h-24 lg:before:w-24 before:h-20 before:w-20 before:p-6 before:bg-transparent before:border before:border-secondary before:rounded-full before:z-0 shadow-md flex items-center justify-center text-primary font-semibold text-xl lg:text-3xl shrink-0 ${step.color} relative z-10`}
+                    className={`lg:w-20 lg:h-20 w-14 bg-accent h-14 rounded-full before:content-[''] before:absolute lg:before:h-24 lg:before:w-24 before:h-20 before:w-20 before:p-6 before:bg-transparent before:border before:border-secondary before:rounded-full before:z-0 shadow-md flex items-center justify-center text-secondary font-semibold text-xl lg:text-3xl shrink-0 ${step.color} relative z-10`}
                     aria-hidden="true"
                   >
                     {step.id}
@@ -137,55 +137,63 @@ const HowItWorks: React.FC = () => {
             className="relative flex items-stretch lg:justify-end justify-center"
             style={{ height: videoHeight ? `${videoHeight}px` : "auto" }}
           >
-            <div
-              className="relative overflow-hidden w-auto h-full group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2"
-              onClick={togglePlay}
-              onKeyDown={handleKeyDown}
-              tabIndex={0}
-              role="button"
-              aria-label={isPlaying ? "Pause video" : "Play video"}
-              aria-pressed={isPlaying}
-            >
-              {/* Video */}
-              <video
-                ref={videoRef}
-                src="/videos/helpingvideo.mp4"
-                className="w-auto h-full object-contain rounded-lg"
-                loop
-                playsInline
-                aria-label="How it works explainer video"
+            <div className="relative h-full w-fit">
+              {/* Green Shape */}
+              <div
+                className="absolute top-3 left-3 w-full h-full bg-[#34D399] rounded-[20px] -z-10"
+                aria-hidden="true"
               />
 
-              {/* Overlay - shown when video is not playing */}
               <div
-                className={`absolute inset-0 transition-opacity duration-300 flex items-center justify-center ${
-                  isPlaying ? "opacity-0 pointer-events-none" : "opacity-100"
-                }`}
-                aria-hidden={isPlaying}
+                className="relative overflow-hidden w-auto h-full group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary focus-visible:ring-offset-2 rounded-[20px]"
+                onClick={togglePlay}
+                onKeyDown={handleKeyDown}
+                tabIndex={0}
+                role="button"
+                aria-label={isPlaying ? "Pause video" : "Play video"}
+                aria-pressed={isPlaying}
               >
-                {/* Play Button */}
-                <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg transform transition-transform duration-300 hover:scale-110 group-hover:scale-110">
-                  <Play
-                    className="w-8 h-8 md:w-10 md:h-10 text-secondary ml-1"
-                    aria-hidden="true"
-                  />
-                </div>
-              </div>
+                {/* Video */}
+                <video
+                  ref={videoRef}
+                  src="/videos/helpingvideo.mp4"
+                  className="w-auto h-full object-contain rounded-[20px]"
+                  loop
+                  playsInline
+                  aria-label="How it works explainer video"
+                />
 
-              {/* Pause indicator - shown briefly when playing, on hover */}
-              <div
-                className={`absolute inset-0 bg-black/20 transition-opacity duration-300 flex items-center justify-center ${
-                  isPlaying
-                    ? "opacity-0 group-hover:opacity-100"
-                    : "opacity-0 pointer-events-none"
-                }`}
-                aria-hidden="true"
-              >
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-lg">
-                  <Pause
-                    className="w-6 h-6 md:w-8 md:h-8 text-secondary"
-                    aria-hidden="true"
-                  />
+                {/* Overlay - shown when video is not playing */}
+                <div
+                  className={`absolute inset-0 transition-opacity duration-300 flex items-center justify-center ${
+                    isPlaying ? "opacity-0 pointer-events-none" : "opacity-100"
+                  }`}
+                  aria-hidden={isPlaying}
+                >
+                  {/* Play Button */}
+                  <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg transform transition-transform duration-300 hover:scale-110 group-hover:scale-110">
+                    <Play
+                      className="w-8 h-8 md:w-10 md:h-10 text-secondary ml-1"
+                      aria-hidden="true"
+                    />
+                  </div>
+                </div>
+
+                {/* Pause indicator - shown briefly when playing, on hover */}
+                <div
+                  className={`absolute inset-0 bg-black/20 transition-opacity duration-300 flex items-center justify-center ${
+                    isPlaying
+                      ? "opacity-0 group-hover:opacity-100"
+                      : "opacity-0 pointer-events-none"
+                  }`}
+                  aria-hidden="true"
+                >
+                  <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-white/80 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                    <Pause
+                      className="w-6 h-6 md:w-8 md:h-8 text-secondary"
+                      aria-hidden="true"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

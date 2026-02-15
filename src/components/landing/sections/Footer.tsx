@@ -28,344 +28,281 @@ const Footer: React.FC = () => {
         <div className="relative z-10 pt-6 lg:pt-10">
           <div className="container-box">
             {/* Desktop Layout - lg and above */}
-            <div className="hidden lg:grid lg:grid-cols-[280px_1fr_1fr_1fr] gap-x-8">
-              {/* Row 1: Empty cell + Multi City Operations Title spanning 3 columns */}
-              <div className="row-start-1"></div>
-              <div className="row-start-1 col-span-3 pb-3 border-b border-primary">
-                <h2 className="text-black text-center font-bold text-xl font-open-sans">
-                  Multi City Operations:
-                </h2>
-              </div>
-
-              {/* Row 2: Logo section (includes Contact button) + 3 Office columns */}
-              <div className="row-start-2 pt-4 flex flex-col gap-3">
+            <div className="hidden lg:flex justify-between gap-8 xl:gap-12">
+              {/* Col 1: Logo Section */}
+              <div className="shrink-0 pt-4 flex flex-col gap-4">
                 {/* Logo */}
                 <Link href="/" className="inline-block">
                   <Image
                     src={logo}
                     alt="Budget Travel Packages"
-                    width={172}
-                    height={73}
-                    className="w-auto h-auto"
+                    width={200}
+                    height={85}
+                    className="w-auto h-auto max-w-[180px] xl:max-w-[220px]"
                   />
                 </Link>
-
-                {/* UDYAM Number with Verified Icon */}
-                <div className="flex items-center gap-2">
-                  <span className="text-black font-medium text-base whitespace-nowrap font-open-sans">
-                    UDYAM-WB-14-0235424
-                  </span>
-                  <Image
-                    src="/images/footer/trust-badge/ssl.svg"
-                    alt="Verified"
-                    width={18}
-                    height={18}
-                    className="w-[40px] h-auto"
-                  />
-                </div>
 
                 {/* Trust Badges */}
-                <div className="flex items-center gap-2">
-                  <Image
-                    src="/images/footer/trust-badge/100.svg"
-                    alt="100% Trusted"
-                    width={28}
-                    height={28}
-                    className="w-[40px] h-auto"
-                  />
-                  <Image
-                    src="/images/footer/trust-badge/guard.svg"
-                    alt="Secure"
-                    width={28}
-                    height={28}
-                    className="w-[40px] h-auto"
-                  />
-                  <Image
-                    src="/images/footer/trust-badge/lock.svg"
-                    alt="Protected"
-                    width={28}
-                    height={28}
-                    className="w-[40px] h-auto"
-                  />
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-3 bg-gray-50/50 w-fit p-1.5 rounded-lg border border-gray-100">
+                    <Image
+                      src="/images/footer/trust-badge/msme.png"
+                      alt="Verified MSME"
+                      width={1800}
+                      height={1800}
+                      className="w-[28px] xl:w-[32px] h-auto rounded-full"
+                    />
+                    <span className="text-black font-semibold text-xs xl:text-sm whitespace-nowrap font-open-sans">
+                      UDYAM-WB-14-0235424
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3 pl-1">
+                    {["ssl", "lock", "100"].map((badge) => (
+                      <Image
+                        key={badge}
+                        src={`/images/footer/trust-badge/${badge}.svg`}
+                        alt={badge}
+                        width={28}
+                        height={28}
+                        className="w-[32px] xl:w-[36px] h-auto"
+                      />
+                    ))}
+                  </div>
                 </div>
 
-                {/* Contact Button - in logo column */}
+                {/* Contact Pill */}
                 <Link
-                  href="mailto:Hello@Budgettravelpackages"
-                  className="inline-flex items-center gap-1.5 bg-secondary font-medium text-base py-1 px-3 rounded-full w-fit font-open-sans mt-2"
+                  href="mailto:hello@budgettravelpackage.in"
+                  className="inline-flex items-center gap-2 bg-secondary hover:bg-secondary/90 transition-colors font-medium text-sm xl:text-base py-2 px-4 xl:px-5 rounded-full w-fit font-open-sans mt-2 shadow-button"
                 >
                   <span className="text-white font-bold">Contact:</span>
-                  <span className="text-white">Hello@Budgettravelpackages</span>
+                  <span className="text-white truncate max-w-[200px] xl:max-w-none">
+                    hello@budgettravelpackage.in
+                  </span>
                 </Link>
               </div>
 
-              {/* Main Office (Kolkata) */}
-              <div className="row-start-2 pt-4 flex flex-col gap-2">
-                <h3 className="text-black font-semibold text-base font-open-sans">
-                  Main Office
-                </h3>
-                <p className="text-secondary-text text-sm font-normal font-open-sans leading-relaxed">
-                  <span className="font-bold">Kolkata:</span> Bengal Eco
-                  Intelligent
-                  <br />
-                  Park, EM Block, Sector V,
-                  <br />
-                  Bidhannagar, Kolkata, West
-                  <br />
-                  Bengal 700091
-                </p>
+              {/* Col 2: Services & Payment (Center) */}
+              <div className=" pt-6 flex flex-col items-start gap-4 xl:gap-5 px-6 xl:px-12">
+                <div className="flex flex-col gap-3 text-secondary-text text-sm font-open-sans w-full">
+                  <h3 className="font-bold text-black text-lg xl:text-xl tracking-tight leading-tight">
+                    Promising Fixed Price
+                  </h3>
+
+                  <p className="font-medium text-black text-sm xl:text-base opacity-80 whitespace-nowrap">
+                    Book Domestic &nbsp;|&nbsp; Book International
+                  </p>
+
+                  <div className="bg-primary/5 p-3 xl:p-4 rounded-xl border border-primary/10 my-1 w-full max-w-max">
+                    <p className="font-bold text-primary text-sm xl:text-base">
+                      Get Travel Services at Flat 9% of Total Cost
+                    </p>
+                  </div>
+
+                  <Link
+                    href="#"
+                    className="inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-white font-bold text-sm xl:text-base py-2.5 xl:py-3 px-6 xl:px-8 rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 w-fit"
+                  >
+                    Pay Now
+                  </Link>
+
+                  <p className="text-[10px] xl:text-xs text-red-500 font-medium italic mt-1 bg-red-50 px-2 py-1 rounded w-fit">
+                    * Note: Only book after Agent Confirmation
+                  </p>
+                </div>
               </div>
 
-              {/* Branch Office (Delhi) */}
-              <div className="row-start-2 pt-4 flex flex-col gap-2">
-                <h3 className="text-black font-semibold text-base font-open-sans underline">
-                  Branch Office
-                </h3>
-                <p className="text-secondary-text text-sm font-normal font-open-sans leading-relaxed">
-                  <span className="font-bold">Delhi:</span> Regal Building, 69,
-                  <br />
-                  Connaught Cir, Hanuman Road
-                  <br />
-                  Area, Connaught Place, New
-                  <br />
-                  Delhi, Delhi 110001
-                </p>
-              </div>
+              {/* Col 3: Address & Connect (Right) */}
+              <div className="shrink-0 pt-6 flex flex-col gap-6 pl-4">
+                <div className="flex flex-col gap-3">
+                  <h3 className="text-black font-bold text-lg font-open-sans flex items-center gap-2">
+                    <span className="w-1 h-6 bg-secondary rounded-full block"></span>
+                    Head Office:
+                  </h3>
+                  <p className="text-secondary-text  text-sm font-normal font-open-sans leading-7">
+                    Bengal Eco Intelligent Park, EM Block,<br /> Sector V,
+                    Bidhannagar, Kolkata,<br /> West Bengal 700091
+                  </p>
+                </div>
 
-              {/* Branch Office (Mumbai) + Follow Us */}
-              <div className="row-start-2 pt-4 flex flex-col gap-2">
-                <h3 className="text-black font-semibold text-base font-open-sans">
-                  Branch Office
-                </h3>
-                <p className="text-secondary-text text-sm font-normal font-open-sans leading-relaxed">
-                  <span className="font-bold">Mumbai:</span> The Empire Business
-                  <br />
-                  Centre, A Wing, IA Project Rd,
-                  <br />
-                  Andheri East, Mumbai,
-                  <br />
-                  Maharashtra 400099
-                </p>
-
-                {/* Follow Us & Social Icons */}
-                <div className="flex items-center gap-2 mt-auto pt-4">
+                <div className="flex flex-col gap-3 mt-auto">
                   <span className="text-black font-semibold text-base font-open-sans">
-                    Follow Us:
+                    Follow Us On:
                   </span>
-                  <div className="flex items-center gap-1.5">
-                    <Link
-                      href="https://facebook.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="transition-transform hover:scale-110"
-                    >
-                      <Image
-                        src="/images/footer/social/facebook.svg"
-                        alt="Facebook"
-                        width={24}
-                        height={24}
-                        className="w-6 h-6"
-                      />
-                    </Link>
-                    <Link
-                      href="https://instagram.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="transition-transform hover:scale-110"
-                    >
-                      <Image
-                        src="/images/footer/social/instagram.svg"
-                        alt="Instagram"
-                        width={24}
-                        height={24}
-                        className="w-6 h-6"
-                      />
-                    </Link>
-                    <Link
-                      href="https://youtube.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="transition-transform hover:scale-110"
-                    >
-                      <Image
-                        src="/images/footer/social/youtube.svg"
-                        alt="YouTube"
-                        width={24}
-                        height={24}
-                        className="w-6 h-6"
-                      />
-                    </Link>
+                  <div className="flex items-center gap-3">
+                    {[
+                      {
+                        href: "https://facebook.com",
+                        src: "/images/footer/social/facebook.svg",
+                        alt: "Facebook",
+                      },
+                      {
+                        href: "https://instagram.com",
+                        src: "/images/footer/social/instagram.svg",
+                        alt: "Instagram",
+                      },
+                      {
+                        href: "https://youtube.com",
+                        src: "/images/footer/social/youtube.svg",
+                        alt: "YouTube",
+                      },
+                    ].map((social) => (
+                      <Link
+                        key={social.alt}
+                        href={social.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="transition-transform hover:scale-110 hover:opacity-80 p-1"
+                      >
+                        <Image
+                          src={social.src}
+                          alt={social.alt}
+                          width={28}
+                          height={28}
+                          className="w-7 h-7"
+                        />
+                      </Link>
+                    ))}
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Mobile/Tablet Layout - below lg */}
-            <div className="lg:hidden flex flex-col gap-6">
-              {/* Multi City Operations Title */}
-              <div className="pb-3 border-b border-primary">
-                <h2 className="text-black text-center font-bold text-lg font-open-sans">
-                  Multi City Operations:
-                </h2>
-              </div>
-
+            <div className="lg:hidden flex flex-col gap-8">
               {/* Logo Section */}
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-4 text-center items-center">
                 <Link href="/" className="inline-block">
                   <Image
                     src={logo}
                     alt="Budget Travel Packages"
-                    width={172}
-                    height={73}
+                    width={180}
+                    height={76}
                     className="w-auto h-auto"
                   />
                 </Link>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-black font-medium text-sm whitespace-nowrap font-open-sans">
-                    UDYAM-WB-14-0235424
-                  </span>
-                  <Image
-                    src="/images/footer/trust-badge/ssl.svg"
-                    alt="Verified"
-                    width={18}
-                    height={18}
-                    className="w-[35px] h-auto"
-                  />
+                <div className="flex flex-wrap justify-center items-center gap-3">
+                  <div className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
+                    <Image
+                      src="/images/footer/trust-badge/msme.png"
+                      alt="Verified"
+                      width={1800}
+                      height={1800}
+                      className="w-[24px] h-auto rounded-full"
+                    />
+                    <span className="text-black font-medium text-xs font-open-sans">
+                      UDYAM-WB-14-0235424
+                    </span>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <Image
-                    src="/images/footer/trust-badge/100.svg"
-                    alt="100% Trusted"
-                    width={28}
-                    height={28}
-                    className="w-[35px] h-auto"
-                  />
-                  <Image
-                    src="/images/footer/trust-badge/guard.svg"
-                    alt="Secure"
-                    width={28}
-                    height={28}
-                    className="w-[35px] h-auto"
-                  />
-                  <Image
-                    src="/images/footer/trust-badge/lock.svg"
-                    alt="Protected"
-                    width={28}
-                    height={28}
-                    className="w-[35px] h-auto"
-                  />
+                <div className="flex items-center gap-3">
+                  {["ssl", "lock", "100"].map((badge) => (
+                    <Image
+                      key={badge}
+                      src={`/images/footer/trust-badge/${badge}.svg`}
+                      alt="Trusted"
+                      width={32}
+                      height={32}
+                      className="w-[32px] h-auto"
+                    />
+                  ))}
                 </div>
 
                 <Link
-                  href="mailto:Hello@Budgettravelpackages"
-                  className="inline-flex items-center gap-1.5 bg-secondary font-medium text-sm py-1 px-3 rounded-full w-fit font-open-sans"
+                  href="mailto:hello@budgettravelpackage.in"
+                  className="inline-flex items-center gap-1.5 bg-secondary font-medium text-sm py-2 px-4 rounded-full w-fit font-open-sans shadow-sm"
                 >
                   <span className="text-white font-bold">Contact:</span>
-                  <span className="text-white">Hello@Budgettravelpackages</span>
+                  <span className="text-white">
+                    hello@budgettravelpackage.in
+                  </span>
                 </Link>
               </div>
 
-              {/* Office Addresses Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="flex flex-col gap-2">
-                  <h3 className="text-black font-semibold text-sm font-open-sans">
-                    Main Office
-                  </h3>
-                  <p className="text-secondary-text text-xs font-normal font-open-sans leading-relaxed">
-                    <span className="font-bold">Kolkata:</span> Bengal Eco
-                    Intelligent
-                    <br />
-                    Park, EM Block, Sector V,
-                    <br />
-                    Bidhannagar, Kolkata, West
-                    <br />
-                    Bengal 700091
+              {/* Services & Payment (Mobile) */}
+              <div className="flex flex-col text-center items-center gap-3 bg-gray-50/50 p-6 rounded-2xl border border-dashed border-gray-200">
+                <h3 className="font-bold text-black text-xl">
+                  Promising Fixed Price
+                </h3>
+                <p className="font-medium text-black text-sm">
+                  Book Domestic | Book International
+                </p>
+
+                <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm">
+                  <p className="font-bold text-primary text-sm">
+                    Get Travel Services at Flat 9% of Total Cost
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <h3 className="text-black font-semibold text-sm font-open-sans underline">
-                    Branch Office
-                  </h3>
-                  <p className="text-secondary-text text-xs font-normal font-open-sans leading-relaxed">
-                    <span className="font-bold">Delhi:</span> Regal Building,
-                    69,
-                    <br />
-                    Connaught Cir, Hanuman Road
-                    <br />
-                    Area, Connaught Place, New
-                    <br />
-                    Delhi, Delhi 110001
-                  </p>
-                </div>
+                <Link
+                  href="#"
+                  className="inline-block bg-primary text-white font-bold py-2.5 px-8 rounded-lg shadow-md mt-2 w-full max-w-[240px]"
+                >
+                  Pay Now
+                </Link>
 
-                <div className="flex flex-col gap-2">
-                  <h3 className="text-black font-semibold text-sm font-open-sans">
-                    Branch Office
-                  </h3>
-                  <p className="text-secondary-text text-xs font-normal font-open-sans leading-relaxed">
-                    <span className="font-bold">Mumbai:</span> The Empire
-                    Business
-                    <br />
-                    Centre, A Wing, IA Project Rd,
-                    <br />
-                    Andheri East, Mumbai,
-                    <br />
-                    Maharashtra 400099
-                  </p>
-                </div>
+                <p className="text-[10px] text-red-500 font-medium italic opacity-80">
+                  * Note: Only book after Agent Confirmation
+                </p>
               </div>
 
-              {/* Follow Us */}
-              <div className="flex items-center gap-2">
-                <span className="text-black font-semibold text-sm font-open-sans">
-                  Follow Us:
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <Link
-                    href="https://facebook.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="transition-transform hover:scale-110"
-                  >
-                    <Image
-                      src="/images/footer/social/facebook.svg"
-                      alt="Facebook"
-                      width={24}
-                      height={24}
-                      className="w-6 h-6"
-                    />
-                  </Link>
-                  <Link
-                    href="https://instagram.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="transition-transform hover:scale-110"
-                  >
-                    <Image
-                      src="/images/footer/social/instagram.svg"
-                      alt="Instagram"
-                      width={24}
-                      height={24}
-                      className="w-6 h-6"
-                    />
-                  </Link>
-                  <Link
-                    href="https://youtube.com"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="transition-transform hover:scale-110"
-                  >
-                    <Image
-                      src="/images/footer/social/youtube.svg"
-                      alt="YouTube"
-                      width={24}
-                      height={24}
-                      className="w-6 h-6"
-                    />
-                  </Link>
+              {/* Address & Social (Mobile) */}
+              <div className="flex flex-col items-center text-center gap-6">
+                {/* Address */}
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-black font-bold text-lg font-open-sans">
+                    Head Office:
+                  </h3>
+                  <p className="text-secondary-text text-sm font-normal font-open-sans leading-relaxed">
+                    Bengal Eco Intelligent Park, EM Block, Sector V,
+                    <br />
+                    Bidhannagar, Kolkata, West Bengal 700091
+                  </p>
+                </div>
+
+                {/* Follow Us */}
+                <div className="flex flex-col items-center gap-3">
+                  <span className="text-black font-semibold text-sm font-open-sans">
+                    Follow Us:
+                  </span>
+                  <div className="flex items-center gap-3">
+                    {[
+                      {
+                        href: "https://facebook.com",
+                        src: "/images/footer/social/facebook.svg",
+                        alt: "Facebook",
+                      },
+                      {
+                        href: "https://instagram.com",
+                        src: "/images/footer/social/instagram.svg",
+                        alt: "Instagram",
+                      },
+                      {
+                        href: "https://youtube.com",
+                        src: "/images/footer/social/youtube.svg",
+                        alt: "YouTube",
+                      },
+                    ].map((social) => (
+                      <Link
+                        key={social.alt}
+                        href={social.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="transition-transform hover:scale-110"
+                      >
+                        <Image
+                          src={social.src}
+                          alt={social.alt}
+                          width={28}
+                          height={28}
+                          className="w-7 h-7"
+                        />
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
@@ -378,10 +315,10 @@ const Footer: React.FC = () => {
                 {/* Left: Links */}
                 <div className="flex items-center gap-2 text-secondary-text text-xs md:text-sm lg:text-base font-open-sans">
                   <Link
-                    href="/travel-news"
+                    href="/travel-blogs"
                     className="hover:text-primary transition-colors"
                   >
-                    Travel News
+                    Travel Blogs
                   </Link>
                   <span className="text-gray-400">•</span>
                   <Link

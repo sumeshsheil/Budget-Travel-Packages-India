@@ -110,6 +110,8 @@ const CityOperations: React.FC = () => {
                 <Image
                   src={city.image}
                   alt={city.alt}
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  placeholder="blur"
                   className="h-full w-auto object-contain object-bottom"
                   style={
                     city.id === "delhi"

@@ -31,10 +31,10 @@ const BookYourTripSection: React.FC = () => {
   return (
     <section
       id="start-planning"
-      className="pb-20 pt-50 relative bg-white"
+      className="pb-20 pt-50 2xl:pt-10 2xl:pb-10 relative bg-white"
     >
       {/* Decorative Parachute Lottie (Left Top) */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 2xl:left-10 w-64 2xl:w-100 opacity-80 pointer-events-none z-0">
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 2xl:left-40 2xl:top-20 w-64 2xl:w-100 opacity-80 pointer-events-none z-0">
         <Lottie
           animationData={parachuteAnimation}
           loop
@@ -61,7 +61,7 @@ const BookYourTripSection: React.FC = () => {
       </div>
 
       {/* Decorative Boat Lottie (Right Bottom) */}
-      <div className="absolute -bottom-16 right-10 2xl:right-10 w-60 2xl:w-100 opacity-80 pointer-events-none z-20">
+      <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 2xl:right-8 2xl:left-auto 2xl:translate-x-0 w-60 2xl:w-80 opacity-80 pointer-events-none z-20">
         <Lottie
           animationData={boatAnimation}
           loop

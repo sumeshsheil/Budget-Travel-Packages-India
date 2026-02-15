@@ -7,20 +7,25 @@ import { motion } from "motion/react";
 import dailyhunt from "@/../public/images/brands/dailyhunt.svg";
 import enterpreneur from "@/../public/images/brands/enterpreneur.svg";
 import hindustan from "@/../public/images/brands/hindustan.svg";
-import trind from "@/../public/images/brands/trind.svg";
-
+// import trind from "@/../public/images/brands/trind.svg";
+import googleNews from "@/../public/images/brands/google-news.png";
+import cityCarnival from "@/../public/images/brands/citycarnival.png";
+import indianPublisher from "@/../public/images/brands/indian-publisher.png";
+import indiaVoice from "@/../public/images/brands/india-voice.png";
+import foxStory from "@/../public/images/brands/fox-story.png";
+import hindustanTimes from "@/../public/images/brands/hindustan-time.png";
+import businessUpdate from "@/../public/images/brands/business-update.png";
 const brands = [
   { name: "Dailyhunt", logo: dailyhunt },
   { name: "Entrepreneur Street", logo: enterpreneur },
   { name: "Medium", logo: hindustan },
-  { name: "Hindustan Times", logo: trind },
-  // { name: "Dailyhunt", logo: dailyhunt },
-  // { name: "Entrepreneur Street", logo: enterpreneur },
-  // { name: "Medium", logo: hindustan },
-  // { name: "Hindustan Times", logo: trind },
-  // { name: "Dailyhunt", logo: dailyhunt },
-  // { name: "Entrepreneur Street", logo: enterpreneur },
-  // { name: "Medium", logo: hindustan },
+  { name: "Google News", logo: googleNews },
+  { name: "City Carnival", logo: cityCarnival },
+  { name: "Indian Publisher", logo: indianPublisher },
+  // { name: "India Voice", logo: indiaVoice },
+  { name: "Fox story", logo: foxStory },
+  { name: "Hindustan Times", logo: hindustanTimes },
+  { name: "Business Update", logo: businessUpdate },
   // { name: "Hindustan Times", logo: trind },
 ];
 
@@ -54,20 +59,20 @@ const FeaturedIn: React.FC = () => {
                 repeat: Infinity,
                 ease: "linear",
               }}
-              className="flex shrink-0 items-center group-hover:[animation-play-state:paused]"
+              className="flex shrink-0 items-center group-hover:paused"
               style={{ willChange: "transform" }}
             >
               {brands.map((brand, index) => (
                 <div
                   key={`brand-${index}`}
-                  className="flex items-center justify-center ml-8 md:ml-16 px-6 py-4 w-[277px] rounded-[5px] bg-[#f5f5f5]"
+                  className="flex items-center justify-center overflow-hidden h-[100px] ml-8 md:ml-16 px-6 py-4 w-[277px] rounded-[5px] bg-[#f5f5f5]"
                 >
                   <Image
                     src={brand.logo}
                     alt={`${brand.name} logo`}
                     width={150}
                     height={50}
-                    className="h-auto w-auto object-cover"
+                    className="h-auto w-auto object-cover object-center"
                   />
                 </div>
               ))}
@@ -80,21 +85,21 @@ const FeaturedIn: React.FC = () => {
                 repeat: Infinity,
                 ease: "linear",
               }}
-              className="flex shrink-0 items-center  group-hover:[animation-play-state:paused]"
+              className="flex shrink-0 items-center  group-hover:paused"
               style={{ willChange: "transform" }}
               aria-hidden="true"
             >
               {brands.map((brand, index) => (
                 <div
                   key={`brand-dup-${index}`}
-                  className="flex items-center justify-center px-6 py-4 ml-8 md:ml-16 w-[276px] rounded-[5px] bg-[#f5f5f5]"
+                  className="flex items-center justify-center overflow-hidden h-[100px] ml-8 md:ml-16 px-6 py-4 w-[277px] rounded-[5px] bg-[#f5f5f5]"
                 >
                   <Image
                     src={brand.logo}
                     alt=""
                     width={150}
                     height={50}
-                    className="h-auto w-auto object-cover"
+                    className="h-auto w-auto object-cover object-center"
                   />
                 </div>
               ))}

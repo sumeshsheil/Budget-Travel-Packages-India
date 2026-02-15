@@ -18,7 +18,7 @@ const MC_API_KEY = process.env.MC_API_KEY!;
 // ============ TEST MODE ============
 
 const TEST_PHONE = "9999999999";
-const TEST_OTP = "123456";
+const TEST_OTP = "1234";
 const TEST_VERIFICATION_ID = "mock-verification-id-TEST";
 
 export function isTestPhone(phone: string): boolean {

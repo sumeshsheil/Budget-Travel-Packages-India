@@ -1,0 +1,152 @@
+import { notFound } from "next/navigation";
+import Image from "next/image";
+import Link from "next/link";
+import { getPostBySlug, getPosts } from "@/lib/wordpress/api";
+import { Metadata } from "next";
+
+interface PageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
+
+  if (!post) {
+    return {
+      title: "Post Not Found",
+    };
+  }
+
+  return {
+    title: `${post.title.rendered} - Budget Travel Packages`,
+    description: post.excerpt.rendered.replace(/<[^>]+>/g, "").slice(0, 160),
+    openGraph: {
+      images: [post._embedded?.["wp:featuredmedia"]?.[0]?.source_url || ""],
+    },
+  };
+}
+
+export async function generateStaticParams() {
+  const { posts } = await getPosts(1, 10);
+  return posts.map((post) => ({
+    slug: post.slug,
+  }));
+}
+
+export default async function BlogPostPage({ params }: PageProps) {
+  const { slug } = await params;
+  const post = await getPostBySlug(slug);
+
+  if (!post) {
+    notFound();
+  }
+
+  const featuredImage = post._embedded?.["wp:featuredmedia"]?.[0]?.source_url;
+  const author = post._embedded?.author?.[0];
+  const date = new Date(post.date).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  return (
+    <article className="container-box px-4 py-8 lg:py-12 max-w-4xl mx-auto">
+      {/* Breadcrumb */}
+      <nav className="text-sm text-gray-500 mb-6 flex items-center gap-2">
+        <Link href="/" className="hover:text-primary transition-colors">
+          Home
+        </Link>
+        <span>/</span>
+        <Link
+          href="/travel-blogs"
+          className="hover:text-primary transition-colors"
+        >
+          Travel Blogs
+        </Link>
+        <span>/</span>
+        <span className="text-gray-900 font-medium truncate max-w-[200px]">
+          {post.slug}
+        </span>
+      </nav>
+
+      {/* Header */}
+      <header className="mb-8 lg:mb-12">
+        <h1
+          className="text-3xl md:text-4xl lg:text-5xl font-extrabold text-gray-900 mb-6 leading-tight"
+          dangerouslySetInnerHTML={{ __html: post.title.rendered }}
+        />
+
+        <div className="flex items-center gap-4 text-sm text-gray-600 border-b border-gray-100 pb-6">
+          <div className="flex items-center gap-2">
+            {author?.avatar_urls && (
+              <div className="relative w-8 h-8 rounded-full overflow-hidden bg-gray-200">
+                {/* Avatar often comes as 24, 48, 96. Use largest available */}
+                <Image
+                  src={Object.values(author.avatar_urls).pop() || ""}
+                  alt={author.name}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            )}
+            <span className="font-medium text-gray-900">
+              By {author?.name || "Budget Travel Team"}
+            </span>
+          </div>
+          <span>•</span>
+          <time dateTime={post.date}>{date}</time>
+          <span>•</span>
+          <span className="bg-primary/10 text-primary-dark px-2 py-0.5 rounded text-xs font-bold">
+            {post._embedded?.["wp:term"]?.[0]?.[0]?.name || "Travel"}
+          </span>
+        </div>
+      </header>
+
+      {/* Featured Image */}
+      {featuredImage && (
+        <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-10 shadow-lg">
+          <Image
+            src={featuredImage}
+            alt={post.title.rendered}
+            fill
+            className="object-cover"
+            priority
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+          />
+        </div>
+      )}
+
+      {/* Content */}
+      <div
+        className="prose prose-lg md:prose-xl max-w-none prose-headings:font-bold prose-headings:text-gray-900 prose-p:text-gray-700 prose-a:text-primary prose-a:font-semibold hover:prose-a:text-primary-dark prose-img:rounded-xl prose-img:shadow-md"
+        dangerouslySetInnerHTML={{ __html: post.content.rendered }}
+      />
+
+      {/* Share / Tags Footer */}
+      <footer className="mt-12 pt-8 border-t border-gray-200">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex flex-wrap gap-2">
+            {post._embedded?.["wp:term"]?.[1]?.map((tag: any) => (
+              <span
+                key={tag.id}
+                className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full hover:bg-gray-200 transition-colors cursor-default"
+              >
+                #{tag.name}
+              </span>
+            ))}
+          </div>
+
+          <Link
+            href="/travel-blogs"
+            className="inline-flex items-center gap-2 text-primary font-bold hover:underline"
+          >
+            ← Back to All Stories
+          </Link>
+        </div>
+      </footer>
+    </article>
+  );
+}

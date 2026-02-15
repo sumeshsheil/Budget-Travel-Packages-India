@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from "react";
 import Lottie from "lottie-react";
+import { motion } from "motion/react";
 
 interface LottieAnimationProps {
   animationData?: any;
-  src?: string; // Add support for URL based if needed in future
+  src?: string; // URL based loading
   width?: number | string;
   height?: number | string;
   className?: string;
@@ -23,19 +24,21 @@ const LottieAnimation: React.FC<LottieAnimationProps> = ({
   autoplay = true,
 }) => {
   const [data, setData] = useState<any>(animationData);
-  const [isMounted, setIsMounted] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
 
+  // Also support immediate data if provided
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    if (animationData) {
+      setData(animationData);
+    }
+  }, [animationData]);
 
+  // Fetch data when shouldRender becomes true (i.e. in view)
   useEffect(() => {
-    if (src) {
+    if (shouldRender && src && !data) {
       fetch(src)
         .then((response) => {
-          if (!response.ok) {
-            throw new Error(`Failed to fetch ${src}: ${response.statusText}`);
-          }
+          if (!response.ok) throw new Error("Network response was not ok");
           return response.json();
         })
         .then((jsonData) => setData(jsonData))
@@ -43,18 +46,28 @@ const LottieAnimation: React.FC<LottieAnimationProps> = ({
           console.error("Error loading Lottie animation:", error),
         );
     }
-  }, [src]);
-
-  if (!isMounted || !data) return null;
+  }, [shouldRender, src, data]);
 
   return (
-    <Lottie
-      animationData={data}
-      loop={loop}
-      autoplay={autoplay}
+    <motion.div
       className={className}
-      style={{ width: width || "100%", height: height || "auto" }}
-    />
+      style={{
+        width: width || "100%",
+        height: height || "auto",
+        minHeight: "10px",
+      }}
+      onViewportEnter={() => setShouldRender(true)}
+      viewport={{ once: true, margin: "200px" }}
+    >
+      {shouldRender && data ? (
+        <Lottie
+          animationData={data}
+          loop={loop}
+          autoplay={autoplay}
+          className="w-full h-full"
+        />
+      ) : null}
+    </motion.div>
   );
 };
 

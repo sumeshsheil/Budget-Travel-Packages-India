@@ -14,6 +14,7 @@ const openSans = Open_Sans({
 });
 
 import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
+import { FloatingButtons } from "@/components/layout/FloatingButtons";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -29,7 +30,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${openSans.variable} antialiased`}>
         <StoreProvider>
-          <SmoothScrollProvider>{children}</SmoothScrollProvider>
+          <SmoothScrollProvider>
+            {children}
+            <FloatingButtons />
+          </SmoothScrollProvider>
         </StoreProvider>
       </body>
     </html>

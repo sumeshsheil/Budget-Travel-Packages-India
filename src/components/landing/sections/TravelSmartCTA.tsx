@@ -1,31 +1,32 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "motion/react";
-import Button from "../ui/button";
+import Lottie from "lottie-react";
+import Link from "next/link";
 
 import arrowLine from "@/../public/images/shapes/curve-line.svg";
-import cityPlane from "@/../public/images/shapes/city-plane.svg";
 
 const TravelSmartCTA: React.FC = () => {
+  const [animationData, setAnimationData] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/lottie/travel-smart.json")
+      .then((res) => res.json())
+      .then((data) => setAnimationData(data))
+      .catch((err) => console.error("Failed to load Lottie animation:", err));
+  }, []);
+
   return (
     <section
       className="pt-20 relative overflow-hidden bg-white"
       aria-labelledby="cta-heading"
     >
-      {/* Background Arrow Line Pattern */}
-      <div className="absolute top-0 left-0 h-full w-1/2 z-0 pointer-events-none">
-        <Image
-          src={arrowLine}
-          alt=""
-          className="w-full h-auto object-cover"
-          aria-hidden="true"
-        />
-      </div>
+      
 
       <div className="container-box px-4 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 justify-between ">
+        <div className="grid grid-cols-1 lg:grid-cols-2 justify-between items-center gap-8">
           {/* Left Content */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
@@ -49,18 +50,16 @@ const TravelSmartCTA: React.FC = () => {
             </p>
 
             <div className="mt-6 md:mt-8 lg:mb-20">
-              <Button
-                variant="secondary"
-                size="lg"
-                aria-label="Start customizing your trip"
-                className="px-20 py-4.5 font-open-sans font-bold text-base md:text-xl"
+              <Link
+                className="bg-secondary text-white px-16 py-2.5 font-open-sans font-bold text-base md:text-xl rounded-full"
+                href="tel:+919242868839"
               >
-                Customize My Trip
-              </Button>
+                +91 92428 68839
+              </Link>
             </div>
           </motion.div>
 
-          {/* Right Content - City Plane Illustration */}
+          {/* Right Content - Lottie Animation */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -68,14 +67,14 @@ const TravelSmartCTA: React.FC = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="flex justify-center lg:justify-end"
           >
-            <div className="relative w-full">
-              <Image
-                src={cityPlane}
-                alt="Illustration of famous landmarks and travel destinations"
-                fill
-                className="w-full h-auto absolute bottom-0"
-                priority={false}
-              />
+            <div className="relative w-full max-w-[600px]">
+              {animationData && (
+                <Lottie
+                  animationData={animationData}
+                  loop={true}
+                  className="w-full h-auto"
+                />
+              )}
             </div>
           </motion.div>
         </div>

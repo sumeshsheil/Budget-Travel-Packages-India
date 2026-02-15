@@ -61,6 +61,7 @@ const WhyChooseUs: React.FC = () => {
           src={bgPattern}
           alt=""
           fill
+          sizes="100vw"
           className="object-cover object-center"
         />
       </div>
@@ -106,7 +107,14 @@ const WhyChooseUs: React.FC = () => {
 
         {/* CTA Button */}
         <div className="flex justify-center">
-          <Button className="bg-primary text-black font-bold py-3 px-10 rounded-full hover:shadow-lg transition-shadow text-base md:text-lg">
+          <Button
+            onClick={() => {
+              document
+                .getElementById("start-planning")
+                ?.scrollIntoView({ behavior: "smooth" });
+            }}
+            className="bg-primary text-black font-bold py-3 px-10 rounded-full hover:shadow-lg transition-shadow text-base md:text-lg"
+          >
             Customize My Trip
           </Button>
         </div>
