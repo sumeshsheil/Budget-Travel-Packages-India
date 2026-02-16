@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Budget Travel Packages
 
-## Getting Started
+Budget Travel Packages is a modern, high-performance landing page for a travel agency specializing in affordable and customized tour packages across India.
 
-First, run the development server:
+## 🚀 Key Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Dynamic Search**: Enhanced search functionality for exploring travel packages.
+- **Smooth Navigation**: Fully functional header links with smooth scroll to sections (Services, Travel Purpose, FAQs, etc.).
+- **Interactive Booking Form**: Modular, multi-step booking form with integrated OTP verification (via MessageCentral) and real-time validation.
+- **Service Hubs**: Detailed multi-city operations sections (Kolkata, Delhi, Mumbai).
+- **Modern UI/UX**: Built with a focus on premium aesthetics, using animations (Lottie, Framer Motion) and responsive design.
+- **Smooth Scrolling**: Integrated with Lenis for a premium scrolling experience.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Framework**: [Next.js 15+](https://nextjs.org/) (App Router)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Animations**: [Framer Motion](https://www.framer.com/motion/), [Lottie React](https://github.com/gamertree/lottie-react)
+- **State Management**: [Redux Toolkit](https://redux-toolkit.js.org/)
+- **Validation**: [Zod](https://zod.dev/)
+- **Smooth Scroll**: [Lenis](https://lenis.darkroom.engineering/)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📂 Getting Started
 
-## Learn More
+### Prerequisites
 
-To learn more about Next.js, take a look at the following resources:
+- Node.js 18.x or later
+- npm / yarn / pnpm
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+### Installation
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Clone the repository:
 
-## Deploy on Vercel
+   ```bash
+   git clone <repository-url>
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+2. Install dependencies:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+   ```bash
+   npm install
+   ```
+
+3. Configure environment variables (`.env.local`):
+
+   ```env
+   # Add your API keys for OTP, Database, etc.
+   ```
+
+4. Run the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+5. Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+## 📦 Project Structure
+
+- `src/app`: Next.js App Router pages and layouts.
+- `src/components/landing`: Core landing page sections and UI components.
+- `src/lib/redux`: State management slices and store configuration.
+- `public/animations`: Lottie JSON files for site animations.
+
+## 📄 License
+
+This project is private and intended for internal use.

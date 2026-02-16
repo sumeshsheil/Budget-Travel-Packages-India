@@ -99,7 +99,12 @@ export const Step2Form: React.FC = () => {
   };
 
   const handleSendOtp = async () => {
-    // Validate phone number for India
+    // Validate all fields in step 2 before sending OTP
+    if (!validateStep2()) {
+      return;
+    }
+
+    // Explicitly validate phone number for India regex (extra safety)
     if (!INDIA_PHONE_REGEX.test(primaryContact.phone)) {
       toast.error("Please enter a valid 10-digit Indian phone number");
       return;
@@ -190,20 +195,6 @@ export const Step2Form: React.FC = () => {
   const handleBack = () => {
     dispatch(setCurrentStep(1));
   };
-
-  const isReadyToVerify = React.useMemo(() => {
-    const { firstName, lastName, gender, age, email, phone } = primaryContact;
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return (
-      firstName.trim().length >= 2 &&
-      lastName.trim().length >= 1 &&
-      gender !== "" &&
-      age > 0 &&
-      age <= 120 &&
-      emailRegex.test(email) &&
-      INDIA_PHONE_REGEX.test(phone)
-    );
-  }, [primaryContact]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -436,7 +427,7 @@ export const Step2Form: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => handleSendOtp()}
-                      disabled={isVerifying || !isReadyToVerify}
+                      disabled={isVerifying}
                       className="h-full px-5 rounded-md bg-primary text-black font-bold text-xs hover:shadow-md hover:brightness-105 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
                     >
                       {isVerifying ? "Sending..." : "Verify"}

@@ -7,77 +7,91 @@ import {
   CheckCircle2,
   ArrowRight,
   Home,
-  Calendar,
   PhoneCall,
+  Clock,
+  ShieldCheck,
+  Lock,
+  Loader2,
 } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/landing/sections/Footer";
 import Button from "@/components/landing/ui/button";
+import styles from "./loader.module.css";
 
 export default function ThankYouPage() {
   return (
     <>
       <Header />
-      <main className="relative min-h-screen flex items-center justify-center pt-20 px-4 overflow-hidden">
+      <main className="relative min-h-screen flex flex-col items-center justify-center pt-38 pb-20 px-4 overflow-hidden">
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2642&auto=format&fit=crop"
-            alt="Travel background"
+            src="/images/thank-you-bg.png"
+            alt="Tropical coast background"
             fill
             className="object-cover"
             priority
           />
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
         </div>
 
         {/* Content Container */}
-        <div className="container-box relative z-10 max-w-3xl">
+        <div className="container-box font-inter relative z-10 w-full flex flex-col items-center">
+          {/* Glassmorphism Card */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="bg-white/90 backdrop-blur-md rounded-3xl p-8 md:p-12 shadow-2xl border border-white/20 text-center"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="w-full max-w-6xl bg-white/60 backdrop-blur-3xl rounded-xl p-8 md:p-10 shadow-xl border border-white/20 text-center relative overflow-hidden"
           >
-            {/* Success Animation */}
+            {/* Success Icon */}
             <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
               transition={{
                 delay: 0.2,
                 type: "spring",
-                stiffness: 200,
-                damping: 15,
+                stiffness: 260,
+                damping: 20,
               }}
-              className="flex justify-center mb-8"
+              className="flex justify-center mb-6"
             >
               <div className="relative">
-                <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse" />
-                <div className="relative rounded-full bg-primary/10 p-6 flex items-center justify-center border border-primary/20">
-                  <CheckCircle2 className="w-16 h-16 text-primary" />
+                {/* Subtle Outer Glow Rings */}
+                <div className="absolute inset-[-5px] bg-primary/10 rounded-full blur-lg animate-pulse" />
+
+                <div className="relative rounded-full bg-white p-4 shadow-xl border border-primary/5">
+                  <motion.div
+                    initial={{ scale: 0.8 }}
+                    animate={{ scale: [0.8, 1.05, 1] }}
+                    transition={{
+                      delay: 0.5,
+                      duration: 0.5,
+                      times: [0, 0.6, 1],
+                    }}
+                  >
+                    <CheckCircle2
+                      className="w-12 h-12 text-primary/80"
+                      strokeWidth={1.5}
+                    />
+                  </motion.div>
                 </div>
               </div>
             </motion.div>
 
             {/* Main Text */}
             <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
-              className="space-y-4"
+              className="space-y-4 mb-12"
             >
-              <h1 className="text-4xl md:text-5xl font-extrabold font-inter text-gray-900 tracking-tight">
-                Submission{" "}
-                <span className="text-primary italic">Successful!</span>
+              <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 tracking-tight drop-shadow-sm">
+                Submission <span className="text-primary">Successful!</span>
               </h1>
-              <p className="text-lg md:text-xl text-gray-600 font-open-sans max-w-xl mx-auto leading-relaxed">
-                Thank you for choosing{" "}
-                <span className="font-bold text-gray-800">
-                  Budget Travel Packages
-                </span>
-                . We've received your request and our travel experts are already
-                preparing local insights for you.
+              <p className="text-lg md:text-xl text-gray-700 font-medium max-w-2xl mx-auto leading-relaxed">
+                Thank you for choosing Budget Travel Packages. We've received
+                your request and our travel experts are already preparing local
+                insights for you.
               </p>
             </motion.div>
 
@@ -86,36 +100,52 @@ export default function ThankYouPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-10 mb-10"
+              className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12"
             >
-              <div className="bg-white/50 p-4 rounded-2xl border border-gray-100/50 flex flex-col items-center text-center">
-                <div className="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center mb-3">
-                  <Calendar className="w-5 h-5 text-secondary" />
+              {/* Card 1 */}
+              <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-white/50 flex flex-col items-center hover:transform hover:-translate-y-1 transition-all duration-300">
+                <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mb-4">
+                  <Clock className="w-7 h-7 text-primary" strokeWidth={2} />
                 </div>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">
+                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
                   Response Time
                 </h3>
-                <p className="text-gray-800 font-bold">Within 24 Hours</p>
+                <p className="text-gray-900 font-bold text-lg">
+                  Within 24 Hours
+                </p>
               </div>
 
-              <div className="bg-white/50 p-4 rounded-2xl border border-gray-100/50 flex flex-col items-center text-center">
-                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                  <PhoneCall className="w-5 h-5 text-primary" />
+              {/* Card 2 */}
+              <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-white/50 flex flex-col items-center hover:transform hover:-translate-y-1 transition-all duration-300">
+                <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center mb-4">
+                  <PhoneCall
+                    className="w-7 h-7 text-blue-600"
+                    strokeWidth={2}
+                  />
                 </div>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">
+                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
                   Support
                 </h3>
-                <p className="text-gray-800 font-bold">24/7 Available</p>
+                <p className="text-gray-900 font-bold text-lg">
+                  24/7 Available
+                </p>
               </div>
 
-              <div className="bg-white/50 p-4 rounded-2xl border border-gray-100/50 flex flex-col items-center text-center">
-                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mb-3">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
+              {/* Card 3 */}
+              <div className="bg-white/70 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-white/50 flex flex-col items-center hover:transform hover:-translate-y-1 transition-all duration-300">
+                <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mb-4 relative overflow-hidden">
+                  <div className={styles.threeBody}>
+                    <div className={styles.threeBodyDot} />
+                    <div className={styles.threeBodyDot} />
+                    <div className={styles.threeBodyDot} />
+                  </div>
                 </div>
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">
+                <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-1">
                   Status
                 </h3>
-                <p className="text-gray-800 font-bold">Priority Processing</p>
+                <p className="text-gray-900 font-bold text-lg">
+                  Priority Processing
+                </p>
               </div>
             </motion.div>
 
@@ -124,13 +154,12 @@ export default function ThankYouPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8 }}
-              className="flex flex-col sm:flex-row items-center justify-center gap-4 border-t border-gray-100 pt-10"
+              className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
               <Link href="/">
                 <Button
-                  variant="primary"
+                  className="bg-primary hover:bg-green-700 lg:px-16 px-8 text-white min-w-[200px] shadow-lg shadow-green-900/20 border-none"
                   size="lg"
-                  className="group min-w-[200px]"
                 >
                   <Home className="w-5 h-5 mr-2" />
                   Back to Home
@@ -138,9 +167,8 @@ export default function ThankYouPage() {
               </Link>
               <Link href="/travel-blogs">
                 <Button
-                  variant="outline"
+                  className="bg-white/40 hover:bg-white/60 lg:px-16 px-8 text-gray-900 border border-white/60 min-w-[200px] backdrop-blur-md"
                   size="lg"
-                  className="group min-w-[200px]"
                 >
                   Explore Blogs
                   <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -149,15 +177,31 @@ export default function ThankYouPage() {
             </motion.div>
           </motion.div>
 
-          {/* Verification Badge */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.6 }}
-            transition={{ delay: 1.2 }}
-            className="text-center text-white text-xs mt-8 flex items-center justify-center gap-2"
+          {/* Trust Badges Bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.0 }}
+            className="mt-8 bg-black/60 backdrop-blur-md rounded-xl p-4 md:px-8 border border-white/10 flex flex-col md:flex-row items-center gap-6 md:gap-12 shadow-2xl"
           >
-            🛡 Verified Secure Submission & Data Privacy Guaranteed
-          </motion.p>
+            <div className="flex items-center gap-3 text-white">
+              <ShieldCheck className="w-6 h-6 text-green-400" />
+              <div className="text-left leading-tight">
+                <p className="text-sm font-bold tracking-wide">Verified</p>
+                <p className="text-[11px] text-gray-300">Secure Submission</p>
+              </div>
+            </div>
+
+            <div className="w-px h-10 bg-white/20 hidden md:block" />
+
+            <div className="flex items-center gap-3 text-white">
+              <Lock className="w-6 h-6 text-green-400" />
+              <div className="text-left leading-tight">
+                <p className="text-sm font-bold tracking-wide">Data Privacy</p>
+                <p className="text-[11px] text-gray-300">Guaranteed</p>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </main>
       <Footer />

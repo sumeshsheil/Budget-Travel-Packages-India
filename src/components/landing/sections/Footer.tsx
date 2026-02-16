@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
 
   return (
-    <footer className="relative w-full">
+    <footer id="contact" className="relative w-full scroll-mt-24">
       {/* Main Footer Content */}
       <div className="relative w-full overflow-hidden">
         {/* Background Image */}
@@ -121,8 +121,9 @@ const Footer: React.FC = () => {
                     Head Office:
                   </h3>
                   <p className="text-secondary-text  text-sm font-normal font-open-sans leading-7">
-                    Bengal Eco Intelligent Park, EM Block,<br /> Sector V,
-                    Bidhannagar, Kolkata,<br /> West Bengal 700091
+                    Bengal Eco Intelligent Park, EM Block,
+                    <br /> Sector V, Bidhannagar, Kolkata,
+                    <br /> West Bengal 700091
                   </p>
                 </div>
 

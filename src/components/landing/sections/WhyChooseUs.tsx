@@ -54,7 +54,10 @@ const features = [
 
 const WhyChooseUs: React.FC = () => {
   return (
-    <section className="py-20 relative bg-white overflow-hidden">
+    <section
+      id="about"
+      className="py-20 relative bg-white overflow-hidden scroll-mt-24"
+    >
       {/* Background Pattern */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <Image

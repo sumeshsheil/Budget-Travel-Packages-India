@@ -152,7 +152,8 @@ const FAQ: React.FC = () => {
 
   return (
     <section
-      className="py-20 lg:py-25 relative overflow-x-hidden"
+      id="faqs"
+      className="py-20 lg:py-25 relative overflow-x-hidden scroll-mt-24"
       aria-labelledby="faq-heading"
     >
       <script

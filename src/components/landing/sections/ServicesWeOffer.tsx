@@ -51,7 +51,10 @@ import LottieAnimation from "../../ui/LottieAnimation";
 
 const ServicesWeOffer: React.FC = () => {
   return (
-    <section className="pb-10 lg:py-25 relative bg-white">
+    <section
+      id="services"
+      className="pb-10 lg:py-25 relative bg-white scroll-mt-24"
+    >
       {/* Background Elements */}
       <motion.div
         initial={{ opacity: 0, scale: 0.5, y: 50 }}

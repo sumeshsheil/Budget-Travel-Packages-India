@@ -75,7 +75,8 @@ const HowItWorks: React.FC = () => {
 
   return (
     <section
-      className="py-20 relative overflow-hidden"
+      id="how-it-works"
+      className="py-20 relative overflow-hidden scroll-mt-24"
       aria-labelledby="how-it-works-heading"
     >
       <div className="container-box px-4">

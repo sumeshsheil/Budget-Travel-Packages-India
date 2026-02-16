@@ -1,12 +1,9 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 import { motion } from "motion/react";
 import Lottie from "lottie-react";
 import Link from "next/link";
-
-import arrowLine from "@/../public/images/shapes/curve-line.svg";
 
 const TravelSmartCTA: React.FC = () => {
   const [animationData, setAnimationData] = useState<any>(null);
@@ -23,8 +20,6 @@ const TravelSmartCTA: React.FC = () => {
       className="pt-20 relative overflow-hidden bg-white"
       aria-labelledby="cta-heading"
     >
-      
-
       <div className="container-box px-4 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 justify-between items-center gap-8">
           {/* Left Content */}

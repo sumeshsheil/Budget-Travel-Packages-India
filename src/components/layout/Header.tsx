@@ -5,12 +5,22 @@ import logo from "@/../public/images/logo/logo.svg";
 import Link from "next/link";
 import MenuIcon from "../icons/Menu";
 import { motion, AnimatePresence } from "motion/react";
-import LanguageSelector from "./LanguageSelector";
+import { Search, X } from "lucide-react";
 
 const Header: React.FC = () => {
   const [isOpen, setIsOpen] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
+
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isSearchOpen && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [isSearchOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -130,9 +140,63 @@ const Header: React.FC = () => {
             </div>
           </nav>
           <div>
-            <div className="flex items-center gap-4 h-8">
-              <LanguageSelector />
-              <div className="bg-white h-full w-px mx-2"></div>
+            <div className="flex items-center gap-4 min-h-8">
+              <AnimatePresence mode="wait">
+                {isSearchOpen ? (
+                  <motion.div
+                    key="search-input"
+                    initial={{ width: 0, opacity: 0 }}
+                    animate={{ width: 230, opacity: 1 }}
+                    exit={{ width: 0, opacity: 0 }}
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="relative flex items-center bg-white/10 rounded-full border border-white/20 backdrop-blur-sm overflow-hidden"
+                  >
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Search..."
+                      className="w-full bg-transparent text-white placeholder-white/70 text-sm px-4 py-2 focus:outline-none"
+                      // TODO: Implement search functionality - this will trigger search on enter or debounce
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          // Perform search
+                          console.log("Search for:", searchQuery);
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        setIsSearchOpen(false);
+                        setSearchQuery("");
+                      }}
+                      className="pr-3 pl-1 text-white/70 hover:text-white transition-colors"
+                    >
+                      <X size={14} />
+                    </button>
+                  </motion.div>
+                ) : (
+                  <motion.button
+                    key="search-icon"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.2 }}
+                    onClick={() => setIsSearchOpen(true)}
+                    className="text-white hover:text-[#01FF70] transition-colors p-1.5"
+                    aria-label="Open Search"
+                  >
+                    <Search
+                      size={26}
+                      className={isScrolled ? "text-white" : "text-white"}
+                    />
+                  </motion.button>
+                )}
+              </AnimatePresence>
+
+              <div className="bg-white/30 h-6 w-px mx-0"></div>
+
               <motion.button
                 ref={buttonRef}
                 whileHover={{ scale: 1.1 }}
@@ -167,13 +231,13 @@ const Header: React.FC = () => {
               <div className="p-6 flex flex-col gap-6">
                 <ul className="flex flex-col gap-4">
                   {[
-                    { href: "/services", label: "Services" },
-                    { href: "/travel-purpose", label: "Travel Purpose" },
-                    { href: "/customize-trip", label: "Customize Trip" },
-                    { href: "/how-it-works", label: "How It Works" },
-                    { href: "/faqs", label: "FAQs" },
-                    { href: "/contact", label: "Contact" },
-                    { href: "/about", label: "About" },
+                    { href: "#services", label: "Services" },
+                    { href: "#travel-purpose", label: "Travel Purpose" },
+                    { href: "#start-planning", label: "Customize Trip" },
+                    { href: "#how-it-works", label: "How It Works" },
+                    { href: "#faqs", label: "FAQs" },
+                    { href: "#contact", label: "Contact" },
+                    { href: "#about", label: "About" },
                   ].map((link, index) => (
                     <motion.li
                       key={link.href}

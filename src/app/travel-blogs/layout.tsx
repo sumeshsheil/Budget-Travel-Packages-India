@@ -1,4 +1,5 @@
 import Header from "@/components/layout/Header";
+import BlogHeader from "@/components/blog/BlogHeader";
 import Footer from "@/components/landing/sections/Footer";
 
 export default function BlogsLayout({
@@ -9,9 +10,10 @@ export default function BlogsLayout({
   return (
     <>
       <Header />
-      <main className="min-h-screen pt-24 lg:pt-32 pb-16 bg-gray-50">
-        {children}
-      </main>
+      <div className="pt-32">
+        <BlogHeader />
+      </div>
+      <main className="min-h-screen pt-10 bg-gray-50">{children}</main>
       <Footer />
     </>
   );

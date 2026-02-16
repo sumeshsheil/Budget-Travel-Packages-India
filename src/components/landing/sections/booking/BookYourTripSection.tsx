@@ -31,7 +31,7 @@ const BookYourTripSection: React.FC = () => {
   return (
     <section
       id="start-planning"
-      className="pb-20 pt-50 2xl:pt-10 2xl:pb-10 relative bg-white"
+      className="pb-20 pt-50 2xl:pt-10 2xl:pb-10 relative bg-white scroll-mt-24"
     >
       {/* Decorative Parachute Lottie (Left Top) */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 2xl:left-40 2xl:top-20 w-64 2xl:w-100 opacity-80 pointer-events-none z-0">

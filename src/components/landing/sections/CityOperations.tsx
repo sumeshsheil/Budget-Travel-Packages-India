@@ -2,10 +2,8 @@
 
 import React from "react";
 import Image from "next/image";
-import { motion } from "motion/react";
 import Button from "../ui/button";
 import LottieAnimation from "../../ui/LottieAnimation";
-
 import kolkataImg from "@/../public/images/city/kolkata.png";
 import delhiImg from "@/../public/images/city/delhi.png";
 import mumbaiImg from "@/../public/images/city/mumbai.png";
@@ -15,7 +13,7 @@ const cityData = [
     id: "kolkata",
     title: "Budget Travel Packages In Kolkata",
     highlight: "In Kolkata",
-    highlightColor: "text-[#C90000]", // Red
+    highlightColor: "text-[#C90000]",
     description:
       "Looking for affordable travel options from Kolkata? We specialize in customized domestic and international tour packages with smooth departures from Netaji Subhas Chandra Bose International Airport (CCU) and major railway stations like Howrah Junction (HWH), Sealdah (SDAH), Kolkata (KOAA), Shalimar (SHM) or Santragachi (SRC).",
     image: kolkataImg,
@@ -26,7 +24,7 @@ const cityData = [
     id: "delhi",
     title: "Budget Travel Packages In Delhi",
     highlight: "In Delhi",
-    highlightColor: "text-[#FFD700]", // Yellow/Gold
+    highlightColor: "text-[#FFD700]",
     description:
       "Traveling from Delhi? Budget Travel Packages offers fully customized domestic and international tour packages with departures from Indira Gandhi International Airport (DEL) and major railway stations like New Delhi Railway Station (NDLS), Old Delhi (DLI), Hazrat Nizamuddin (NZM), Anand Vihar Terminal (ANVT) or Delhi Sarai Rohilla (DEE).",
     image: delhiImg,
@@ -37,7 +35,7 @@ const cityData = [
     id: "mumbai",
     title: "Budget Travel Packages In Mumbai",
     highlight: "In Mumbai",
-    highlightColor: "text-primary", // Green
+    highlightColor: "text-primary",
     description:
       "Mumbai travelers can book budget friendly customized tour packages designed around flexible schedules and competitive flight options from Chhatrapati Shivaji Maharaj International Airport (BOM) and major railway stations like Chhatrapati Shivaji Maharaj Terminus (CSMT), Mumbai Central (MMCT) or Lokmanya Tilak Terminus (LTT).",
     image: mumbaiImg,
@@ -50,18 +48,17 @@ const CityOperations: React.FC = () => {
   return (
     <section className="xl:pt-20 md:pt-10 pb-10 relative overflow-hidden bg-white">
       <div className="relative z-10 mb-0 md:mb-16 px-4 flex flex-col md:flex-row md:flex-wrap md:justify-center md:gap-x-10 xl:block">
-        {/* Train Animation */}
-        <div className="order-1 md:order-2 relative md:static xl:absolute xl:-top-10 xl:left-2 2xl:left-10 w-[170px] md:w-[250px] mx-auto xl:mx-0 pointer-events-none mb-2 md:mb-8 xl:mb-0">
+        {/* Plane Animation */}
+        <div className="order-1 md:order-1 relative md:static xl:absolute xl:top-2 xl:left-0 2xl:left-10 w-48 md:w-72 mx-auto xl:mx-0 pointer-events-none mt-0 md:mt-0 -scale-x-100">
           <LottieAnimation
-            src="/animations/train.json"
+            src="/animations/plane.json"
             width="100%"
             height="auto"
             className="w-full h-auto opacity-65"
           />
         </div>
-
         {/* Header */}
-        <div className="text-center order-2 md:order-1 md:w-full xl:w-auto">
+        <div className="text-center order-2 md:order-2 md:w-full xl:w-auto">
           <h2 className="text-3xl md:text-4xl lg:text-[40px] xl:text-[48px] font-inter font-semibold text-black leading-tight mb-6">
             Why Budget Travel Packages Is One Of
             <br className="hidden md:block" /> The{" "}
@@ -80,11 +77,10 @@ const CityOperations: React.FC = () => {
             Mumbai.
           </p>
         </div>
-
-        {/* Plane Animation */}
-        <div className="order-3 md:order-2 relative md:static xl:absolute xl:-top-10 xl:-right-6 2xl:right-10 w-48 md:w-72 mx-auto xl:mx-0 pointer-events-none mt-0 md:mt-0">
+        {/* Train Animation */}
+        <div className="order-3 md:order-3 relative md:static xl:absolute xl:top-4 xl:right-0 2xl:right-10 w-[170px]  md:w-[250px] mx-auto xl:mx-0 pointer-events-none mb-2 md:mb-8 xl:mb-0 -scale-x-100">
           <LottieAnimation
-            src="/animations/plane.json"
+            src="/animations/train.json"
             width="100%"
             height="auto"
             className="w-full h-auto opacity-65"

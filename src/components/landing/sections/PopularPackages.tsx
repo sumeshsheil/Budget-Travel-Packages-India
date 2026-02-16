@@ -35,7 +35,8 @@ const packages = [
 const PopularPackages: React.FC = () => {
   return (
     <section
-      className="py-16 md:py-24 bg-[#FAFAFA]"
+      id="travel-purpose"
+      className="py-16 md:py-24 bg-[#FAFAFA] scroll-mt-24"
       aria-labelledby="popular-packages-heading"
     >
       <div className="container-box px-4">
