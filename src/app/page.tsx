@@ -10,10 +10,12 @@ import FeaturedIn from "@/components/landing/sections/FeaturedIn";
 import FAQ from "@/components/landing/sections/FAQ";
 import TravelSmartCTA from "@/components/landing/sections/TravelSmartCTA";
 import Footer from "@/components/landing/sections/Footer";
+import SystemHealthCheck from "@/components/layout/SystemHealthCheck";
 
 export default function Home() {
   return (
     <>
+      <SystemHealthCheck />
       <Header />
       <main>
         <Hero />
