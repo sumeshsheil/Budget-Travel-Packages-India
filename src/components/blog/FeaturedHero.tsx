@@ -3,29 +3,32 @@
 import Image from "next/image";
 import { motion } from "motion/react";
 
+import { Post } from "@/lib/wordpress/types";
+import { extractFeaturedImage } from "@/lib/wordpress/utils";
+
 interface FeaturedHeroProps {
-  post: {
-    title: string;
-    description: string;
-    author: string;
-    date: string;
-    category: string;
-    image: string;
-  };
+  post: Post;
 }
 
 export default function FeaturedHero({ post }: FeaturedHeroProps) {
+  const title = post.title.rendered;
+  const description = post.excerpt.rendered.replace(/<[^>]+>/g, "");
+
+  const image = extractFeaturedImage(post);
+
+  const category = post._embedded?.["wp:term"]?.[0]?.[0]?.name || "Travel";
+  const authorName = post._embedded?.author?.[0]?.name || "Budget Travel Team";
+  const formattedDate = new Date(post.date).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+
   return (
     <section className="relative w-full h-[500px] md:h-[600px] flex items-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0 z-0">
-        <Image
-          src={post.image}
-          alt={post.title}
-          fill
-          className="object-cover"
-          priority
-        />
+        <Image src={image} alt={title} fill className="object-cover" priority />
         {/* Dark Overlay Gradient */}
         <div className="absolute inset-0 bg-linear-to-r from-black/80 via-black/40 to-transparent" />
       </div>
@@ -43,20 +46,21 @@ export default function FeaturedHero({ post }: FeaturedHeroProps) {
             </span>
             <div className="mb-4">
               <span className="bg-green-600 text-white text-xs font-bold px-3 py-1 rounded-sm uppercase tracking-wider">
-                {post.category}
+                {category}
               </span>
             </div>
-            <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
-              {post.title}
-            </h1>
+            <h1
+              className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6"
+              dangerouslySetInnerHTML={{ __html: title }}
+            />
             <p className="text-gray-200 text-lg md:text-xl mb-8 leading-relaxed">
-              {post.description}
+              {description}
             </p>
 
             <div className="flex items-center gap-4 text-sm font-medium text-gray-300">
-              <span>By {post.author}</span>
+              <span>By {authorName}</span>
               <span className="w-1 h-1 bg-gray-400 rounded-full" />
-              <span>{post.date}</span>
+              <span>{formattedDate}</span>
             </div>
 
             {/* Decorative Diamond Icon matching the design */}

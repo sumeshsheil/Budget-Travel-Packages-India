@@ -3,21 +3,22 @@
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 export default function BlogHeader() {
   const [searchQuery, setSearchQuery] = useState("");
+  const pathname = usePathname();
 
   const navLinks = [
-    { name: "Adventure", href: "#" },
-    { name: "Budget Tips", href: "#" },
-    { name: "Destinations", href: "#" },
-    { name: "Food & Drink", href: "#" },
-    { name: "Travel Guides", href: "#" },
+    { name: "All Blogs", href: "/travel-blogs" },
+    { name: "Domestic", href: "/travel-blogs/category/domestic" },
+    { name: "International", href: "/travel-blogs/category/international" },
+    { name: "Q&A", href: "/travel-blogs/category/qa" },
   ];
 
   return (
     <header className="bg-white border-b border-gray-100">
-      <div className="container-box px-4 h-20 flex items-center justify-between gap-8">
+      <div className="container-box px-4 h-16 flex items-center justify-between gap-8">
         {/* Search Bar */}
         <div className="relative w-full max-w-sm hidden md:block">
           <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -39,19 +40,23 @@ export default function BlogHeader() {
 
         {/* Navigation */}
         <nav className="hidden md:flex items-center gap-6 lg:gap-8">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="text-sm font-semibold text-gray-600 hover:text-gray-900 transition-colors"
-            >
-              {link.name}
-            </Link>
-          ))}
+          {navLinks.map((link) => {
+            const isActive = pathname === link.href;
+            return (
+              <Link
+                key={link.name}
+                href={link.href}
+                className={`text-sm font-semibold transition-colors ${
+                  isActive
+                    ? "text-primary border-b-2 border-primary pb-0.5"
+                    : "text-gray-600 hover:text-gray-900"
+                }`}
+              >
+                {link.name}
+              </Link>
+            );
+          })}
         </nav>
-
-        {/* Mobile Menu Button (Placeholder) */}
-        {/* <button className="md:hidden">...</button> */}
       </div>
     </header>
   );

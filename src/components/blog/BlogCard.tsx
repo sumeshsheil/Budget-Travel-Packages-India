@@ -2,34 +2,47 @@ import Image from "next/image";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
+import { Post } from "@/lib/wordpress/types";
+import { extractFeaturedImage } from "@/lib/wordpress/utils";
+
 interface BlogCardProps {
-  post: {
-    id: number | string;
-    title: string;
-    description: string;
-    author: string;
-    date: string;
-    category: string;
-    image: string;
-    slug: string;
-  };
+  post: Post;
   className?: string;
 }
 
 export default function BlogCard({ post, className }: BlogCardProps) {
-  // Determine badge color based on category (mock logic)
+  // Determine badge color based on category (mapped from WP terms)
   const getBadgeColor = (category: string) => {
     switch (category) {
-      case "Budget Tips":
-        return "bg-green-700";
-      case "Destinations":
-        return "bg-green-600";
-      case "Adventure":
-        return "bg-green-800";
+      case "Domestic":
+        return "bg-blue-600";
+      case "International":
+        return "bg-purple-600";
+      case "Q&A":
+      case "Questions":
+        return "bg-orange-600";
       default:
         return "bg-primary";
     }
   };
+
+  const title = post.title.rendered;
+  const description =
+    post.excerpt.rendered
+      .replace(/<[^>]+>/g, "")
+      .split(" ")
+      .slice(0, 20)
+      .join(" ") + "...";
+
+  const image = extractFeaturedImage(post);
+
+  const category = post._embedded?.["wp:term"]?.[0]?.[0]?.name || "Travel";
+  const authorName = post._embedded?.author?.[0]?.name || "Budget Travel Team";
+  const formattedDate = new Date(post.date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 
   return (
     <Link
@@ -67,12 +80,7 @@ export default function BlogCard({ post, className }: BlogCardProps) {
       {/* Correcting implementation to be Horizontal Card based on visual inspection of Step 185 image */}
 
       <div className="relative w-1/3 min-w-[140px] h-full min-h-[160px]">
-        <Image
-          src={post.image}
-          alt={post.title}
-          fill
-          className="object-cover"
-        />
+        <Image src={image} alt={title} fill className="object-cover" />
       </div>
 
       <div className="flex-1 p-5 flex flex-col justify-center">
@@ -80,25 +88,26 @@ export default function BlogCard({ post, className }: BlogCardProps) {
           <span
             className={cn(
               "text-white text-[10px] font-bold px-2 py-1 rounded-sm uppercase tracking-wider",
-              getBadgeColor(post.category),
+              getBadgeColor(category),
             )}
           >
-            {post.category}
+            {category}
           </span>
         </div>
 
-        <h3 className="text-lg font-bold text-gray-900 mb-2 leading-tight group-hover:text-green-700 transition-colors line-clamp-2">
-          {post.title}
-        </h3>
+        <h3
+          className="text-lg font-bold text-gray-900 mb-2 leading-tight group-hover:text-green-700 transition-colors line-clamp-2"
+          dangerouslySetInnerHTML={{ __html: title }}
+        />
 
         <p className="text-gray-500 text-xs mb-3 line-clamp-2 leading-relaxed">
-          {post.description}
+          {description}
         </p>
 
         <div className="flex items-center text-[11px] font-semibold text-gray-400">
-          <span>By {post.author}</span>
+          <span>By {authorName}</span>
           <span className="mx-2">•</span>
-          <span>{post.date}</span>
+          <span>{formattedDate}</span>
         </div>
       </div>
     </Link>

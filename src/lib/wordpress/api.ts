@@ -7,7 +7,7 @@ const WP_API_URL = process.env.NEXT_PUBLIC_WP_URL
   : "https://demo.wp-api.org/wp-json/wp/v2";
 
 // ✅ TEST MODE: Set to false when connecting to real WordPress
-const USE_MOCK_DATA = true;
+const USE_MOCK_DATA = false;
 
 const MOCK_POSTS: Post[] = [
   {
@@ -336,6 +336,73 @@ export async function getFeaturedPosts(count = 3): Promise<Post[]> {
     return stickyPosts;
   } catch (error) {
     console.error("Error fetching featured posts:", error);
+    return [];
+  }
+}
+
+export async function getPostsByCategory(
+  categorySlug: string,
+  perPage = 6,
+  page = 1,
+): Promise<{ posts: Post[]; total: number }> {
+  if (USE_MOCK_DATA) {
+    return { posts: MOCK_POSTS.slice(0, perPage), total: MOCK_POSTS.length };
+  }
+  try {
+    // First, get the category ID from the slug
+    const catResponse = await fetch(
+      `${WP_API_URL}/categories?slug=${categorySlug}`,
+      { next: { revalidate: 3600 } },
+    );
+
+    if (!catResponse.ok) throw new Error(`Category not found: ${categorySlug}`);
+
+    const categories = await catResponse.json();
+    if (categories.length === 0) {
+      return { posts: [], total: 0 };
+    }
+
+    const categoryId = categories[0].id;
+
+    // Fetch posts for this category
+    const response = await fetch(
+      `${WP_API_URL}/posts?_embed&categories=${categoryId}&per_page=${perPage}&page=${page}&status=publish`,
+      { next: { revalidate: 3600 } },
+    );
+
+    if (!response.ok) throw new Error("Failed to fetch category posts");
+
+    const posts = await response.json();
+    const total = Number(response.headers.get("X-WP-Total") || 0);
+
+    return { posts, total };
+  } catch (error) {
+    console.error(`Error fetching posts for category ${categorySlug}:`, error);
+    return { posts: [], total: 0 };
+  }
+}
+
+export async function getCategories(): Promise<
+  Array<{ id: number; name: string; slug: string; count: number }>
+> {
+  if (USE_MOCK_DATA) {
+    return [
+      { id: 1, name: "Domestic", slug: "domestic", count: 3 },
+      { id: 2, name: "International", slug: "international", count: 3 },
+      { id: 3, name: "Q&A", slug: "qa", count: 2 },
+    ];
+  }
+  try {
+    const response = await fetch(
+      `${WP_API_URL}/categories?per_page=100&hide_empty=false`,
+      { next: { revalidate: 3600 } },
+    );
+
+    if (!response.ok) throw new Error("Failed to fetch categories");
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching categories:", error);
     return [];
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 import Image from "next/image";
 import Link from "next/link";
+import FooterRecentBlogs from "@/components/blog/FooterRecentBlogs";
 
 // Logo and background
 import logo from "@/../public/images/logo/footer-logo.svg";
@@ -27,37 +28,35 @@ const Footer: React.FC = () => {
         {/* Content Overlay */}
         <div className="relative z-10 pt-6 lg:pt-10">
           <div className="container-box">
-            {/* Desktop Layout - lg and above */}
-            <div className="hidden lg:flex justify-between gap-8 xl:gap-12">
+            {/* Desktop Layout - lg and above: 4 columns */}
+            <div className="hidden lg:grid grid-cols-4 gap-6 xl:gap-8">
               {/* Col 1: Logo Section */}
-              <div className="shrink-0 pt-4 flex flex-col gap-4">
-                {/* Logo */}
+              <div className="flex flex-col gap-4 pt-4">
                 <Link href="/" className="inline-block">
                   <Image
                     src={logo}
                     alt="Budget Travel Packages"
                     width={200}
                     height={85}
-                    className="w-auto h-auto max-w-[180px] xl:max-w-[220px]"
+                    className="w-auto h-auto max-w-[160px] xl:max-w-[200px]"
                   />
                 </Link>
 
-                {/* Trust Badges */}
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-3 bg-gray-50/50 w-fit p-1.5 rounded-lg border border-gray-100">
+                  <div className="flex items-center gap-2 bg-gray-50/50 w-fit p-1.5 rounded-lg border border-gray-100">
                     <Image
                       src="/images/footer/trust-badge/msme.png"
                       alt="Verified MSME"
                       width={1800}
                       height={1800}
-                      className="w-[28px] xl:w-[32px] h-auto rounded-full"
+                      className="w-[24px] xl:w-[28px] h-auto rounded-full"
                     />
-                    <span className="text-black font-semibold text-xs xl:text-sm whitespace-nowrap font-open-sans">
+                    <span className="text-black font-semibold text-[11px] xl:text-xs whitespace-nowrap font-open-sans">
                       UDYAM-WB-14-0235424
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-3 pl-1">
+                  <div className="flex items-center gap-2 pl-1">
                     {["ssl", "lock", "100"].map((badge) => (
                       <Image
                         key={badge}
@@ -65,70 +64,69 @@ const Footer: React.FC = () => {
                         alt={badge}
                         width={28}
                         height={28}
-                        className="w-[32px] xl:w-[36px] h-auto"
+                        className="w-[28px] xl:w-[32px] h-auto"
                       />
                     ))}
                   </div>
                 </div>
 
-                {/* Contact Pill */}
                 <Link
                   href="mailto:hello@budgettravelpackage.in"
-                  className="inline-flex items-center gap-2 bg-secondary hover:bg-secondary/90 transition-colors font-medium text-sm xl:text-base py-2 px-4 xl:px-5 rounded-full w-fit font-open-sans mt-2 shadow-button"
+                  className="inline-flex items-center gap-1.5 bg-secondary hover:bg-secondary/90 transition-colors font-medium text-xs xl:text-sm py-2 px-3 xl:px-4 rounded-full w-fit font-open-sans shadow-button"
                 >
                   <span className="text-white font-bold">Contact:</span>
-                  <span className="text-white truncate max-w-[200px] xl:max-w-none">
+                  <span className="text-white truncate max-w-[160px]">
                     hello@budgettravelpackage.in
                   </span>
                 </Link>
               </div>
 
-              {/* Col 2: Services & Payment (Center) */}
-              <div className=" pt-6 flex flex-col items-start gap-4 xl:gap-5 px-6 xl:px-12">
-                <div className="flex flex-col gap-3 text-secondary-text text-sm font-open-sans w-full">
-                  <h3 className="font-bold text-black text-lg xl:text-xl tracking-tight leading-tight">
+              {/* Col 2: Services & Payment */}
+              <div className="pt-4 flex flex-col gap-3">
+                <div className="flex flex-col gap-3 text-secondary-text text-sm font-open-sans">
+                  <h3 className="font-bold text-black text-base xl:text-lg tracking-tight leading-tight">
                     Promising Fixed Price
                   </h3>
 
-                  <p className="font-medium text-black text-sm xl:text-base opacity-80 whitespace-nowrap">
+                  <p className="font-medium text-black text-xs xl:text-sm opacity-80">
                     Book Domestic &nbsp;|&nbsp; Book International
                   </p>
 
-                  <div className="bg-primary/5 p-3 xl:p-4 rounded-xl border border-primary/10 my-1 w-full max-w-max">
-                    <p className="font-bold text-primary text-sm xl:text-base">
+                  <div className="bg-primary/5 p-2.5 xl:p-3 rounded-xl border border-primary/10">
+                    <p className="font-bold text-primary text-xs xl:text-sm">
                       Get Travel Services at Flat 9% of Total Cost
                     </p>
                   </div>
 
                   <Link
                     href="#"
-                    className="inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-white font-bold text-sm xl:text-base py-2.5 xl:py-3 px-6 xl:px-8 rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 w-fit"
+                    className="inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-white font-bold text-xs xl:text-sm py-2 xl:py-2.5 px-5 xl:px-6 rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 w-fit"
                   >
                     Pay Now
                   </Link>
 
-                  <p className="text-[10px] xl:text-xs text-red-500 font-medium italic mt-1 bg-red-50 px-2 py-1 rounded w-fit">
+                  <p className="text-[10px] xl:text-xs text-red-500 font-medium italic bg-red-50 px-2 py-1 rounded w-fit">
                     * Note: Only book after Agent Confirmation
                   </p>
                 </div>
               </div>
 
-              {/* Col 3: Address & Connect (Right) */}
-              <div className="shrink-0 pt-6 flex flex-col gap-6 pl-4">
-                <div className="flex flex-col gap-3">
-                  <h3 className="text-black font-bold text-lg font-open-sans flex items-center gap-2">
+              {/* Col 3: Office Address & Social */}
+              <div className="pt-4 flex flex-col gap-5">
+                <div className="flex flex-col gap-2">
+                  <h3 className="text-black font-bold text-base xl:text-lg font-open-sans flex items-center gap-2">
                     <span className="w-1 h-6 bg-secondary rounded-full block"></span>
-                    Head Office:
+                    Office Address
                   </h3>
-                  <p className="text-secondary-text  text-sm font-normal font-open-sans leading-7">
+                  <p className="text-secondary-text text-xs xl:text-sm font-normal font-open-sans leading-6">
                     Bengal Eco Intelligent Park, EM Block,
                     <br /> Sector V, Bidhannagar, Kolkata,
                     <br /> West Bengal 700091
                   </p>
                 </div>
 
-                <div className="flex flex-col gap-3 mt-auto">
-                  <span className="text-black font-semibold text-base font-open-sans">
+                <div className="flex flex-col gap-2 mt-auto">
+                  <span className="text-black font-semibold text-sm font-open-sans">
                     Follow Us On:
                   </span>
                   <div className="flex items-center gap-3">
@@ -159,14 +157,19 @@ const Footer: React.FC = () => {
                         <Image
                           src={social.src}
                           alt={social.alt}
-                          width={28}
-                          height={28}
-                          className="w-7 h-7"
+                          width={24}
+                          height={24}
+                          className="w-6 h-6"
                         />
                       </Link>
                     ))}
                   </div>
                 </div>
+              </div>
+
+              {/* Col 4: Recent Blogs */}
+              <div className="pt-4">
+                <FooterRecentBlogs />
               </div>
             </div>
 
@@ -250,60 +253,66 @@ const Footer: React.FC = () => {
                 </p>
               </div>
 
-              {/* Address & Social (Mobile) */}
-              <div className="flex flex-col items-center text-center gap-6">
-                {/* Address */}
-                <div className="flex flex-col gap-2">
-                  <h3 className="text-black font-bold text-lg font-open-sans">
-                    Head Office:
-                  </h3>
-                  <p className="text-secondary-text text-sm font-normal font-open-sans leading-relaxed">
-                    Bengal Eco Intelligent Park, EM Block, Sector V,
-                    <br />
-                    Bidhannagar, Kolkata, West Bengal 700091
-                  </p>
+              {/* Address + Recent Blogs side by side on sm, stacked on xs */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                {/* Office Address & Social */}
+                <div className="flex flex-col items-center sm:items-start text-center sm:text-left gap-5">
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-black font-bold text-lg font-open-sans">
+                      Office Address
+                    </h3>
+                    <p className="text-secondary-text text-sm font-normal font-open-sans leading-relaxed">
+                      Bengal Eco Intelligent Park, EM Block, Sector V,
+                      <br />
+                      Bidhannagar, Kolkata, West Bengal 700091
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col items-center sm:items-start gap-2">
+                    <span className="text-black font-semibold text-sm font-open-sans">
+                      Follow Us:
+                    </span>
+                    <div className="flex items-center gap-3">
+                      {[
+                        {
+                          href: "https://facebook.com",
+                          src: "/images/footer/social/facebook.svg",
+                          alt: "Facebook",
+                        },
+                        {
+                          href: "https://instagram.com",
+                          src: "/images/footer/social/instagram.svg",
+                          alt: "Instagram",
+                        },
+                        {
+                          href: "https://youtube.com",
+                          src: "/images/footer/social/youtube.svg",
+                          alt: "YouTube",
+                        },
+                      ].map((social) => (
+                        <Link
+                          key={social.alt}
+                          href={social.href}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="transition-transform hover:scale-110"
+                        >
+                          <Image
+                            src={social.src}
+                            alt={social.alt}
+                            width={28}
+                            height={28}
+                            className="w-7 h-7"
+                          />
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
-                {/* Follow Us */}
-                <div className="flex flex-col items-center gap-3">
-                  <span className="text-black font-semibold text-sm font-open-sans">
-                    Follow Us:
-                  </span>
-                  <div className="flex items-center gap-3">
-                    {[
-                      {
-                        href: "https://facebook.com",
-                        src: "/images/footer/social/facebook.svg",
-                        alt: "Facebook",
-                      },
-                      {
-                        href: "https://instagram.com",
-                        src: "/images/footer/social/instagram.svg",
-                        alt: "Instagram",
-                      },
-                      {
-                        href: "https://youtube.com",
-                        src: "/images/footer/social/youtube.svg",
-                        alt: "YouTube",
-                      },
-                    ].map((social) => (
-                      <Link
-                        key={social.alt}
-                        href={social.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="transition-transform hover:scale-110"
-                      >
-                        <Image
-                          src={social.src}
-                          alt={social.alt}
-                          width={28}
-                          height={28}
-                          className="w-7 h-7"
-                        />
-                      </Link>
-                    ))}
-                  </div>
+                {/* Recent Blogs (Mobile) */}
+                <div className="flex flex-col items-center sm:items-start">
+                  <FooterRecentBlogs />
                 </div>
               </div>
             </div>

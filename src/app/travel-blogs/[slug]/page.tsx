@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import { getPostBySlug, getPosts } from "@/lib/wordpress/api";
+import { extractFeaturedImage } from "@/lib/wordpress/utils";
 import { Metadata } from "next";
 
 interface PageProps {
@@ -20,11 +21,12 @@ export async function generateMetadata({
     };
   }
 
+  const ogImage = extractFeaturedImage(post);
   return {
     title: `${post.title.rendered} - Budget Travel Packages`,
     description: post.excerpt.rendered.replace(/<[^>]+>/g, "").slice(0, 160),
     openGraph: {
-      images: [post._embedded?.["wp:featuredmedia"]?.[0]?.source_url || ""],
+      images: ogImage ? [ogImage] : [],
     },
   };
 }
@@ -44,8 +46,12 @@ export default async function BlogPostPage({ params }: PageProps) {
     notFound();
   }
 
-  const featuredImage = post._embedded?.["wp:featuredmedia"]?.[0]?.source_url;
+  const featuredImage = extractFeaturedImage(post);
+
   const author = post._embedded?.author?.[0];
+  const authorAvatar = author?.avatar_urls
+    ? Object.values(author.avatar_urls).pop()
+    : null;
   const date = new Date(post.date).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",
@@ -81,12 +87,12 @@ export default async function BlogPostPage({ params }: PageProps) {
 
         <div className="flex items-center gap-4 text-sm text-gray-600 border-b border-gray-100 pb-6">
           <div className="flex items-center gap-2">
-            {author?.avatar_urls && (
+            {authorAvatar && (
               <div className="relative w-8 h-8 rounded-full overflow-hidden bg-gray-200">
                 {/* Avatar often comes as 24, 48, 96. Use largest available */}
                 <Image
-                  src={Object.values(author.avatar_urls).pop() || ""}
-                  alt={author.name}
+                  src={authorAvatar}
+                  alt={author?.name || "Author"}
                   fill
                   className="object-cover"
                 />

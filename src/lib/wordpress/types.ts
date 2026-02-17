@@ -19,7 +19,9 @@ export interface Post {
   tags: number[];
   _embedded?: {
     "wp:featuredmedia"?: Array<{
-      source_url: string;
+      // WordPress may return source_url as a string OR as an array [url, w, h, crop]
+      // depending on how featured images were set up (especially with external images)
+      source_url: string | any[];
       alt_text: string;
     }>;
     author?: Array<{
