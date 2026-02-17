@@ -2,7 +2,7 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 
-const FROM_EMAIL = "Budget Travel <noreply@digitalvaultbd.com>";
+const FROM_EMAIL = "Budget Travel <bookings@budgettravelpackages.in>";
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "sm.sanny1235@gmail.com";
 
 // --- Email Templates (Shared Styles) ---
