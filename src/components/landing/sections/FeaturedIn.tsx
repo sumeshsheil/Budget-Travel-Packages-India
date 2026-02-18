@@ -11,7 +11,7 @@ import hindustan from "@/../public/images/brands/hindustan.svg";
 import googleNews from "@/../public/images/brands/google-news.png";
 import cityCarnival from "@/../public/images/brands/citycarnival.png";
 import indianPublisher from "@/../public/images/brands/indian-publisher.png";
-import indiaVoice from "@/../public/images/brands/india-voice.png";
+
 import foxStory from "@/../public/images/brands/fox-story.png";
 import hindustanTimes from "@/../public/images/brands/hindustan-time.png";
 import businessUpdate from "@/../public/images/brands/business-update.png";

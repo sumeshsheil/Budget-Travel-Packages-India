@@ -138,3 +138,19 @@ export async function getCategories(): Promise<
     return [];
   }
 }
+
+export async function searchPosts(query: string, perPage = 5): Promise<Post[]> {
+  try {
+    const response = await fetch(
+      `${WP_API_URL}/posts?_embed&search=${encodeURIComponent(query)}&per_page=${perPage}&status=publish`,
+      { next: { revalidate: 3600 } },
+    );
+
+    if (!response.ok) throw new Error("Failed to search posts");
+
+    return await response.json();
+  } catch (error) {
+    console.error(`Error searching posts for query "${query}":`, error);
+    return [];
+  }
+}

@@ -135,14 +135,16 @@ export default async function BlogPostPage({ params }: PageProps) {
       <footer className="mt-12 pt-8 border-t border-gray-200">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex flex-wrap gap-2">
-            {post._embedded?.["wp:term"]?.[1]?.map((tag: any) => (
-              <span
-                key={tag.id}
-                className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full hover:bg-gray-200 transition-colors cursor-default"
-              >
-                #{tag.name}
-              </span>
-            ))}
+            {post._embedded?.["wp:term"]?.[1]?.map(
+              (tag: { id: number; name: string }) => (
+                <span
+                  key={tag.id}
+                  className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full hover:bg-gray-200 transition-colors cursor-default"
+                >
+                  #{tag.name}
+                </span>
+              ),
+            )}
           </div>
 
           <Link

@@ -45,8 +45,11 @@ const HowItWorks: React.FC = () => {
   // Sync video container height with timeline height
   useEffect(() => {
     const updateHeight = () => {
-      if (timelineRef.current) {
+      // Apply height sync only on large screens (xl breakpoint: 1280px)
+      if (window.innerWidth >= 1280 && timelineRef.current) {
         setVideoHeight(timelineRef.current.offsetHeight);
+      } else {
+        setVideoHeight(undefined);
       }
     };
 
@@ -107,7 +110,7 @@ const HowItWorks: React.FC = () => {
             />
 
             <div className="space-y-8 relative z-10">
-              {steps.map((step, index) => (
+              {steps.map((step) => (
                 <div
                   key={step.id}
                   className="flex items-start"
@@ -121,9 +124,23 @@ const HowItWorks: React.FC = () => {
                     {step.id}
                   </div>
                   <div className="ml-6 pt-2">
-                    <h3 className="text-lg lg:text-2xl text-secondary-text font-semibold font-inter">
-                      {step.title}
-                    </h3>
+                    <div className="relative mb-2 w-fit drop-shadow-md">
+                      <h3
+                        className="text-lg lg:text-xl text-[#3E2723] font-bold font-inter px-8 py-2 min-w-[200px] flex items-center justify-center relative z-10"
+                        style={{
+                          background:
+                            "linear-gradient(90deg, #e3c498 0%, #cfaa7e 20%, #d6b485 24%, #cc9f6a 64%, #c9965d 100%)",
+                          clipPath:
+                            "polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%)",
+                        }}
+                      >
+                        {/* Screw heads */}
+                        <span className="absolute left-2 w-2 h-2 rounded-full bg-[#3e2723]/60 shadow-[inset_1px_1px_1px_rgba(0,0,0,0.5)]"></span>
+                        <span className="absolute right-4 w-2 h-2 rounded-full bg-[#3e2723]/60 shadow-[inset_1px_1px_1px_rgba(0,0,0,0.5)]"></span>
+                        {step.title}
+                      </h3>
+                      {/* Wood texture detail lines (optional, simulated via border/gradient) */}
+                    </div>
                     <p className="text-base lg:text-lg text-secondary-text font-open-sans font-normal">
                       {step.description}
                     </p>
@@ -141,7 +158,7 @@ const HowItWorks: React.FC = () => {
             <div className="relative h-full w-fit">
               {/* Green Shape */}
               <div
-                className="absolute top-3 left-3 w-full h-full bg-[#34D399] rounded-[20px] -z-10"
+                className="absolute top-2 left-2 md:top-3 md:left-3 lg:top-4 lg:left-4 w-full h-full bg-[#34D399] rounded-[20px] -z-10 transition-all duration-300"
                 aria-hidden="true"
               />
 

@@ -76,7 +76,7 @@ export function AddAgentDialog() {
           // Not implemented in this simple version, rely on toast for main error
         }
       }
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred");
     } finally {
       setIsPending(false);

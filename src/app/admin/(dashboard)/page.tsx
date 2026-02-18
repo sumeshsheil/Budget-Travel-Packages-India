@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Users, TrendingUp, Banknote, Activity, MapPin } from "lucide-react";
+import { Users, TrendingUp, Banknote, Activity } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 

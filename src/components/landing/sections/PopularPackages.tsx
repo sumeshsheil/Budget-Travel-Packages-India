@@ -54,7 +54,7 @@ const PopularPackages: React.FC = () => {
 
         {/* Packages Grid */}
         <div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8"
+          className="grid grid-cols-1  lg:grid-cols-3 gap-6 md:gap-8"
           role="list"
         >
           {packages.map((pkg, index) => (
@@ -65,7 +65,7 @@ const PopularPackages: React.FC = () => {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, margin: "-50px" }}
               transition={{ duration: 0.5, delay: index * 0.1 }}
-              className="group relative rounded-2xl overflow-hidden cursor-pointer shadow-md hover:shadow-xl transition-all duration-300 w-full aspect-4/4"
+              className="group relative rounded-2xl overflow-hidden cursor-pointer shadow-md hover:shadow-xl transition-all max-w-[600px] mx-auto duration-300 w-full aspect-4/4"
             >
               <article className="h-full w-full relative">
                 {/* Image */}

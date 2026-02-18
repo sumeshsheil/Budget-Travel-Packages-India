@@ -32,7 +32,8 @@ export function WhatsAppButton() {
   return (
     <div
       onClick={handleWhatsAppClick}
-      className="fixed bottom-16 right-6 z-50 cursor-pointer w-20 h-25 flex items-center justify-center hover:scale-110 transition-transform duration-300"
+      className="fixed bottom-16 right-6 z-50 cursor-pointer w-20 h-20 flex items-center justify-center hover:scale-110 transition-transform duration-300"
+      style={{ position: "fixed" }}
       role="button"
       aria-label="Contact us on WhatsApp"
       tabIndex={0}
@@ -42,7 +43,32 @@ export function WhatsAppButton() {
         }
       }}
     >
-      <Lottie animationData={animationData} loop={true} />
+      <div style={{ position: "relative", zIndex: 1 }}>
+        <Lottie animationData={animationData} loop={true} />
+      </div>
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          right: 0,
+          zIndex: 10,
+          backgroundColor: "#dc2626",
+          color: "white",
+          fontSize: "11px",
+          fontWeight: 700,
+          width: "20px",
+          height: "20px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: "50%",
+          border: "2px solid white",
+          boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+          pointerEvents: "none",
+        }}
+      >
+        1
+      </div>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import FooterRecentBlogs from "@/components/blog/FooterRecentBlogs";
+import YoutubeIcon from "@/components/icons/Youtube";
 
 // Logo and background
 import logo from "@/../public/images/logo/footer-logo.svg";
@@ -38,80 +39,65 @@ const Footer: React.FC = () => {
                     alt="Budget Travel Packages"
                     width={200}
                     height={85}
-                    className="w-auto h-auto max-w-[160px] xl:max-w-[200px]"
+                    className="w-auto h-auto max-w-[160px] xl:max-w-[240px]"
                   />
                 </Link>
 
                 <div className="flex flex-col gap-3">
-                  <div className="flex items-center gap-2 bg-gray-50/50 w-fit p-1.5 rounded-lg border border-gray-100">
+                  <div className="flex items-center gap-2 w-fit">
                     <Image
                       src="/images/footer/trust-badge/msme.png"
                       alt="Verified MSME"
                       width={1800}
                       height={1800}
-                      className="w-[24px] xl:w-[28px] h-auto rounded-full"
+                      className="w-[44px] xl:w-[60px] h-auto rounded-full"
                     />
-                    <span className="text-black font-semibold text-[11px] xl:text-xs whitespace-nowrap font-open-sans">
+                    <span className="text-black font-semibold text-sm xl:text-base whitespace-nowrap font-open-sans">
                       UDYAM-WB-14-0235424
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 pl-1">
+                  <div className="flex items-center gap-3 pl-1">
                     {["ssl", "lock", "100"].map((badge) => (
                       <Image
                         key={badge}
                         src={`/images/footer/trust-badge/${badge}.svg`}
                         alt={badge}
-                        width={28}
-                        height={28}
-                        className="w-[28px] xl:w-[32px] h-auto"
+                        width={36}
+                        height={36}
+                        className="w-[42px] xl:w-[54px] h-auto"
                       />
                     ))}
                   </div>
                 </div>
-
-                <Link
-                  href="mailto:hello@budgettravelpackage.in"
-                  className="inline-flex items-center gap-1.5 bg-secondary hover:bg-secondary/90 transition-colors font-medium text-xs xl:text-sm py-2 px-3 xl:px-4 rounded-full w-fit font-open-sans shadow-button"
-                >
-                  <span className="text-white font-bold">Contact:</span>
-                  <span className="text-white truncate max-w-[160px]">
-                    hello@budgettravelpackage.in
-                  </span>
-                </Link>
               </div>
 
-              {/* Col 2: Services & Payment */}
               <div className="pt-4 flex flex-col gap-3">
                 <div className="flex flex-col gap-3 text-secondary-text text-sm font-open-sans">
-                  <h3 className="font-bold text-black text-base xl:text-lg tracking-tight leading-tight">
-                    Promising Fixed Price
+                  <h3 className="font-bold text-black text-base tracking-tight leading-tight">
+                    Get Travel Services at Flat 9% of Total Cost*
                   </h3>
 
-                  <p className="font-medium text-black text-xs xl:text-sm opacity-80">
-                    Book Domestic &nbsp;|&nbsp; Book International
-                  </p>
-
-                  <div className="bg-primary/5 p-2.5 xl:p-3 rounded-xl border border-primary/10">
-                    <p className="font-bold text-primary text-xs xl:text-sm">
-                      Get Travel Services at Flat 9% of Total Cost
-                    </p>
+                  <div className="flex flex-col gap-2 w-full max-w-[280px]">
+                    <button className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-4 rounded-lg text-xs xl:text-sm transition-all  w-full cursor-pointer text-center">
+                      Book Domestic @ ₹599
+                    </button>
+                    <button className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-4 rounded-lg text-xs xl:text-sm transition-all  w-full cursor-pointer text-center">
+                      Book International @ ₹999
+                    </button>
                   </div>
-
-                  <Link
-                    href="#"
-                    className="inline-flex items-center justify-center bg-primary hover:bg-primary/90 text-white font-bold text-xs xl:text-sm py-2 xl:py-2.5 px-5 xl:px-6 rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5 w-fit"
-                  >
-                    Pay Now
-                  </Link>
-
                   <p className="text-[10px] xl:text-xs text-red-500 font-medium italic bg-red-50 px-2 py-1 rounded w-fit">
-                    * Note: Only book after Agent Confirmation
+                    * Note: Only book after Agent Confirmation *
                   </p>
                 </div>
               </div>
 
-              {/* Col 3: Office Address & Social */}
+              {/* Col 3: Recent Blogs */}
+              <div className="pt-4">
+                <FooterRecentBlogs />
+              </div>
+
+              {/* Col 4: Office Address & Social */}
               <div className="pt-4 flex flex-col gap-5">
                 <div className="flex flex-col gap-2">
                   <h3 className="text-black font-bold text-base xl:text-lg font-open-sans flex items-center gap-2">
@@ -130,46 +116,44 @@ const Footer: React.FC = () => {
                     Follow Us On:
                   </span>
                   <div className="flex items-center gap-3">
-                    {[
-                      {
-                        href: "https://facebook.com",
-                        src: "/images/footer/social/facebook.svg",
-                        alt: "Facebook",
-                      },
-                      {
-                        href: "https://instagram.com",
-                        src: "/images/footer/social/instagram.svg",
-                        alt: "Instagram",
-                      },
-                      {
-                        href: "https://youtube.com",
-                        src: "/images/footer/social/youtube.svg",
-                        alt: "YouTube",
-                      },
-                    ].map((social) => (
-                      <Link
-                        key={social.alt}
-                        href={social.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="transition-transform hover:scale-110 hover:opacity-80 p-1"
-                      >
-                        <Image
-                          src={social.src}
-                          alt={social.alt}
-                          width={24}
-                          height={24}
-                          className="w-6 h-6"
-                        />
-                      </Link>
-                    ))}
+                    <Link
+                      href="https://facebook.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="transition-transform hover:scale-110 hover:opacity-80 p-1"
+                    >
+                      <Image
+                        src="/images/footer/social/facebook.png"
+                        alt="Facebook"
+                        width={28}
+                        height={28}
+                        className="w-6 h-6 object-contain"
+                      />
+                    </Link>
+                    <Link
+                      href="https://instagram.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="transition-transform hover:scale-110 hover:opacity-80 p-1"
+                    >
+                      <Image
+                        src="/images/footer/social/instagram-2.png"
+                        alt="Instagram"
+                        width={28}
+                        height={28}
+                        className="w-6 h-6 object-contain"
+                      />
+                    </Link>
+                    <Link
+                      href="https://youtube.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="transition-transform hover:scale-110 hover:opacity-80 p-1"
+                    >
+                      <YoutubeIcon className="w-auto h-5" />
+                    </Link>
                   </div>
                 </div>
-              </div>
-
-              {/* Col 4: Recent Blogs */}
-              <div className="pt-4">
-                <FooterRecentBlogs />
               </div>
             </div>
 
@@ -188,73 +172,60 @@ const Footer: React.FC = () => {
                 </Link>
 
                 <div className="flex flex-wrap justify-center items-center gap-3">
-                  <div className="flex items-center gap-2 bg-gray-50 px-3 py-1 rounded-full border border-gray-100">
+                  <div className="flex items-center gap-20">
                     <Image
                       src="/images/footer/trust-badge/msme.png"
                       alt="Verified"
                       width={1800}
                       height={1800}
-                      className="w-[24px] h-auto rounded-full"
+                      className="w-[32px] h-auto rounded-full"
                     />
-                    <span className="text-black font-medium text-xs font-open-sans">
+                    <span className="text-black font-medium text-sm font-open-sans">
                       UDYAM-WB-14-0235424
                     </span>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   {["ssl", "lock", "100"].map((badge) => (
                     <Image
                       key={badge}
                       src={`/images/footer/trust-badge/${badge}.svg`}
                       alt="Trusted"
-                      width={32}
-                      height={32}
-                      className="w-[32px] h-auto"
+                      width={40}
+                      height={40}
+                      className="w-[40px] h-auto"
                     />
                   ))}
                 </div>
-
-                <Link
-                  href="mailto:hello@budgettravelpackage.in"
-                  className="inline-flex items-center gap-1.5 bg-secondary font-medium text-sm py-2 px-4 rounded-full w-fit font-open-sans shadow-sm"
-                >
-                  <span className="text-white font-bold">Contact:</span>
-                  <span className="text-white">
-                    hello@budgettravelpackage.in
-                  </span>
-                </Link>
               </div>
 
               {/* Services & Payment (Mobile) */}
               <div className="flex flex-col text-center items-center gap-3 bg-gray-50/50 p-6 rounded-2xl border border-dashed border-gray-200">
                 <h3 className="font-bold text-black text-xl">
-                  Promising Fixed Price
+                  Get Travel Services at Flat 9% of Total Cost*
                 </h3>
-                <p className="font-medium text-black text-sm">
-                  Book Domestic | Book International
-                </p>
 
-                <div className="bg-white px-4 py-2 rounded-lg border border-gray-100 shadow-sm">
-                  <p className="font-bold text-primary text-sm">
-                    Get Travel Services at Flat 9% of Total Cost
-                  </p>
+                <div className="flex flex-col gap-2 w-full max-w-[240px]">
+                  <button className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-4 rounded-lg text-sm transition-all shadow-sm w-full cursor-pointer">
+                    Book Domestic @ ₹599
+                  </button>
+                  <button className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-4 rounded-lg text-sm transition-all shadow-sm w-full cursor-pointer">
+                    Book International @ ₹999
+                  </button>
                 </div>
-
-                <Link
-                  href="#"
-                  className="inline-block bg-primary text-white font-bold py-2.5 px-8 rounded-lg shadow-md mt-2 w-full max-w-[240px]"
-                >
-                  Pay Now
-                </Link>
-
                 <p className="text-[10px] text-red-500 font-medium italic opacity-80">
-                  * Note: Only book after Agent Confirmation
+                  * Note: Only book after Agent Confirmation *
                 </p>
               </div>
 
               {/* Address + Recent Blogs side by side on sm, stacked on xs */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                {/* Recent Blogs (Mobile) */}
+                <div className="flex flex-col items-center sm:items-start">
+                  <FooterRecentBlogs />
+                </div>
+
                 {/* Office Address & Social */}
                 <div className="flex flex-col items-center sm:items-start text-center sm:text-left gap-5">
                   <div className="flex flex-col gap-2">
@@ -273,46 +244,44 @@ const Footer: React.FC = () => {
                       Follow Us:
                     </span>
                     <div className="flex items-center gap-3">
-                      {[
-                        {
-                          href: "https://facebook.com",
-                          src: "/images/footer/social/facebook.svg",
-                          alt: "Facebook",
-                        },
-                        {
-                          href: "https://instagram.com",
-                          src: "/images/footer/social/instagram.svg",
-                          alt: "Instagram",
-                        },
-                        {
-                          href: "https://youtube.com",
-                          src: "/images/footer/social/youtube.svg",
-                          alt: "YouTube",
-                        },
-                      ].map((social) => (
-                        <Link
-                          key={social.alt}
-                          href={social.href}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="transition-transform hover:scale-110"
-                        >
-                          <Image
-                            src={social.src}
-                            alt={social.alt}
-                            width={28}
-                            height={28}
-                            className="w-7 h-7"
-                          />
-                        </Link>
-                      ))}
+                      <Link
+                        href="https://facebook.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="transition-transform hover:scale-110"
+                      >
+                        <Image
+                          src="/images/footer/social/facebook.png"
+                          alt="Facebook"
+                          width={32}
+                          height={32}
+                          className="w-7 h-7 object-contain"
+                        />
+                      </Link>
+                      <Link
+                        href="https://instagram.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="transition-transform hover:scale-110"
+                      >
+                        <Image
+                          src="/images/footer/social/instagram-2.png"
+                          alt="Instagram"
+                          width={32}
+                          height={32}
+                          className="w-7 h-7 object-contain"
+                        />
+                      </Link>
+                      <Link
+                        href="https://youtube.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="transition-transform hover:scale-110"
+                      >
+                        <YoutubeIcon className="w-auto h-5" />
+                      </Link>
                     </div>
                   </div>
-                </div>
-
-                {/* Recent Blogs (Mobile) */}
-                <div className="flex flex-col items-center sm:items-start">
-                  <FooterRecentBlogs />
                 </div>
               </div>
             </div>

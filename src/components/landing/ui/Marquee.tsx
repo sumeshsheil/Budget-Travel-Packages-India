@@ -13,10 +13,6 @@ const Marquee: React.FC = () => {
       icon: YellowStar,
     },
     {
-      title: "Transfers, Sightseeing & Activities",
-      icon: YellowStar,
-    },
-    {
       title: "Book Devotional Packages @ ₹333",
       icon: YellowStar,
     },
@@ -29,10 +25,6 @@ const Marquee: React.FC = () => {
       icon: YellowStar,
     },
     {
-      title: "Transfers, Sightseeing & Activities",
-      icon: YellowStar,
-    },
-    {
       title: "Book Devotional Packages @ ₹333",
       icon: YellowStar,
     },
@@ -42,10 +34,6 @@ const Marquee: React.FC = () => {
     },
     {
       title: "Book International Packages @ ₹999",
-      icon: YellowStar,
-    },
-    {
-      title: "Transfers, Sightseeing & Activities",
       icon: YellowStar,
     },
     {

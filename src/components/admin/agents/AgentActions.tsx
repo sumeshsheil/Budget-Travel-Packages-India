@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, Trash2, Power, UserCog } from "lucide-react";
+import { MoreHorizontal, Trash2, Power } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -121,8 +121,8 @@ export function AgentActions({
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete
-              <strong> {agentName}'s</strong> account and remove their data from
-              our servers.
+              <strong> {agentName}&apos;s</strong> account and remove their data
+              from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -8,7 +8,7 @@ import User from "@/lib/db/models/User";
 // Extend NextAuth types
 declare module "next-auth" {
   interface User {
-    role: "admin" | "agent";
+    role: "admin" | "agent" | "customer";
     mustChangePassword: boolean;
   }
   interface Session {
@@ -16,7 +16,7 @@ declare module "next-auth" {
       id: string;
       email: string;
       name: string;
-      role: "admin" | "agent";
+      role: "admin" | "agent" | "customer";
       mustChangePassword: boolean;
     };
   }
@@ -24,7 +24,7 @@ declare module "next-auth" {
 
 declare module "next-auth" {
   interface JWT {
-    role: "admin" | "agent";
+    role: "admin" | "agent" | "customer";
     userId: string;
     mustChangePassword: boolean;
   }
@@ -66,13 +66,18 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           return null;
         }
 
-        // 5. Compare password
+        // 5. Customers must have activated their account
+        if (user.role === "customer" && !user.isActivated) {
+          return null;
+        }
+
+        // 6. Compare password
         const isPasswordValid = await bcryptjs.compare(password, user.password);
         if (!isPasswordValid) {
           return null;
         }
 
-        // 6. Return user object
+        // 7. Return user object
         return {
           id: user._id.toString(),
           email: user.email,
@@ -85,7 +90,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   session: {
     strategy: "jwt",
-    maxAge: 30 * 60, // 30 minutes — auto-expire
+    maxAge: 7 * 24 * 60 * 60, // 7 days for customers, middleware enforces stricter for admin
   },
   pages: {
     signIn: "/admin/login",
@@ -102,7 +107,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.userId as string;
-        session.user.role = token.role as "admin" | "agent";
+        session.user.role = token.role as "admin" | "agent" | "customer";
         session.user.mustChangePassword = token.mustChangePassword as boolean;
       }
       return session;

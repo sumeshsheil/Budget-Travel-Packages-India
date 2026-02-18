@@ -1,11 +1,9 @@
 "use client";
 
 import React from "react";
-import Image from "next/image";
+
 import dynamic from "next/dynamic";
 import { BookingFormCard } from "./components/BookingFormCard";
-
-import arrowLineShape from "@/../public/images/shapes/arrow-line.svg";
 
 // Lazy-load Lottie to avoid SSR issues and reduce initial bundle
 const Lottie = dynamic(() => import("lottie-react"), { ssr: false });
@@ -61,7 +59,7 @@ const BookYourTripSection: React.FC = () => {
       </div>
 
       {/* Decorative Boat Lottie (Right Bottom) */}
-      <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 2xl:right-8 2xl:left-auto 2xl:translate-x-0 w-60 2xl:w-80 opacity-80 pointer-events-none z-20">
+      <div className="absolute -bottom-28 left-1/2 -translate-x-1/2 2xl:right-8 2xl:left-auto 2xl:translate-x-0 w-60 2xl:w-80 opacity-80 pointer-events-none z-20">
         <Lottie
           animationData={boatAnimation}
           loop

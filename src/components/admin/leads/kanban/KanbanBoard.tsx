@@ -15,7 +15,6 @@ import {
 import { KanbanLead, LeadStage, LEAD_STAGES } from "./types";
 import { KanbanColumn } from "./KanbanColumn";
 import { KanbanCard } from "./KanbanCard";
-import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { updateLeadStage } from "@/app/admin/(dashboard)/leads/actions";
 
@@ -26,7 +25,6 @@ interface KanbanBoardProps {
 export function KanbanBoard({ initialLeads }: KanbanBoardProps) {
   const [leads, setLeads] = useState<KanbanLead[]>(initialLeads);
   const [activeLead, setActiveLead] = useState<KanbanLead | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
 
   const sensors = useSensors(
     useSensor(MouseSensor, {

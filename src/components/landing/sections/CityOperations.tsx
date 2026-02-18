@@ -49,7 +49,7 @@ const CityOperations: React.FC = () => {
     <section className="xl:pt-20 md:pt-10 pb-10 relative overflow-hidden bg-white">
       <div className="relative z-10 mb-0 md:mb-16 px-4 flex flex-col md:flex-row md:flex-wrap md:justify-center md:gap-x-10 xl:block">
         {/* Plane Animation */}
-        <div className="order-1 md:order-1 relative md:static xl:absolute xl:top-2 xl:left-0 2xl:left-10 w-48 md:w-72 mx-auto xl:mx-0 pointer-events-none mt-0 md:mt-0 -scale-x-100">
+        <div className="order-1 md:order-1 relative md:static xl:absolute xl:top-2 xl:left-0 2xl:left-10 w-48 md:w-72 xl:mx-0 pointer-events-none mt-0 md:mt-0 -scale-x-100">
           <LottieAnimation
             src="/animations/plane.json"
             width="100%"
@@ -78,7 +78,7 @@ const CityOperations: React.FC = () => {
           </p>
         </div>
         {/* Train Animation */}
-        <div className="order-3 md:order-3 relative md:static xl:absolute xl:top-4 xl:right-0 2xl:right-10 w-[170px]  md:w-[250px] mx-auto xl:mx-0 pointer-events-none mb-2 md:mb-8 xl:mb-0 -scale-x-100">
+        <div className="order-3 md:order-3 relative md:static xl:absolute xl:top-4 xl:right-0 2xl:right-10 w-[170px]  md:w-[250px] ml-auto xl:mx-0 pointer-events-none mb-2 md:mb-8 xl:mb-0 -scale-x-100">
           <LottieAnimation
             src="/animations/train.json"
             width="100%"
@@ -108,15 +108,8 @@ const CityOperations: React.FC = () => {
                   alt={city.alt}
                   sizes="(max-width: 768px) 100vw, 50vw"
                   placeholder="blur"
-                  className="h-full w-auto object-contain object-bottom"
-                  style={
-                    city.id === "delhi"
-                      ? {
-                          filter:
-                            "brightness(0) saturate(100%) invert(54%) sepia(91%) saturate(500%) hue-rotate(359deg) brightness(103%) contrast(105%)",
-                        }
-                      : undefined
-                  }
+                  className={`h-full w-auto object-contain object-bottom ${city.id === "delhi" ? "opacity-50" : ""}`}
+
                 />
               </div>
             </div>

@@ -116,7 +116,7 @@ const WhyChooseUs: React.FC = () => {
                 .getElementById("start-planning")
                 ?.scrollIntoView({ behavior: "smooth" });
             }}
-            className="bg-primary text-black font-bold py-3 px-10 rounded-full hover:shadow-lg transition-shadow text-base md:text-lg"
+            className="bg-new-blue text-white font-bold py-3 px-10 rounded-full hover:shadow-lg transition-shadow text-base md:text-lg"
           >
             Customize My Trip
           </Button>

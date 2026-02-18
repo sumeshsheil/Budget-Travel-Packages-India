@@ -9,7 +9,7 @@ interface RecentPost {
   title: { rendered: string };
   _embedded?: {
     "wp:featuredmedia"?: Array<{
-      source_url: string | any[];
+      source_url: string | string[];
     }>;
   };
 }

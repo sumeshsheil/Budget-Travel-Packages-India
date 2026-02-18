@@ -36,6 +36,33 @@ export interface ITraveler {
   phone: string;
 }
 
+export const DOCUMENT_TYPES = [
+  "ticket",
+  "voucher",
+  "visa",
+  "itinerary_pdf",
+  "invoice",
+  "other",
+] as const;
+
+export type DocumentType = (typeof DOCUMENT_TYPES)[number];
+
+export interface IDocument {
+  name: string;
+  url: string;
+  type: DocumentType;
+  uploadedAt: Date;
+}
+
+export interface IItineraryDay {
+  day: number;
+  title: string;
+  description: string;
+  meals?: string;
+  hotel?: string;
+  transport?: string;
+}
+
 export interface ILead extends Document {
   _id: mongoose.Types.ObjectId;
 
@@ -59,6 +86,21 @@ export interface ILead extends Document {
   notes?: string;
   agentId?: mongoose.Types.ObjectId;
   ipAddress?: string;
+
+  // Customer link
+  customerId?: mongoose.Types.ObjectId;
+
+  // Payment tracking
+  paymentStatus: "pending" | "partial" | "paid";
+  paymentAmount?: number;
+
+  // Trip details — Admin managed
+  documents?: IDocument[];
+  itinerary?: IItineraryDay[];
+  inclusions?: string[];
+  exclusions?: string[];
+  hotelName?: string;
+  hotelRating?: number;
 
   // Timestamps
   lastActivityAt: Date;
@@ -99,6 +141,32 @@ const TravelerSchema = new Schema<ITraveler>(
       required: true,
       trim: true,
     },
+  },
+  { _id: false },
+);
+
+const DocumentSchema = new Schema<IDocument>(
+  {
+    name: { type: String, required: true, trim: true },
+    url: { type: String, required: true, trim: true },
+    type: {
+      type: String,
+      enum: DOCUMENT_TYPES,
+      default: "other",
+    },
+    uploadedAt: { type: Date, default: Date.now },
+  },
+  { _id: false },
+);
+
+const ItineraryDaySchema = new Schema<IItineraryDay>(
+  {
+    day: { type: Number, required: true },
+    title: { type: String, required: true, trim: true },
+    description: { type: String, required: true, trim: true },
+    meals: { type: String, trim: true },
+    hotel: { type: String, trim: true },
+    transport: { type: String, trim: true },
   },
   { _id: false },
 );
@@ -186,6 +254,49 @@ const LeadSchema = new Schema<ILead>(
       type: String,
     },
 
+    // === CUSTOMER LINK ===
+    customerId: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+    },
+
+    // === PAYMENT TRACKING ===
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "partial", "paid"],
+      default: "pending",
+    },
+    paymentAmount: {
+      type: Number,
+    },
+
+    // === TRIP DETAILS (Admin-managed) ===
+    documents: {
+      type: [DocumentSchema],
+      default: [],
+    },
+    itinerary: {
+      type: [ItineraryDaySchema],
+      default: [],
+    },
+    inclusions: {
+      type: [String],
+      default: [],
+    },
+    exclusions: {
+      type: [String],
+      default: [],
+    },
+    hotelName: {
+      type: String,
+      trim: true,
+    },
+    hotelRating: {
+      type: Number,
+      min: 1,
+      max: 5,
+    },
+
     // === ACTIVITY TRACKING ===
     lastActivityAt: {
       type: Date,
@@ -205,6 +316,7 @@ LeadSchema.index({ source: 1 });
 LeadSchema.index({ createdAt: -1 });
 LeadSchema.index({ lastActivityAt: 1 });
 LeadSchema.index({ stage: 1, lastActivityAt: 1 }); // For stale lead detection
+LeadSchema.index({ customerId: 1 }); // For customer dashboard queries
 
 // ============ MODEL ============
 

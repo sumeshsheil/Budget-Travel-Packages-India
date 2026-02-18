@@ -7,7 +7,6 @@ import { Plus, Minus, ChevronDown, ChevronUp } from "lucide-react";
 import Button from "../ui/button";
 
 import worldMap from "@/../public/images/shapes/world-map.svg";
-import plant from "@/../public/images/shapes/plant.svg";
 
 interface FAQItem {
   id: number;

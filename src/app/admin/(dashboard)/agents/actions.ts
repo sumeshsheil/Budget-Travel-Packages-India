@@ -52,7 +52,8 @@ export async function createAgent(prevState: unknown, formData: FormData) {
     const hashedPassword = await bcryptjs.hash(tempPassword, 12);
 
     // Create user
-    const newUser = await User.create({
+    // Create user
+    await User.create({
       name,
       email: email.toLowerCase(),
       password: hashedPassword,

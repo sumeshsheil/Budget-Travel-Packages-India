@@ -12,7 +12,6 @@ import icon5 from "@/../public/images/service-we-offer/icons/icon5.svg";
 import icon6 from "@/../public/images/service-we-offer/icons/icon6.svg";
 
 import bgParachute from "@/../public/images/service-we-offer/background.png";
-import mapShape from "@/../public/images/shapes/map.svg";
 
 const services = [
   {
@@ -65,7 +64,7 @@ const ServicesWeOffer: React.FC = () => {
       >
         <Image src={bgParachute} alt="" className="w-auto h-auto" />
       </motion.div>
-      <div className="md:absolute mx-auto md:-top-15 md:right-10 xl:-top-15 xl:right-20 w-48 md:w-50 lg:w-60 xl:w-80 -mt-4">
+      <div className="md:absolute mx-auto md:-top-15 md:right-10 xl:-top-15 xl:right-20 w-60 lg:w-60 xl:w-80 -mt-4">
         <LottieAnimation
           src="/animations/travel-map.json"
           width="100%"

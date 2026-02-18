@@ -6,15 +6,12 @@ import { usePathname, useRouter } from "next/navigation";
 import { format } from "date-fns";
 import {
   Bell,
-  Search,
   LogOut,
   User,
-  Check,
   Info,
   AlertCircle,
   CheckCircle2,
   AlertTriangle,
-  X,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -85,7 +82,7 @@ export function AdminHeader() {
     try {
       await markAllNotificationsRead();
       toast.success("All notifications marked as read");
-    } catch (err) {
+    } catch {
       setNotifications(previous);
       toast.error("Failed to mark all as read");
     }

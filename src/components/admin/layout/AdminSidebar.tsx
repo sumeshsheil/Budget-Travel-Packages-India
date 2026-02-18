@@ -3,19 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
+import logo from "@/../public/images/logo/logo.svg";
 import {
   LayoutDashboard,
   Users,
   FileText,
   Settings,
-  LogOut,
-  Menu,
-  X,
   Plane,
 } from "lucide-react";
 
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
   Sidebar,
   SidebarContent,
@@ -26,13 +23,9 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarProvider,
-  SidebarTrigger,
-  useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "motion/react";
-import { Separator } from "@/components/ui/separator";
 
 export function AdminAppSidebar() {
   const pathname = usePathname();
@@ -101,10 +94,13 @@ export function AdminAppSidebar() {
                   <Plane className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">Budget Travel</span>
-                  <span className="truncate text-xs text-muted-foreground">
-                    Admin Panel
-                  </span>
+                  <Image
+                    src={logo}
+                    alt="Budget Travel Packages"
+                    width={120}
+                    height={50}
+                    className="h-8 w-auto object-contain"
+                  />
                 </div>
               </Link>
             </SidebarMenuButton>

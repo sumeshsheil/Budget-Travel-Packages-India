@@ -3,10 +3,9 @@ import { connectDB } from "@/lib/db/mongoose";
 import User from "@/lib/db/models/User";
 import { auth } from "@/lib/auth";
 import { ProfileForm } from "./profile-form";
-import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { KeyRound, Smartphone, Mail } from "lucide-react";
+import { KeyRound, Mail } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Settings | Budget Travel Packages",

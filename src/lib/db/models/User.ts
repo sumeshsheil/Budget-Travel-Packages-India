@@ -7,10 +7,13 @@ export interface IUser extends Document {
   email: string;
   password: string;
   name: string;
-  role: "admin" | "agent";
+  role: "admin" | "agent" | "customer";
   status: "active" | "inactive";
   phone?: string;
   mustChangePassword: boolean;
+  isActivated: boolean;
+  setPasswordToken?: string;
+  setPasswordExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,7 +43,7 @@ const UserSchema = new Schema<IUser>(
     role: {
       type: String,
       enum: {
-        values: ["admin", "agent"],
+        values: ["admin", "agent", "customer"],
         message: "{VALUE} is not a valid role",
       },
       required: true,
@@ -60,6 +63,16 @@ const UserSchema = new Schema<IUser>(
     mustChangePassword: {
       type: Boolean,
       default: false,
+    },
+    isActivated: {
+      type: Boolean,
+      default: false,
+    },
+    setPasswordToken: {
+      type: String,
+    },
+    setPasswordExpires: {
+      type: Date,
     },
   },
   {

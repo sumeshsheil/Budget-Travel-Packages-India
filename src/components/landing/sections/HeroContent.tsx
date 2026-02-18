@@ -16,13 +16,13 @@ const HeroContent: React.FC = () => {
         <span className="text-primary">Budget Travel Packages</span>
       </h1>
 
-      <p className="font-open-sans font-semibold text-lg md:text-2xl mt-6 mb-8 max-w-3xl text-white/90 px-4 leading-relaxed drop-shadow-md">
+      <p className="font-open-sans font-semibold text-lg md:text-2xl lg:text-3xl mt-6 mb-8 max-w-3xl text-white/90 px-4 leading-relaxed drop-shadow-md">
         Book customized domestic & international vacation plan from India.
         Flights, Trains, Hotels, Sightseeing & much more...
       </p>
 
       <div className="inline-block px-6 py-2">
-        <p className="font-open-sans font-bold text-accent text-lg md:text-2xl lg:text-4xl tracking-wide drop-shadow-sm">
+        <p className="font-open-sans font-bold text-accent text-lg md:text-2xl lg:text-[48px] tracking-wide drop-shadow-sm">
           Explore More, Spend Less!
         </p>
       </div>

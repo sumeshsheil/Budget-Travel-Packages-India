@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { Globe, ChevronDown, Check } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import Script from "next/script";
 
 interface Language {
   code: string;

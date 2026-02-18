@@ -28,6 +28,8 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { ActionButtons } from "@/components/admin/leads/lead-detail/ActionButtons";
 import { ActivityTimeline } from "@/components/admin/leads/lead-detail/ActivityTimeline";
+import { DocumentManager } from "@/components/admin/leads/lead-detail/DocumentManager";
+import { ItineraryManager } from "@/components/admin/leads/lead-detail/ItineraryManager";
 import { getLeadActivities } from "./activity-actions";
 
 interface PopulatedAgent {
@@ -95,6 +97,13 @@ export default async function LeadDetailPage({
 
   // Fetch activities
   const activities = await getLeadActivities(String(lead._id));
+
+  // Serialize trip details for client components
+  const documents = JSON.parse(JSON.stringify(lead.documents || []));
+  const itinerary = JSON.parse(JSON.stringify(lead.itinerary || []));
+  const inclusions = (lead.inclusions || []) as string[];
+  const exclusions = (lead.exclusions || []) as string[];
+  const leadId = String(lead._id);
 
   return (
     <div className="space-y-6">
@@ -242,6 +251,19 @@ export default async function LeadDetailPage({
               </CardContent>
             </Card>
           )}
+
+          {/* Documents Manager */}
+          <DocumentManager leadId={leadId} documents={documents} />
+
+          {/* Itinerary & Trip Details Manager */}
+          <ItineraryManager
+            leadId={leadId}
+            itinerary={itinerary}
+            inclusions={inclusions}
+            exclusions={exclusions}
+            hotelName={lead.hotelName as string | undefined}
+            hotelRating={lead.hotelRating as number | undefined}
+          />
         </div>
 
         {/* Right Column - Actions */}

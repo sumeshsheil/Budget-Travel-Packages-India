@@ -11,7 +11,6 @@ import {
   Clock,
   ShieldCheck,
   Lock,
-  Loader2,
 } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/landing/sections/Footer";
@@ -89,9 +88,9 @@ export default function ThankYouPage() {
                 Submission <span className="text-primary">Successful!</span>
               </h1>
               <p className="text-lg md:text-xl text-gray-700 font-medium max-w-2xl mx-auto leading-relaxed">
-                Thank you for choosing Budget Travel Packages. We've received
-                your request and our travel experts are already preparing local
-                insights for you.
+                Thank you for choosing Budget Travel Packages. We&apos;ve
+                received your request and our travel experts are already
+                preparing local insights for you.
               </p>
             </motion.div>
 

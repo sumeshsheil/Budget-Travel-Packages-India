@@ -5,7 +5,7 @@ import Lottie from "lottie-react";
 import { motion } from "motion/react";
 
 interface LottieAnimationProps {
-  animationData?: any;
+  animationData?: object;
   src?: string; // URL based loading
   width?: number | string;
   height?: number | string;
@@ -23,7 +23,7 @@ const LottieAnimation: React.FC<LottieAnimationProps> = ({
   loop = true,
   autoplay = true,
 }) => {
-  const [data, setData] = useState<any>(animationData);
+  const [data, setData] = useState<object | undefined>(animationData);
   const [shouldRender, setShouldRender] = useState(false);
 
   // Also support immediate data if provided
