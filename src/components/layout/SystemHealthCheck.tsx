@@ -12,7 +12,30 @@ export default function SystemHealthCheck() {
     const checkHealth = async () => {
       try {
         const res = await fetch("/api/health");
-        const result = await res.json();
+
+        if (!res.ok) {
+          const text = await res.text();
+          console.error(
+            "%c[Budget Travel] ❌ Health check HTTP error ",
+            "background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;",
+            `Status: ${res.status} ${res.statusText}. Content: ${text.substring(0, 200)}...`,
+          );
+          return;
+        }
+
+        let result;
+        try {
+          result = await res.json();
+        } catch (jsonError) {
+          const text = await res.text();
+          console.error(
+            "%c[Budget Travel] ❌ Health check JSON parse failed ",
+            "background: #ef4444; color: white; padding: 2px 6px; border-radius: 4px; font-weight: bold;",
+            `Content starts with: ${text.substring(0, 100)}...`,
+            jsonError,
+          );
+          return;
+        }
 
         const styles = {
           success:

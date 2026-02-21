@@ -20,6 +20,14 @@ export async function proxy(request: NextRequest) {
   const isPortalsDomain =
     hostname.includes("portals.") || hostname === "portals.localhost:3000";
 
+  // 1. ALWAYS allow global API routes (non-admin) to pass through without rewrites
+  if (
+    url.pathname.startsWith("/api") &&
+    !url.pathname.startsWith("/api/admin")
+  ) {
+    return NextResponse.next();
+  }
+
   let effectivePathname = url.pathname;
   let isRewriteNeeded = false;
 
@@ -27,8 +35,7 @@ export async function proxy(request: NextRequest) {
   if (
     isPortalsDomain &&
     !url.pathname.startsWith("/admin") &&
-    !url.pathname.startsWith("/api/admin") &&
-    !url.pathname.startsWith("/api/auth") &&
+    !url.pathname.startsWith("/api") &&
     !url.pathname.startsWith("/_next")
   ) {
     if (url.pathname === "/") {
