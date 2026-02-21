@@ -42,8 +42,8 @@ interface TravelerData {
   name: string;
   age: number;
   gender: string;
-  email: string;
-  phone: string;
+  email?: string;
+  phone?: string;
 }
 
 export default async function LeadDetailPage({
@@ -210,22 +210,34 @@ export default async function LeadDetailPage({
                       <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4 text-muted-foreground" />
                         <span className="text-muted-foreground">Email:</span>
-                        <a
-                          href={`mailto:${traveler.email}`}
-                          className="text-blue-600 hover:underline"
-                        >
-                          {traveler.email}
-                        </a>
+                        {traveler.email ? (
+                          <a
+                            href={`mailto:${traveler.email}`}
+                            className="text-blue-600 hover:underline"
+                          >
+                            {traveler.email}
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground italic text-xs">
+                            Not provided
+                          </span>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <Phone className="h-4 w-4 text-muted-foreground" />
                         <span className="text-muted-foreground">Phone:</span>
-                        <a
-                          href={`tel:${traveler.phone}`}
-                          className="text-blue-600 hover:underline"
-                        >
-                          {traveler.phone}
-                        </a>
+                        {traveler.phone ? (
+                          <a
+                            href={`tel:${traveler.phone}`}
+                            className="text-blue-600 hover:underline"
+                          >
+                            {traveler.phone}
+                          </a>
+                        ) : (
+                          <span className="text-muted-foreground italic text-xs">
+                            Not provided
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
