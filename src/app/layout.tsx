@@ -18,6 +18,7 @@ import { FloatingButtons } from "@/components/layout/FloatingButtons";
 import SessionProvider from "@/components/providers/SessionProvider";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
+import SystemHealthCheck from "@/components/layout/SystemHealthCheck";
 
 export const viewport: Viewport = {
   themeColor: "#01FF70",
@@ -161,6 +162,7 @@ export default function RootLayout({
           <StoreProvider>
             <SessionProvider>
               <SmoothScrollProvider>
+                <SystemHealthCheck />
                 {children}
                 <FloatingButtons />
                 <Toaster richColors position="top-right" closeButton />
