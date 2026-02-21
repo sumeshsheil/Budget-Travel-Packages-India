@@ -32,8 +32,9 @@ export interface ITraveler {
   name: string;
   age: number;
   gender: "male" | "female" | "other";
-  email: string;
-  phone: string;
+  email?: string;
+  phone?: string;
+  memberId?: string;
 }
 
 export const DOCUMENT_TYPES = [
@@ -122,7 +123,7 @@ const TravelerSchema = new Schema<ITraveler>(
     age: {
       type: Number,
       required: true,
-      min: 1,
+      min: 0,
       max: 120,
     },
     gender: {
@@ -132,13 +133,15 @@ const TravelerSchema = new Schema<ITraveler>(
     },
     email: {
       type: String,
-      required: true,
       trim: true,
       lowercase: true,
     },
     phone: {
       type: String,
-      required: true,
+      trim: true,
+    },
+    memberId: {
+      type: String,
       trim: true,
     },
   },

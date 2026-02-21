@@ -56,6 +56,27 @@ const DESTINATIONS = [
 async function seed() {
   await connectDB();
 
+  // 0. Create Admin if it doesn't exist
+  const adminEmail = process.env.ADMIN_EMAIL || "sm.sanny1235@gmail.com";
+  const adminPassword = process.env.ADMIN_PASSWORD || "Admin@123";
+  const adminName = process.env.ADMIN_NAME || "Sazzad";
+
+  let adminUser = await User.findOne({ email: adminEmail.toLowerCase() });
+  if (!adminUser) {
+    const hashedAdminPassword = await bcryptjs.hash(adminPassword, 10);
+    await User.create({
+      email: adminEmail.toLowerCase(),
+      name: adminName,
+      password: hashedAdminPassword,
+      role: "admin",
+      status: "active",
+      mustChangePassword: false,
+      isActivated: true,
+      isVerified: true,
+    });
+    console.log(`Created admin user: ${adminEmail}`);
+  }
+
   // 1. Create Agents if they don't exist
   const agents = [];
 

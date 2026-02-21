@@ -32,9 +32,22 @@ export async function GET() {
 }
 
 // PATCH — update allowed fields
+// PATCH — update profile
 const updateSchema = z.object({
-  name: z.string().min(2).max(100).optional(),
-  email: z.string().email().optional(),
+  firstName: z.string().optional().or(z.literal("")),
+  lastName: z.string().optional().or(z.literal("")),
+  name: z.string().optional().or(z.literal("")),
+  email: z.string().email().optional().or(z.literal("")),
+  phone: z.string().optional().or(z.literal("")),
+  altPhone: z.string().optional().or(z.literal("")),
+  image: z.string().url().optional().or(z.literal("")),
+  gender: z.enum(["male", "female", "other", ""]).optional(),
+  documents: z
+    .object({
+      aadharCard: z.array(z.string().url()).optional(),
+      passport: z.array(z.string().url()).optional(),
+    })
+    .optional(),
 });
 
 export async function PATCH(request: Request) {
@@ -56,18 +69,76 @@ export async function PATCH(request: Request) {
       );
     }
 
+    const updates = validation.data;
     await connectDB();
+
+    // Fetch current user to merge and verify
+    const currentUser = await User.findById(session.user.id);
+    if (!currentUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    // Auto-update full name if first/last provided
+    if (updates.firstName && updates.lastName) {
+      updates.name = `${updates.firstName} ${updates.lastName}`;
+    } else if (updates.firstName) {
+      updates.name =
+        `${updates.firstName} ${currentUser.lastName || ""}`.trim();
+    } else if (updates.lastName) {
+      updates.name =
+        `${currentUser.firstName || ""} ${updates.lastName}`.trim();
+    }
+
+    // Prevent changing existing email and main phone
+    if (
+      currentUser.email &&
+      updates.email &&
+      updates.email !== currentUser.email
+    ) {
+      delete updates.email;
+    }
+    if (
+      currentUser.phone &&
+      updates.phone &&
+      updates.phone !== currentUser.phone
+    ) {
+      delete updates.phone;
+    }
+
+    if (updates.gender === "") {
+      delete updates.gender;
+    }
+
+    // Replacement logic: If old Aadhar exists and new one is empty, keep the old one (Update Only, No Delete)
+    const finalAadhar =
+      (updates.documents?.aadharCard?.length ?? 0) > 0
+        ? updates.documents!.aadharCard!
+        : (currentUser.documents?.aadharCard ?? []);
+
+    // Merge documents
+    const mergedDocuments = {
+      aadharCard: finalAadhar,
+      passport:
+        updates.documents?.passport ?? currentUser.documents?.passport ?? [],
+    };
+
+    // User is verified if they have provided an Aadhar card
+    let isVerified = mergedDocuments.aadharCard.length > 0;
+
+    // Apply updates
     const updatedUser = await User.findByIdAndUpdate(
       session.user.id,
-      { $set: validation.data },
+      {
+        $set: {
+          ...updates,
+          documents: mergedDocuments, // Ensure merged docs are saved
+          isVerified,
+        },
+      },
       { new: true, runValidators: true },
     )
       .select("-password -setPasswordToken -setPasswordExpires")
       .lean();
-
-    if (!updatedUser) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 });
-    }
 
     return NextResponse.json({
       user: updatedUser,

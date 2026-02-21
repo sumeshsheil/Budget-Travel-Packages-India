@@ -10,15 +10,40 @@ export interface IUser extends Document {
   role: "admin" | "agent" | "customer";
   status: "active" | "inactive";
   phone?: string;
+  altPhone?: string;
   mustChangePassword: boolean;
   isActivated: boolean;
   setPasswordToken?: string;
   setPasswordExpires?: Date;
   createdAt: Date;
   updatedAt: Date;
+  firstName?: string;
+  lastName?: string;
+  image?: string;
+  gender?: "male" | "female" | "other";
+  documents?: {
+    aadharCard: string[];
+    passport: string[];
+  };
+  isVerified: boolean;
+  members?: IMember[];
+}
+
+export interface IMember {
+  name: string;
+  email?: string;
+  gender: "male" | "female" | "other";
+  age: number;
 }
 
 // ============ SCHEMA ============
+
+const MemberSchema = new Schema<IMember>({
+  name: { type: String, required: true, trim: true },
+  email: { type: String, lowercase: true, trim: true },
+  gender: { type: String, enum: ["male", "female", "other"], required: true },
+  age: { type: Number, required: true, min: 0, max: 120 },
+});
 
 const UserSchema = new Schema<IUser>(
   {
@@ -60,6 +85,10 @@ const UserSchema = new Schema<IUser>(
       type: String,
       trim: true,
     },
+    altPhone: {
+      type: String,
+      trim: true,
+    },
     mustChangePassword: {
       type: Boolean,
       default: false,
@@ -73,6 +102,29 @@ const UserSchema = new Schema<IUser>(
     },
     setPasswordExpires: {
       type: Date,
+    },
+    firstName: { type: String, trim: true },
+    lastName: { type: String, trim: true },
+    image: { type: String },
+    gender: {
+      type: String,
+      enum: ["male", "female", "other"],
+    },
+    documents: {
+      aadharCard: [{ type: String }],
+      passport: [{ type: String }],
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    members: {
+      type: [MemberSchema],
+      validate: [
+        (val: IMember[]) => val.length <= 30,
+        "Cannot exceed 30 members",
+      ],
+      default: [],
     },
   },
   {

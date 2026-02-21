@@ -3,8 +3,8 @@
 
 export const STAGE_LABELS: Record<string, string> = {
   new: "Inquiry Received",
-  contacted: "Agent Reviewing",
-  qualified: "Under Review",
+  contacted: "Under Review",
+  qualified: "Booked",
   proposal_sent: "Proposal Ready",
   negotiation: "Finalizing",
   won: "Trip Confirmed ✈️",
@@ -15,7 +15,7 @@ export const STAGE_LABELS: Record<string, string> = {
 export const STAGE_COLORS: Record<string, string> = {
   new: "bg-blue-100 text-blue-700 border-blue-200",
   contacted: "bg-yellow-100 text-yellow-700 border-yellow-200",
-  qualified: "bg-cyan-100 text-cyan-700 border-cyan-200",
+  qualified: "bg-emerald-100 text-emerald-700 border-emerald-200",
   proposal_sent: "bg-purple-100 text-purple-700 border-purple-200",
   negotiation: "bg-orange-100 text-orange-700 border-orange-200",
   won: "bg-emerald-100 text-emerald-700 border-emerald-200",
@@ -44,8 +44,8 @@ export function getPaymentColor(status: string): string {
 // Progress stepper stages for user dashboard (user-friendly labels)
 export const USER_PROGRESS_STAGES = [
   { key: "new", label: "Inquiry Received" },
-  { key: "contacted", label: "Agent Reviewing" },
-  { key: "qualified", label: "Under Review" },
+  { key: "contacted", label: "Under Review" },
+  { key: "qualified", label: "Booked" },
   { key: "proposal_sent", label: "Proposal Ready" },
   { key: "negotiation", label: "Finalizing" },
   { key: "won", label: "Trip Confirmed" },

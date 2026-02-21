@@ -48,66 +48,80 @@ export default function BlogCard({ post, className }: BlogCardProps) {
     <Link
       href={`/travel-blogs/${post.slug}`}
       className={cn(
-        "group flex flex-row items-center bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-gray-100",
+        "group flex flex-col sm:flex-row items-stretch bg-white rounded-2xl overflow-hidden shadow-[0_2px_10px_-3px_rgba(0,0,0,0.04),0_4px_12px_-2px_rgba(0,0,0,0.03)] hover:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.12)] transition-all duration-500 border border-gray-100 hover:border-primary/40",
         className,
       )}
     >
-      {/* Image Section - Left (or Top depending on grid usage, but explicit requirement was horizontal-ish for list or vertical for grid. 
-          The provided design image shows VERTICAL cards (image top) in a grid, and maybe some horizontal ones?
-          Wait, looking at the user's uploaded image again in my "visual memory":
-          It shows a 2-column grid. The cards have Image on the Left, Text on the Right?
-          Actually, let's look at the generated mock data again. 
-          The design image clearly shows "Top 10 Budget-Friendly..." with image on left.
-          Wait, no. The PROMPT said "grid of blog post cards... image on the left".
-          Let's re-read the previous "Visual Analysis" I did in thought.
-          "Horizontal layout for cards? No... looking closer... 2 or 3 columns... horizontal cards".
-          OKAY. I will make them HORIZONTAL cards as seen in typical "list view" but widely used in modern blogs too.
-          Let's assume the design is: Image (Left/Thumbnail) + Content (Right).
-          Let's make it flexible.
-          Actually, standard "Card" is Vertical. 
-          Let me look at the reference image again...
-          The user uploaded `uploaded_media_1771233664797.png`.
-          In the first turn of THIS conversation phase (Step 185), I can see the image!
-          Image shows:
-          - Hero at top.
-          - Below: A grid of 6 cards.
-          - The cards are HORIZONTAL. Image on the Left (approx 1/3 width), Content on the Right.
-          - Badge is floating on top-left of the Content area? Or on the Image?
-          - Looking closely at the crop: Badge "BUDGET TIPS" is above the Title in the content area.
-          - Image is distinct on the left.
-      */}
-
-      {/* Correcting implementation to be Horizontal Card based on visual inspection of Step 185 image */}
-
-      <div className="relative w-1/3 min-w-[140px] h-full min-h-[160px]">
-        <Image src={image} alt={title} fill className="object-cover" />
+      {/* Image Section - Slimmer height version */}
+      <div className="relative w-full sm:w-[32%] shrink-0 overflow-hidden bg-gray-50">
+        <div className="aspect-21/9 sm:aspect-auto sm:h-full">
+          <Image
+            src={image}
+            alt={title}
+            fill
+            className="object-cover transition-transform duration-700 group-hover:scale-105"
+          />
+        </div>
       </div>
 
-      <div className="flex-1 p-5 flex flex-col justify-center">
-        <div className="mb-2">
-          <span
-            className={cn(
-              "text-white text-[10px] font-bold px-2 py-1 rounded-sm uppercase tracking-wider",
-              getBadgeColor(category),
-            )}
-          >
-            {category}
-          </span>
+      {/* Content Section - Compact padding */}
+      <div className="flex-1 p-4 md:p-5 flex flex-col justify-between">
+        <div className="flex flex-col gap-2.5">
+          <div className="flex items-center justify-between">
+            <span
+              className={cn(
+                "text-white text-[9px] md:text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest shadow-sm",
+                getBadgeColor(category),
+              )}
+            >
+              {category}
+            </span>
+            <span className="text-gray-400 text-[10px] md:text-xs font-semibold font-open-sans">
+              {formattedDate}
+            </span>
+          </div>
+
+          <h3
+            className="text-lg md:text-xl font-bold text-secondary-text leading-tight group-hover:text-primary transition-colors duration-300 font-open-sans line-clamp-2"
+            dangerouslySetInnerHTML={{ __html: title }}
+          />
+
+          <p className="text-gray-500 text-xs md:text-sm line-clamp-2 leading-snug font-open-sans opacity-80">
+            {description}
+          </p>
         </div>
 
-        <h3
-          className="text-lg font-bold text-gray-900 mb-2 leading-tight group-hover:text-green-700 transition-colors line-clamp-2"
-          dangerouslySetInnerHTML={{ __html: title }}
-        />
+        {/* Footer - Tighter spacing */}
+        <div className="mt-4 flex items-center justify-between border-t border-gray-50 pt-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center text-[11px] font-black text-gray-900 group-hover:bg-primary group-hover:border-primary transition-all duration-300">
+              {authorName.charAt(0)}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[11px] md:text-xs font-bold text-gray-900 leading-none">
+                {authorName}
+              </span>
+              <span className="text-[9px] text-gray-400 font-bold uppercase tracking-tight mt-0.5">
+                Verified
+              </span>
+            </div>
+          </div>
 
-        <p className="text-gray-500 text-xs mb-3 line-clamp-2 leading-relaxed">
-          {description}
-        </p>
-
-        <div className="flex items-center text-[11px] font-semibold text-gray-400">
-          <span>By {authorName}</span>
-          <span className="mx-2">•</span>
-          <span>{formattedDate}</span>
+          <div className="text-primary/50 group-hover:text-primary transition-colors duration-300">
+            <svg
+              className="w-5 h-5 group-hover:translate-x-1 transition-transform"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M14 5l7 7m0 0l-7 7m7-7H3"
+              />
+            </svg>
+          </div>
         </div>
       </div>
     </Link>

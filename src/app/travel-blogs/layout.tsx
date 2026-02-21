@@ -1,6 +1,7 @@
 import Header from "@/components/layout/Header";
 import BlogHeader from "@/components/blog/BlogHeader";
 import Footer from "@/components/landing/sections/Footer";
+import PromoBanner from "@/components/blog/PromoBanner";
 
 export default function BlogsLayout({
   children,
@@ -10,10 +11,16 @@ export default function BlogsLayout({
   return (
     <>
       <Header />
-      <div className="pt-32">
-        <BlogHeader />
+      <div className="pt-[110px] md:pt-[130px] lg:pt-[160px]">
+        {/* Sticky Header Wrapper */}
+        <div className="sticky top-[72px] md:top-[90px] lg:top-[124px] z-40 shadow-sm transform-gpu will-change-transform bg-white">
+          <PromoBanner />
+          <BlogHeader />
+        </div>
+
+        {/* Main Content Area */}
+        <main className="min-h-screen">{children}</main>
       </div>
-      <main className="min-h-screen pt-10 bg-gray-50">{children}</main>
       <Footer />
     </>
   );

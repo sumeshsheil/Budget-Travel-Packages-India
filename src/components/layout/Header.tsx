@@ -1,7 +1,6 @@
 "use client";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
-import logo from "@/../public/images/logo/logo.svg";
 import Link from "next/link";
 import MenuIcon from "../icons/Menu";
 import { motion, AnimatePresence } from "motion/react";
@@ -11,17 +10,43 @@ import { searchBlogPosts, SearchResult } from "@/app/actions/blog-search";
 import { useDebouncedCallback } from "use-debounce";
 import FacebookIcon from "../icons/Facebook";
 import YoutubeIcon from "../icons/Youtube";
+import { Button } from "../ui/button";
+import { SOCIAL_LINKS } from "@/lib/constants";
+
+import { useSession } from "next-auth/react";
+import { useRouter, usePathname } from "next/navigation";
+import LoginModal from "../auth/LoginModal";
+
+// Logos
+import logoPrimary from "@/../public/images/logo/logo.svg";
+import logoFooter from "@/../public/images/logo/footer-logo.svg";
 
 const Header: React.FC = () => {
+  const { data: session } = useSession();
+  const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
+
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // Logo Logic
+  // On /, always use primary logo
+  // On other pages, use footer logo (dark) when not scrolled, primary logo when scrolled
+  const isHomePage = pathname === "/";
+  const currentLogo = isHomePage
+    ? logoPrimary
+    : isScrolled
+      ? logoPrimary
+      : logoFooter;
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const handleSearch = useDebouncedCallback(async (query: string) => {
     if (!query || query.length < 2) return;
@@ -67,8 +92,6 @@ const Header: React.FC = () => {
     setIsOpen(!isOpen);
   };
 
-  const [isScrolled, setIsScrolled] = useState(false);
-
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 10) {
@@ -88,7 +111,7 @@ const Header: React.FC = () => {
         initial={{ y: -50, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.07, ease: "easeIn" }}
-        className={`w-full fixed top-0 left-0 z-50 transition-all duration-300 ${
+        className={`w-full fixed top-0 left-0 z-50 transition-all duration-300 transform-gpu ${
           isScrolled
             ? "bg-black/90 backdrop-blur-md py-3 shadow-lg border-b border-white/10"
             : "py-5 bg-linear-to-b from-black/50 to-transparent"
@@ -98,7 +121,7 @@ const Header: React.FC = () => {
           <div className="relative z-50">
             <Link href="/" aria-label="Home">
               <Image
-                src={logo}
+                src={currentLogo}
                 alt="Budget Travel Packages Logo"
                 width={240}
                 height={102}
@@ -113,7 +136,7 @@ const Header: React.FC = () => {
           >
             <div className="flex items-center gap-2 md:gap-4 text-white">
               <Link
-                href="https://facebook.com"
+                href={SOCIAL_LINKS.facebook}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="transition-transform hover:scale-110"
@@ -121,14 +144,14 @@ const Header: React.FC = () => {
               >
                 <Image
                   src="/images/footer/social/facebook.png"
-                  alt="Instagram"
+                  alt="Facebook"
                   width={24}
                   height={24}
                   className="w-5 h-5 md:w-6 md:h-6 transition-all object-contain"
                 />
               </Link>
               <Link
-                href="https://instagram.com"
+                href={SOCIAL_LINKS.instagram}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="transition-transform hover:scale-110"
@@ -143,7 +166,7 @@ const Header: React.FC = () => {
                 />
               </Link>
               <Link
-                href="https://youtube.com"
+                href={SOCIAL_LINKS.youtube}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="transition-transform hover:scale-110"
@@ -314,7 +337,22 @@ const Header: React.FC = () => {
               className="absolute right-4 top-16 md:top-20 mt-6 bg-white rounded-2xl shadow-xl overflow-hidden z-50 w-60 origin-top-right border border-gray-100"
             >
               <div className="p-6 flex flex-col gap-6">
-                <ul className="flex flex-col gap-4">
+                <ul className="flex flex-col items-center gap-4">
+                  <Button
+                    className="w-full text-white"
+                    variant="secondary"
+                    onClick={() => {
+                      if (session) {
+                        router.push("/dashboard");
+                      } else {
+                        setIsOpen(false);
+                        setIsLoginModalOpen(true);
+                      }
+                    }}
+                  >
+                    My Account
+                  </Button>
+                  <div className="w-full bg-gray-600 h-px" />
                   {[
                     { href: "#services", label: "Services" },
                     { href: "#travel-purpose", label: "Travel Purpose" },
@@ -323,7 +361,6 @@ const Header: React.FC = () => {
                     { href: "#faqs", label: "FAQs" },
                     { href: "#contact", label: "Contact" },
                     { href: "#contact", label: "About" },
-                    { href: "/dashboard/login", label: "Login" },
                   ].map((link, index) => (
                     <motion.li
                       key={link.href}
@@ -349,29 +386,35 @@ const Header: React.FC = () => {
                   </p>
                   <div className="flex items-center gap-6 text-white">
                     <Link
-                      href="https://facebook.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="hover:scale-110 transition-transform"
-                    >
-                      <FacebookIcon className="w-6 h-6" />
-                    </Link>
-                    <Link
-                      href="https://instagram.com"
+                      href={SOCIAL_LINKS.facebook}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:scale-110 transition-transform"
                     >
                       <Image
-                        src="/images/footer/social/instagram.png"
-                        alt="Instagram"
+                        src="/images/footer/social/facebook.png"
+                        alt="Facebook"
                         width={24}
                         height={24}
-                        className="w-6 h-6 object-contain brightness-0 invert"
+                        className="w-6 h-6 object-contain"
                       />
                     </Link>
                     <Link
-                      href="https://youtube.com"
+                      href={SOCIAL_LINKS.instagram}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="hover:scale-110 transition-transform"
+                    >
+                      <Image
+                        src="/images/footer/social/instagram-2.png"
+                        alt="Instagram"
+                        width={24}
+                        height={24}
+                        className="w-6 h-6 object-contain"
+                      />
+                    </Link>
+                    <Link
+                      href={SOCIAL_LINKS.youtube}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="hover:scale-110 transition-transform"
@@ -384,6 +427,11 @@ const Header: React.FC = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <LoginModal
+          isOpen={isLoginModalOpen}
+          onClose={() => setIsLoginModalOpen(false)}
+        />
       </motion.header>
     </>
   );

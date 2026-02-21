@@ -15,6 +15,9 @@ const openSans = Open_Sans({
 
 import SmoothScrollProvider from "@/components/providers/SmoothScrollProvider";
 import { FloatingButtons } from "@/components/layout/FloatingButtons";
+import SessionProvider from "@/components/providers/SessionProvider";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 export const viewport: Viewport = {
   themeColor: "#01FF70",
@@ -149,12 +152,22 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <StoreProvider>
-          <SmoothScrollProvider>
-            {children}
-            <FloatingButtons />
-          </SmoothScrollProvider>
-        </StoreProvider>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <StoreProvider>
+            <SessionProvider>
+              <SmoothScrollProvider>
+                {children}
+                <FloatingButtons />
+                <Toaster richColors position="top-right" closeButton />
+              </SmoothScrollProvider>
+            </SessionProvider>
+          </StoreProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

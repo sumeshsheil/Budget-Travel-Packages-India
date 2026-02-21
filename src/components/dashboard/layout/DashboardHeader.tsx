@@ -5,6 +5,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
+import { ModeToggle } from "@/components/ui/mode-toggle";
 
 export function DashboardHeader() {
   return (
@@ -12,10 +13,11 @@ export function DashboardHeader() {
       <SidebarTrigger className="-ml-1" />
       <Separator orientation="vertical" className="mr-2 h-4" />
       <div className="flex-1" />
+      <ModeToggle />
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => signOut({ callbackUrl: "/dashboard/login" })}
+        onClick={() => signOut({ callbackUrl: "/" })}
         className="text-muted-foreground hover:text-foreground"
       >
         <LogOut className="h-4 w-4 mr-2" />

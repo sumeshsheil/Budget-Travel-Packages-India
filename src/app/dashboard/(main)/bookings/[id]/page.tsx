@@ -2,6 +2,7 @@ import { requireCustomerAuth } from "@/lib/customer-auth-guard";
 import { connectDB } from "@/lib/db/mongoose";
 import Lead from "@/lib/db/models/Lead";
 import LeadActivity from "@/lib/db/models/LeadActivity";
+import User from "@/lib/db/models/User";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { format } from "date-fns";
@@ -17,6 +18,7 @@ import {
   Clock,
   Plane,
   CreditCard,
+  Check,
   CheckCircle2,
   Circle,
   FileText,
@@ -31,6 +33,8 @@ import {
   XCircle,
 } from "lucide-react";
 import { USER_PROGRESS_STAGES, getPaymentColor } from "@/lib/dashboard-utils";
+import AddCompanionModal from "./components/AddCompanionModal";
+import RemoveTravelerButton from "./components/RemoveTravelerButton";
 
 const STAGES = USER_PROGRESS_STAGES;
 
@@ -51,6 +55,12 @@ export default async function BookingDetailPage({
   if (!lead) {
     notFound();
   }
+
+  // Fetch the user's profile to get available members
+  const user = await User.findById(session.user.id).lean();
+  const availableMembers = user?.members
+    ? JSON.parse(JSON.stringify(user.members))
+    : [];
 
   const booking = JSON.parse(JSON.stringify(lead));
 
@@ -110,7 +120,7 @@ export default async function BookingDetailPage({
               </p>
             </div>
           ) : (
-            <div className="flex items-center justify-between overflow-x-auto pb-2">
+            <div className="flex flex-col md:flex-row md:items-start justify-between">
               {STAGES.map((stage, index) => {
                 const isCompleted = index <= currentStageIndex;
                 const isCurrent = index === currentStageIndex;
@@ -118,39 +128,60 @@ export default async function BookingDetailPage({
                 return (
                   <div
                     key={stage.key}
-                    className="flex items-center flex-1 min-w-0"
+                    className="relative flex flex-row md:flex-col items-start md:items-center flex-1 pb-8 md:pb-0 group"
                   >
-                    <div className="flex flex-col items-center text-center min-w-[70px]">
-                      <div
-                        className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition-all ${
-                          isCompleted
-                            ? "bg-emerald-600 border-emerald-600 text-white"
-                            : "border-gray-300 text-gray-400"
-                        } ${isCurrent ? "ring-4 ring-emerald-100" : ""}`}
-                      >
-                        {isCompleted ? (
-                          <CheckCircle2 className="h-4 w-4" />
-                        ) : (
-                          <Circle className="h-4 w-4" />
-                        )}
-                      </div>
+                    {/* Continuous Line (Background) */}
+                    {index < STAGES.length - 1 && (
+                      <>
+                        {/* Desktop Line - spans to next center */}
+                        <div
+                          className={`hidden md:block absolute left-1/2 top-4 w-full h-0.5 z-0 ${
+                            index < currentStageIndex
+                              ? "bg-emerald-500"
+                              : "bg-gray-200"
+                          }`}
+                        />
+                        {/* Mobile Line - spans down to next center */}
+                        <div
+                          className={`md:hidden absolute left-4 top-4 w-0.5 h-full z-0 ${
+                            index < currentStageIndex
+                              ? "bg-emerald-500"
+                              : "bg-gray-200"
+                          }`}
+                        />
+                      </>
+                    )}
+
+                    {/* Icon Container */}
+                    <div
+                      className={`relative z-10 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 transition-all ${
+                        isCompleted
+                          ? "bg-emerald-600 border-emerald-600 text-white"
+                          : "bg-white dark:bg-slate-950 border-gray-300 text-gray-400"
+                      } ${isCurrent ? "ring-4 ring-emerald-100" : ""}`}
+                    >
+                      {isCompleted ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Circle className="h-4 w-4" />
+                      )}
+                    </div>
+
+                    {/* Label Container */}
+                    <div className="ml-4 md:ml-0 md:mt-2 text-left md:text-center z-10">
                       <span
-                        className={`text-xs mt-1.5 font-medium ${
+                        className={`text-xs font-semibold block transition-colors ${
                           isCompleted ? "text-emerald-700" : "text-gray-400"
                         }`}
                       >
                         {stage.label}
                       </span>
+                      {isCurrent && (
+                        <span className="text-[10px] text-emerald-600 font-medium md:hidden">
+                          Current Status
+                        </span>
+                      )}
                     </div>
-                    {index < STAGES.length - 1 && (
-                      <div
-                        className={`flex-1 h-0.5 mx-1 ${
-                          index < currentStageIndex
-                            ? "bg-emerald-500"
-                            : "bg-gray-200"
-                        }`}
-                      />
-                    )}
                   </div>
                 );
               })}
@@ -219,53 +250,51 @@ export default async function BookingDetailPage({
           </CardContent>
         </Card>
 
-        {/* Payment Section */}
-        <Card className="border-0 shadow-sm">
-          <CardHeader>
+        {/* Travelers Section */}
+        <Card className="border-0 shadow-sm h-full">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-lg flex items-center gap-2">
-              <CreditCard className="h-5 w-5 text-emerald-600" />
-              Payment
+              <Users className="h-5 w-5 text-emerald-600" />
+              Travelers ({booking.travelers?.length || 0}/{booking.guests})
             </CardTitle>
+            <AddCompanionModal
+              bookingId={booking._id}
+              availableMembers={availableMembers}
+              remainingSpots={booking.guests - (booking.travelers?.length || 0)}
+            />
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="p-4 rounded-lg bg-muted/50">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-muted-foreground">Status</span>
-                <Badge
-                  className={`capitalize border ${getPaymentColor(
-                    booking.paymentStatus,
-                  )}`}
-                >
-                  {booking.paymentStatus}
-                </Badge>
-              </div>
-              {booking.paymentAmount && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">
-                    Amount Paid
-                  </span>
-                  <span className="font-semibold">
-                    ₹{booking.paymentAmount?.toLocaleString("en-IN")}
-                  </span>
+          <CardContent className="space-y-3 pt-4">
+            {booking.travelers?.map((traveler: any, index: number) => (
+              <div
+                key={index}
+                className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 border border-gray-100"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                  {traveler.name.charAt(0).toUpperCase()}
                 </div>
-              )}
-            </div>
-
-            {booking.paymentStatus !== "paid" &&
-              booking.stage !== "lost" &&
-              booking.stage !== "stale" && (
-                <Button
-                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
-                  disabled
-                >
-                  Pay Now (Coming Soon)
-                </Button>
-              )}
-
-            <p className="text-xs text-muted-foreground text-center">
-              Payment integration will be available soon. Contact us for manual
-              payment options.
-            </p>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm truncate">
+                    {traveler.name}
+                    {index === 0 && (
+                      <Badge className="ml-2 text-[10px] bg-emerald-100 text-emerald-700 hover:bg-emerald-100">
+                        Primary
+                      </Badge>
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {traveler.gender} • {traveler.age} yrs
+                    {traveler.phone ? ` • ${traveler.phone}` : ""}
+                  </p>
+                </div>
+                {index > 0 && (
+                  <RemoveTravelerButton
+                    bookingId={booking._id}
+                    memberId={traveler.memberId}
+                    name={traveler.name}
+                  />
+                )}
+              </div>
+            ))}
           </CardContent>
         </Card>
       </div>
@@ -336,63 +365,171 @@ export default async function BookingDetailPage({
       )}
 
       {/* Documents & Tickets */}
-      {booking.documents && booking.documents.length > 0 && (
-        <Card className="border-0 shadow-sm">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <FileText className="h-5 w-5 text-emerald-600" />
-              Documents & Tickets
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 sm:grid-cols-2">
-              {booking.documents.map(
-                (
-                  doc: {
-                    name: string;
-                    url: string;
-                    type: string;
-                    uploadedAt: string;
-                  },
-                  index: number,
-                ) => {
-                  const iconMap: Record<string, typeof Plane> = {
-                    ticket: Plane,
-                    voucher: Hotel,
-                    visa: FileCheck,
-                    itinerary_pdf: FileText,
-                    invoice: Receipt,
-                    other: File,
-                  };
-                  const Icon = iconMap[doc.type] || File;
-                  return (
-                    <a
-                      key={index}
-                      href={doc.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50 transition-colors group"
-                    >
-                      <div className="flex items-center justify-center h-10 w-10 rounded-lg bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition-colors">
-                        <Icon className="h-5 w-5" />
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Itinerary Section */}
+        {(() => {
+          const itineraryDoc = (booking.documents || []).find(
+            (d: { type: string }) => d.type === "itinerary_pdf",
+          );
+
+          return (
+            <Card
+              className={`border-0 shadow-sm h-full ${!itineraryDoc ? "opacity-60 bg-gray-50/50" : ""}`}
+            >
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <MapPin
+                    className={`h-5 w-5 ${itineraryDoc ? "text-emerald-600" : "text-gray-400"}`}
+                  />
+                  Itinerary
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {itineraryDoc ? (
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-3 p-4 border rounded-xl bg-emerald-50/50 border-emerald-100">
+                      <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-emerald-100 text-emerald-600 shrink-0">
+                        <FileText className="h-6 w-6" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">
-                          {doc.name}
+                        <p className="font-medium truncate text-emerald-950">
+                          {itineraryDoc.name}
                         </p>
-                        <p className="text-xs text-muted-foreground capitalize">
-                          {doc.type.replace("_", " ")}
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          PDF Document
                         </p>
                       </div>
-                      <Download className="h-4 w-4 text-muted-foreground group-hover:text-emerald-600 transition-colors" />
-                    </a>
-                  );
-                },
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        variant="outline"
+                        className="w-full border-emerald-200 hover:bg-emerald-50 text-emerald-700"
+                        asChild
+                      >
+                        <a
+                          href={itineraryDoc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Users className="h-4 w-4 mr-2" />
+                          View
+                        </a>
+                      </Button>
+                      <Button
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                        asChild
+                      >
+                        <a
+                          href={itineraryDoc.url}
+                          download
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-6 text-center">
+                    <FileText className="h-10 w-10 text-gray-300 mb-2" />
+                    <p className="text-sm font-medium text-gray-500">
+                      Document Pending
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Our team is preparing your itinerary
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })()}
+
+        {/* Travel Documents & Tickets Section */}
+        {(() => {
+          const ticketDoc = (booking.documents || []).find(
+            (d: { type: string }) => d.type !== "itinerary_pdf",
+          );
+
+          return (
+            <Card
+              className={`border-0 shadow-sm h-full ${!ticketDoc ? "opacity-60 bg-gray-50/50" : ""}`}
+            >
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <FileText
+                    className={`h-5 w-5 ${ticketDoc ? "text-emerald-600" : "text-gray-400"}`}
+                  />
+                  Travel Documents & Tickets
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {ticketDoc ? (
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center gap-3 p-4 border rounded-xl bg-emerald-50/50 border-emerald-100">
+                      <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-emerald-100 text-emerald-600 shrink-0">
+                        <Plane className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate text-emerald-950">
+                          {ticketDoc.name}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5 capitalize">
+                          {ticketDoc.type === "ticket"
+                            ? "Tickets & Vouchers"
+                            : ticketDoc.type.replace("_", " ")}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button
+                        variant="outline"
+                        className="w-full border-emerald-200 hover:bg-emerald-50 text-emerald-700"
+                        asChild
+                      >
+                        <a
+                          href={ticketDoc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Users className="h-4 w-4 mr-2" />
+                          View
+                        </a>
+                      </Button>
+                      <Button
+                        className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                        asChild
+                      >
+                        <a
+                          href={ticketDoc.url}
+                          download
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          Download
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-6 text-center">
+                    <Plane className="h-10 w-10 text-gray-300 mb-2" />
+                    <p className="text-sm font-medium text-gray-500">
+                      Documents Pending
+                    </p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Tickets will appear here once ready
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })()}
+      </div>
 
       {/* Day-by-Day Itinerary */}
       {booking.itinerary && booking.itinerary.length > 0 && (
@@ -467,60 +604,113 @@ export default async function BookingDetailPage({
         </Card>
       )}
 
-      {/* Activity Timeline */}
-      <Card className="border-0 shadow-sm">
-        <CardHeader>
-          <CardTitle className="text-lg">Activity Timeline</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {activities.length === 0 ? (
-            <p className="text-muted-foreground text-sm text-center py-4">
-              No activity recorded yet.
-            </p>
-          ) : (
-            <div className="space-y-4">
-              {activities.map(
-                (
-                  activity: {
-                    _id: string;
-                    action: string;
-                    details: string;
-                    createdAt: string;
-                  },
-                  index: number,
-                ) => (
-                  <div key={activity._id} className="flex gap-3">
-                    <div className="relative flex flex-col items-center">
-                      <div
-                        className={`h-3 w-3 rounded-full mt-1.5 ${
-                          index === 0 ? "bg-emerald-500" : "bg-gray-300"
-                        }`}
-                      />
-                      {index < activities.length - 1 && (
-                        <div className="w-px flex-1 bg-gray-200 mt-1" />
-                      )}
-                    </div>
-                    <div className="pb-4">
-                      <p className="text-sm font-medium capitalize">
-                        {activity.action.replace("_", " ")}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {activity.details}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">
-                        {format(
-                          new Date(activity.createdAt),
-                          "MMM d, yyyy 'at' h:mm a",
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                ),
+      {/* Payment and Activity Timeline - Side by Side */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Payment Section */}
+        <Card className="border-0 shadow-sm h-full">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <CreditCard className="h-5 w-5 text-emerald-600" />
+              Payment
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="p-4 rounded-lg bg-muted/50">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm text-muted-foreground">Status</span>
+                <Badge
+                  className={`capitalize border ${getPaymentColor(
+                    booking.paymentStatus,
+                  )}`}
+                >
+                  {booking.paymentStatus}
+                </Badge>
+              </div>
+              {booking.paymentAmount && (
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    Amount Paid
+                  </span>
+                  <span className="font-semibold">
+                    ₹{booking.paymentAmount?.toLocaleString("en-IN")}
+                  </span>
+                </div>
               )}
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            {booking.paymentStatus !== "paid" &&
+              booking.stage !== "lost" &&
+              booking.stage !== "stale" && (
+                <Button
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
+                  disabled
+                >
+                  Pay Now (Coming Soon)
+                </Button>
+              )}
+
+            <p className="text-xs text-muted-foreground text-center">
+              Payment integration will be available soon. Contact us for manual
+              payment options.
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* Activity Timeline */}
+        <Card className="border-0 shadow-sm h-full">
+          <CardHeader>
+            <CardTitle className="text-lg">Activity Timeline</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {activities.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-4">
+                No activity recorded yet.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                {activities.map(
+                  (
+                    activity: {
+                      _id: string;
+                      action: string;
+                      details: string;
+                      createdAt: string;
+                    },
+                    index: number,
+                  ) => (
+                    <div key={activity._id} className="flex gap-3">
+                      <div className="relative flex flex-col items-center">
+                        <div
+                          className={`h-3 w-3 rounded-full mt-1.5 ${
+                            index === 0 ? "bg-emerald-500" : "bg-gray-300"
+                          }`}
+                        />
+                        {index < activities.length - 1 && (
+                          <div className="w-px flex-1 bg-gray-200 mt-1" />
+                        )}
+                      </div>
+                      <div className="pb-4">
+                        <p className="text-sm font-medium capitalize">
+                          {activity.action.replace("_", " ")}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {activity.details}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          {format(
+                            new Date(activity.createdAt),
+                            "MMM d, yyyy 'at' h:mm a",
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  ),
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

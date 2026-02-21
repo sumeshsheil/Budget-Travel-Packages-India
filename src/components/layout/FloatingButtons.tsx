@@ -46,7 +46,7 @@ export function FloatingButtons() {
       {phoneAnimation && (
         <div
           onClick={handlePhoneClick}
-          className="fixed bottom-6 left-6 z-50 cursor-pointer w-20 h-20 flex items-center justify-center hover:scale-110 transition-transform duration-300"
+          className="fixed bottom-13 left-6 z-50 cursor-pointer w-20 h-20 flex items-center justify-center hover:scale-110 transition-transform duration-300"
           role="button"
           aria-label="Call us"
           tabIndex={0}
@@ -64,7 +64,7 @@ export function FloatingButtons() {
       {whatsAppAnimation && (
         <div
           onClick={handleWhatsAppClick}
-          className="fixed bottom-6 right-6 z-50 cursor-pointer w-20 h-20 flex items-center justify-center hover:scale-110 transition-transform duration-300"
+          className="fixed bottom-13 right-6 z-50 cursor-pointer w-20 h-20 flex items-center justify-center hover:scale-110 transition-transform duration-300"
           style={{ position: "fixed" }}
           role="button"
           aria-label="Contact us on WhatsApp"

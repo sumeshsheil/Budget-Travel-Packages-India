@@ -47,9 +47,9 @@ const cityData = [
 const CityOperations: React.FC = () => {
   return (
     <section className="xl:pt-20 md:pt-10 pb-10 relative overflow-hidden bg-white">
-      <div className="relative z-10 mb-0 md:mb-16 px-4 flex flex-col md:flex-row md:flex-wrap md:justify-center md:gap-x-10 xl:block">
+      <div className="relative z-10 mb-0 md:mb-16 px-4 flex flex-col md:flex-row md:flex-wrap  md:gap-x-10 xl:block">
         {/* Plane Animation */}
-        <div className="order-1 md:order-1 relative md:static xl:absolute xl:top-2 xl:left-0 2xl:left-10 w-48 md:w-72 xl:mx-0 pointer-events-none mt-0 md:mt-0 -scale-x-100">
+        <div className="order-1 md:order-1 relative  xl:absolute xl:top-2 xl:left-0 2xl:left-10 w-48 md:w-72 xl:mx-0 pointer-events-none mt-0 md:mt-0 -scale-x-100">
           <LottieAnimation
             src="/animations/plane.json"
             width="100%"

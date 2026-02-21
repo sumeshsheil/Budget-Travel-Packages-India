@@ -12,34 +12,67 @@ import { getToken } from "next-auth/jwt";
  * - Unauthenticated: redirected to /admin/login
  */
 export async function proxy(request: NextRequest) {
+  const url = request.nextUrl;
+  const hostname = request.headers.get("host") || "";
+
+  // Determine if this is the portals domain
+  // Using portals.localhost:3000 for local testing, normally this would be portals.yourdomain.com
+  const isPortalsDomain =
+    hostname.includes("portals.") || hostname === "portals.localhost:3000";
+
+  let effectivePathname = url.pathname;
+  let isRewriteNeeded = false;
+
+  // 1. If on the portals domain and trying to access the public site (root)
+  if (
+    isPortalsDomain &&
+    !url.pathname.startsWith("/admin") &&
+    !url.pathname.startsWith("/api/admin") &&
+    !url.pathname.startsWith("/api/auth") &&
+    !url.pathname.startsWith("/_next")
+  ) {
+    if (url.pathname === "/") {
+      effectivePathname = "/admin";
+    } else {
+      effectivePathname = `/admin${url.pathname}`;
+    }
+    isRewriteNeeded = true;
+  }
+
+  // 2. If on the public domain and trying to access admin routes (Security)
+  if (!isPortalsDomain && url.pathname.startsWith("/admin")) {
+    return new NextResponse(null, { status: 404 });
+  }
+
   const token = await getToken({
     req: request,
     secret: process.env.NEXTAUTH_SECRET,
   });
-  const { pathname } = request.nextUrl;
 
   // ─── PUBLIC: Login page ───
-  if (pathname === "/admin/login") {
+  if (effectivePathname === "/admin/login") {
     // Already logged in → redirect to dashboard
     if (token) {
       return NextResponse.redirect(new URL("/admin", request.url));
     }
-    return NextResponse.next();
+    return isRewriteNeeded
+      ? NextResponse.rewrite(new URL(effectivePathname, request.url))
+      : NextResponse.next();
   }
 
   // ─── PROTECTED: All /admin/* routes ───
-  if (pathname.startsWith("/admin")) {
+  if (effectivePathname.startsWith("/admin")) {
     // Not logged in → redirect to login
     if (!token) {
       const loginUrl = new URL("/admin/login", request.url);
-      loginUrl.searchParams.set("callbackUrl", pathname);
+      loginUrl.searchParams.set("callbackUrl", effectivePathname);
       return NextResponse.redirect(loginUrl);
     }
 
     // ─── Must Change Password Enforcement ───
     if (
       token.mustChangePassword &&
-      !pathname.startsWith("/admin/change-password")
+      !effectivePathname.startsWith("/admin/change-password")
     ) {
       return NextResponse.redirect(
         new URL("/admin/change-password", request.url),
@@ -49,18 +82,20 @@ export async function proxy(request: NextRequest) {
     // Agent trying to access admin-only routes
     if (token.role === "agent") {
       if (
-        pathname.startsWith("/admin/agents") ||
-        pathname.startsWith("/admin/settings")
+        effectivePathname.startsWith("/admin/agents") ||
+        effectivePathname.startsWith("/admin/settings")
       ) {
         return NextResponse.redirect(new URL("/admin", request.url));
       }
     }
 
-    return NextResponse.next();
+    return isRewriteNeeded
+      ? NextResponse.rewrite(new URL(effectivePathname, request.url))
+      : NextResponse.next();
   }
 
   // ─── PROTECTED: /api/admin/* routes ───
-  if (pathname.startsWith("/api/admin")) {
+  if (effectivePathname.startsWith("/api/admin")) {
     if (!token) {
       return NextResponse.json(
         { success: false, error: "Unauthorized" },
@@ -70,7 +105,7 @@ export async function proxy(request: NextRequest) {
 
     // Agent trying to access admin-only API routes
     if (token.role === "agent") {
-      if (pathname.startsWith("/api/admin/agents")) {
+      if (effectivePathname.startsWith("/api/admin/agents")) {
         return NextResponse.json(
           { success: false, error: "Forbidden" },
           { status: 403 },
@@ -78,13 +113,18 @@ export async function proxy(request: NextRequest) {
       }
     }
 
-    return NextResponse.next();
+    return isRewriteNeeded
+      ? NextResponse.rewrite(new URL(effectivePathname, request.url))
+      : NextResponse.next();
   }
 
-  return NextResponse.next();
+  return isRewriteNeeded
+    ? NextResponse.rewrite(new URL(effectivePathname, request.url))
+    : NextResponse.next();
 }
 
 // Routes that the proxy should run on
 export const config = {
-  matcher: ["/admin/:path*", "/api/admin/:path*"],
+  // Broaden the matcher to catch all routes so we can perform domain routing, but exclude static files
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
 };

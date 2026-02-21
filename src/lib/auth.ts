@@ -90,7 +90,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   session: {
     strategy: "jwt",
-    maxAge: 7 * 24 * 60 * 60, // 7 days for customers, middleware enforces stricter for admin
+    maxAge: 365 * 24 * 60 * 60, // 365 days
   },
   pages: {
     signIn: "/admin/login",

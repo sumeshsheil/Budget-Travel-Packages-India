@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "motion/react";
 import { Plus, Minus, ChevronDown, ChevronUp } from "lucide-react";
@@ -121,11 +121,9 @@ const FAQ: React.FC = () => {
 
   const handleShowLess = () => {
     setVisibleCount(5);
-    // Optionally scroll back to top of FAQs if user collapses a long list
-    const faqHeading = document.getElementById("faq-heading");
-    if (faqHeading) {
-      faqHeading.scrollIntoView({ behavior: "smooth" });
-    }
+    // Mimic the menu behavior by pushing the hash to the router
+    // This respects scroll-mt (scroll-margin-top) and smooth scrolling CSS
+    window.location.hash = "faqs";
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, id: number) => {

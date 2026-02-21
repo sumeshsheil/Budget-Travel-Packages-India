@@ -3,6 +3,7 @@ import Image from "next/image";
 import Link from "next/link";
 import FooterRecentBlogs from "@/components/blog/FooterRecentBlogs";
 import YoutubeIcon from "@/components/icons/Youtube";
+import { SOCIAL_LINKS } from "@/lib/constants";
 
 // Logo and background
 import logo from "@/../public/images/logo/footer-logo.svg";
@@ -117,7 +118,7 @@ const Footer: React.FC = () => {
                   </span>
                   <div className="flex items-center gap-3">
                     <Link
-                      href="https://facebook.com"
+                      href={SOCIAL_LINKS.facebook}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="transition-transform hover:scale-110 hover:opacity-80 p-1"
@@ -131,7 +132,7 @@ const Footer: React.FC = () => {
                       />
                     </Link>
                     <Link
-                      href="https://instagram.com"
+                      href={SOCIAL_LINKS.instagram}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="transition-transform hover:scale-110 hover:opacity-80 p-1"
@@ -145,7 +146,7 @@ const Footer: React.FC = () => {
                       />
                     </Link>
                     <Link
-                      href="https://youtube.com"
+                      href={SOCIAL_LINKS.youtube}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="transition-transform hover:scale-110 hover:opacity-80 p-1"
@@ -245,7 +246,7 @@ const Footer: React.FC = () => {
                     </span>
                     <div className="flex items-center gap-3">
                       <Link
-                        href="https://facebook.com"
+                        href={SOCIAL_LINKS.facebook}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="transition-transform hover:scale-110"
@@ -259,7 +260,7 @@ const Footer: React.FC = () => {
                         />
                       </Link>
                       <Link
-                        href="https://instagram.com"
+                        href={SOCIAL_LINKS.instagram}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="transition-transform hover:scale-110"
@@ -273,7 +274,7 @@ const Footer: React.FC = () => {
                         />
                       </Link>
                       <Link
-                        href="https://youtube.com"
+                        href={SOCIAL_LINKS.youtube}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="transition-transform hover:scale-110"
@@ -298,6 +299,13 @@ const Footer: React.FC = () => {
                     className="hover:text-primary transition-colors"
                   >
                     Travel Blogs
+                  </Link>
+                  <span className="text-gray-400">•</span>
+                  <Link
+                    href="/travel-portals"
+                    className="hover:text-primary transition-colors"
+                  >
+                    Travel Portals
                   </Link>
                   <span className="text-gray-400">•</span>
                   <Link

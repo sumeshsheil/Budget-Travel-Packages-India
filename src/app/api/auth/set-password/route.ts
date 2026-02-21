@@ -69,6 +69,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       message: "Password set successfully. You can now log in.",
+      email: user.email,
     });
   } catch (error) {
     console.error("Set password error:", error);

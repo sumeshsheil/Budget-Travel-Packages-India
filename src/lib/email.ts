@@ -121,6 +121,11 @@ interface LeadNotificationProps {
   guests: number;
 }
 
+interface OtpEmailProps {
+  email: string;
+  otp: string;
+}
+
 // --- Email Functions ---
 
 // 1. Send General Welcome Email (From HELLO_EMAIL)
@@ -355,6 +360,50 @@ export async function sendLeadNotificationEmail({
     return { success: true, data };
   } catch (error) {
     console.error("Email Exception (Notification):", error);
+    return { success: false, error };
+  }
+}
+
+// 5. Send OTP Email (From HELLO_EMAIL)
+export async function sendOtpEmail({ email, otp }: OtpEmailProps) {
+  try {
+    const { data, error } = await resend.emails.send({
+      from: HELLO_EMAIL,
+      to: [email],
+      subject: "Password Reset OTP - Budget Travel Packages 🔒",
+      html: `
+        <div style="${styles.container}">
+          <div style="${styles.header}">
+            <h1 style="${styles.headerTitle}">Password Reset</h1>
+          </div>
+          <div style="${styles.body}">
+            <h2 style="${styles.h2}">Hello,</h2>
+            <p style="${styles.p}">You requested to reset your password. Please use the OTP below to proceed.</p>
+            
+            <div style="${styles.dataBox}; text-align: center;">
+              <p style="${styles.p}; margin-bottom: 8px;">Your One-Time Password (OTP) is:</p>
+              <h1 style="color: #000; font-size: 32px; letter-spacing: 4px; margin: 10px 0;">${otp}</h1>
+            </div>
+
+            <p style="${styles.p}">This OTP is valid for 10 minutes. Do not share this code with anyone.</p>
+            <p style="${styles.p}">If you did not request this, please ignore this email.</p>
+            
+            <p style="${styles.p}">Warm regards,<br/>The Budget Travel Team</p>
+          </div>
+          <div style="${styles.footer}">
+             <p>&copy; ${new Date().getFullYear()} Budget Travel Packages. All rights reserved.</p>
+          </div>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error("Resend Error (OTP):", error);
+      return { success: false, error };
+    }
+    return { success: true, data };
+  } catch (error) {
+    console.error("Email Exception (OTP):", error);
     return { success: false, error };
   }
 }

@@ -54,14 +54,15 @@ export default function CategorySection({
     <section className="py-10 md:py-14">
       <div className="container-box px-4">
         {/* Section Header */}
-        <div className={`border-l-4 ${colors.border} pl-5 mb-8`}>
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl">{icon}</span>
-            <h2 className="text-2xl md:text-3xl font-bold text-gray-900 font-open-sans">
+        <div
+          className={`border-l-4 ${colors.border} pl-6 mb-10 md:mb-12 transition-all`}
+        >
+          <div className="flex items-center mb-3">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 font-open-sans tracking-tight">
               {title}
             </h2>
           </div>
-          <p className="text-gray-600 text-sm md:text-base max-w-2xl font-open-sans leading-relaxed">
+          <p className="text-gray-500 text-base md:text-lg max-w-3xl font-open-sans leading-relaxed opacity-90">
             {description}
           </p>
         </div>
@@ -78,10 +79,10 @@ export default function CategorySection({
           <div className="mt-8 text-center">
             <Link
               href={`/travel-blogs/category/${slug}`}
-              className={`inline-flex items-center gap-2 ${colors.button} text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-md hover:shadow-lg hover:-translate-y-0.5`}
+              className={`inline-flex items-center gap-3 ${colors.button} text-white font-black text-xs md:text-sm px-8 py-4 rounded-full transition-all shadow-lg hover:shadow-primary/20 hover:-translate-y-1 uppercase tracking-widest font-open-sans`}
             >
-              Show More {title}
-              <ArrowRight className="w-4 h-4" />
+              Explore {title}
+              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </Link>
           </div>
         )}

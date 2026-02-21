@@ -66,9 +66,9 @@ export function LoginForm() {
   }
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl p-8 shadow-2xl">
+    <div className="p-8">
       {error && (
-        <div className="mb-6 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300 flex items-center gap-2">
+        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
           <svg
             className="w-4 h-4 shrink-0"
             fill="currentColor"
@@ -85,13 +85,13 @@ export function LoginForm() {
       )}
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
             control={form.control}
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-slate-300 text-sm font-medium">
+                <FormLabel className="text-gray-700 text-sm font-bold ml-1">
                   Email Address
                 </FormLabel>
                 <FormControl>
@@ -101,10 +101,10 @@ export function LoginForm() {
                     placeholder="admin@example.com"
                     disabled={isLoading}
                     autoComplete="email"
-                    className="h-11 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-colors"
+                    className="h-12 bg-gray-50/50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/10 transition-all rounded-xl text-base"
                   />
                 </FormControl>
-                <FormMessage className="text-red-400 text-xs" />
+                <FormMessage className="text-red-500 text-xs" />
               </FormItem>
             )}
           />
@@ -114,7 +114,7 @@ export function LoginForm() {
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-slate-300 text-sm font-medium">
+                <FormLabel className="text-gray-700 text-sm font-bold ml-1">
                   Password
                 </FormLabel>
                 <FormControl>
@@ -125,26 +125,26 @@ export function LoginForm() {
                       placeholder="••••••••"
                       disabled={isLoading}
                       autoComplete="current-password"
-                      className="h-11 bg-white/5 border-white/10 text-white placeholder:text-slate-500 focus:border-emerald-500/50 focus:ring-emerald-500/20 transition-colors pr-10"
+                      className="h-12 bg-gray-50/50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/10 transition-all rounded-xl text-base pr-12"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-600 transition-colors"
                       tabIndex={-1}
                       aria-label={
                         showPassword ? "Hide password" : "Show password"
                       }
                     >
                       {showPassword ? (
-                        <EyeOff className="w-4 h-4" />
+                        <EyeOff className="w-5 h-5" />
                       ) : (
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-5 h-5" />
                       )}
                     </button>
                   </div>
                 </FormControl>
-                <FormMessage className="text-red-400 text-xs" />
+                <FormMessage className="text-red-500 text-xs" />
               </FormItem>
             )}
           />
@@ -152,26 +152,28 @@ export function LoginForm() {
           <Button
             type="submit"
             disabled={isLoading}
-            className="w-full h-11 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition-all duration-200 shadow-lg shadow-emerald-600/20 hover:shadow-emerald-500/30 cursor-pointer"
+            className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition-all duration-200 shadow-lg shadow-emerald-600/20 hover:shadow-emerald-700/30 hover:scale-[1.02] active:scale-95 cursor-pointer rounded-xl"
           >
             {isLoading ? (
               <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                 Signing in...
               </>
             ) : (
               <>
-                <LogIn className="w-4 h-4 mr-2" />
-                Sign In
+                <LogIn className="w-5 h-5 mr-2" />
+                Sign In to Admin Panel
               </>
             )}
           </Button>
         </form>
       </Form>
 
-      <p className="text-center text-xs text-slate-500 mt-6">
-        Contact your administrator if you need access
-      </p>
+      <div className="mt-8 text-center">
+        <p className="text-sm text-gray-400 font-medium">
+          Budget Travel Packages Security Protocol
+        </p>
+      </div>
     </div>
   );
 }
