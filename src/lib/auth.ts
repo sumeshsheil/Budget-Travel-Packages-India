@@ -93,9 +93,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     strategy: "jwt",
     maxAge: 365 * 24 * 60 * 60, // 365 days
   },
-  pages: {
-    signIn: "/admin/login",
-  },
+  // NOTE: Do NOT set pages.signIn here.
+  // The proxy middleware handles admin login redirects on the portals domain,
+  // and customer login is handled separately at /dashboard/login.
+  // Setting a global signIn page to /admin/login breaks the public domain
+  // because proxy.ts blocks /admin/* routes there (returns 404).
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
