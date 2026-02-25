@@ -1,18 +1,19 @@
-const { createServer } = require("http");
-const { parse } = require("url");
-const next = require("next");
+/**
+ * Minimal Standalone Wrapper for Hostinger cPanel Passenger
+ *
+ * Hostinger's LiteSpeed Passenger proxy requires a traditional root entry point.
+ * This wrapper passes execution directly to the built-in standalone server
+ * which is heavily optimized and already handles Next.js specific routing.
+ */
 
-const port = parseInt(process.env.PORT || "3000", 10);
-const dev = process.env.NODE_ENV !== "production";
-const app = next({ dev });
-const handle = app.getRequestHandler();
+// Passenger overrides PORT, but we need to ensure HOSTNAME is set to allow reverse proxy connections
+process.env.HOSTNAME = process.env.HOSTNAME || "0.0.0.0";
+// Tell Next.js we are in production
+process.env.NODE_ENV = "production";
 
-app.prepare().then(() => {
-  createServer((req, res) => {
-    const parsedUrl = parse(req.url, true);
-    handle(req, res, parsedUrl);
-  }).listen(port, "0.0.0.0", (err) => {
-    if (err) throw err;
-    console.log(`> Ready on http://0.0.0.0:${port}`);
-  });
-});
+// The standalone server.js usually requires its config file, which is adjacent to it.
+// To run it from the root, we must change the working directory:
+process.chdir(__dirname + "/.next/standalone");
+
+// Pass execution to the auto-generated standalone server
+require("./.next/standalone/server.js");
