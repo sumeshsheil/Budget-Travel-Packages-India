@@ -78,7 +78,7 @@ export default function CategorySection({
         {totalPosts > 6 && (
           <div className="mt-8 text-center">
             <Link
-              href={`/travel-blogs/category/${slug}`}
+              href={`/blogs/category/${slug}`}
               className={`inline-flex items-center gap-3 ${colors.button} text-white font-black text-xs md:text-sm px-8 py-4 rounded-full transition-all shadow-lg hover:shadow-primary/20 hover:-translate-y-1 uppercase tracking-widest font-open-sans`}
             >
               Explore {title}

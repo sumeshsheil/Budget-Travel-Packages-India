@@ -17,7 +17,12 @@ export default function FeaturedHero({ post }: FeaturedHeroProps) {
 
   const image = extractFeaturedImage(post);
 
-  const category = post._embedded?.["wp:term"]?.[0]?.[0]?.name || "Travel";
+  const rawCategory = post._embedded?.["wp:term"]?.[0]?.[0]?.name || "Travel";
+  const category =
+    ["QUESTIONS", "Q&A", "Q&AMP;A", "QA"].includes(rawCategory.toUpperCase()) ||
+    rawCategory === "Travel insights"
+      ? "Travel Insights"
+      : rawCategory;
   const authorName = post._embedded?.author?.[0]?.name || "Budget Travel Team";
   const formattedDate = new Date(post.date).toLocaleDateString("en-US", {
     month: "long",
@@ -97,7 +102,7 @@ export default function FeaturedHero({ post }: FeaturedHeroProps) {
               className="mt-16"
             >
               <Link
-                href={`/travel-blogs/${post.slug}`}
+                href={`/blogs/${post.slug}`}
                 className="inline-flex items-center gap-5 text-white hover:text-primary transition-all duration-300 group"
               >
                 <span className="text-sm md:text-base font-black uppercase tracking-[0.3em] font-open-sans">

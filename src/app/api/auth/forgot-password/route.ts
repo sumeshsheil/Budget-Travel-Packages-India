@@ -7,6 +7,7 @@ import { sendOtpEmail } from "@/lib/email";
 
 const forgotPasswordSchema = z.object({
   email: z.string().email("Invalid email address"),
+  isAdminFlow: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
@@ -22,7 +23,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const { email } = validation.data;
+    const { email, isAdminFlow } = validation.data;
 
     await connectDB();
 
@@ -33,6 +34,14 @@ export async function POST(req: Request) {
       return NextResponse.json(
         { error: "User not found with this email access" },
         { status: 404 },
+      );
+    }
+
+    // Check if user has admin/agent role if this is an admin flow
+    if (isAdminFlow && user.role === "customer") {
+      return NextResponse.json(
+        { error: "This email is not associated with an admin account." },
+        { status: 403 },
       );
     }
 

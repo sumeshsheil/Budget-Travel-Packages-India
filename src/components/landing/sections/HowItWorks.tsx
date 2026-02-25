@@ -95,7 +95,7 @@ const HowItWorks: React.FC = () => {
           </p>
         </header>
 
-        <div className="flex flex-col-reverse items-center gap-y-16 xl:flex-row xl:justify-between">
+        <div className="flex flex-col-reverse items-start gap-y-16 xl:flex-row xl:justify-between xl:items-center">
           {/* Timeline */}
           <div
             ref={timelineRef}
@@ -152,7 +152,7 @@ const HowItWorks: React.FC = () => {
 
           {/* Video Section */}
           <div
-            className="relative flex items-stretch lg:justify-end justify-center"
+            className="relative flex items-stretch xl:justify-end justify-center w-full"
             style={{ height: videoHeight ? `${videoHeight}px` : "auto" }}
           >
             <div className="relative h-full w-fit">

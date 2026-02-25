@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Trash2, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import {
@@ -12,25 +11,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 import { Label } from "@/components/ui/label";
-import { Separator } from "@/components/ui/separator";
+
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Trophy, AlertCircle, RefreshCw } from "lucide-react";
 
 import {
   updateLeadStage,
   assignAgent,
-  deleteLead,
+  refreshLeadTimer,
 } from "@/app/admin/(dashboard)/leads/actions";
 
 interface Agent {
@@ -44,6 +34,7 @@ interface ActionButtonsProps {
   currentAgentId?: string;
   agents: Agent[];
   isAdmin: boolean;
+  isReadyToWin: boolean;
 }
 
 const STAGES = [
@@ -52,9 +43,7 @@ const STAGES = [
   "qualified",
   "proposal_sent",
   "negotiation",
-  "won",
   "lost",
-  "stale",
 ];
 
 export function ActionButtons({
@@ -63,14 +52,18 @@ export function ActionButtons({
   currentAgentId,
   agents,
   isAdmin,
+  isReadyToWin,
 }: ActionButtonsProps) {
   const router = useRouter();
   const [stage, setStage] = useState(currentStage);
   const [agentId, setAgentId] = useState(currentAgentId || "unassigned");
   const [loading, setLoading] = useState(false);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const isWon = currentStage === "won";
 
   async function handleStageChange(newStage: string) {
+    if (newStage === currentStage) return;
+
     setLoading(true);
     setStage(newStage);
     const result = await updateLeadStage(leadId, newStage);
@@ -85,12 +78,30 @@ export function ActionButtons({
     }
   }
 
+  async function handleMarkAsWon() {
+    if (!isReadyToWin) {
+      toast.error(
+        "Please ensure Trip Cost is set and all documents are uploaded.",
+      );
+      return;
+    }
+
+    setLoading(true);
+    const result = await updateLeadStage(leadId, "won");
+    setLoading(false);
+
+    if (result.success) {
+      toast.success("Congratulations! Lead marked as Won.");
+      router.refresh();
+    } else {
+      toast.error(result.error);
+    }
+  }
+
   async function handleAgentChange(newAgentId: string) {
     setLoading(true);
     setAgentId(newAgentId);
 
-    // Handle 'unassigned' case if logic supports it (currently schema allows optional agentId)
-    // For now assuming we just switch between valid agents
     const result = await assignAgent(
       leadId,
       newAgentId === "unassigned" ? "" : newAgentId,
@@ -106,50 +117,119 @@ export function ActionButtons({
     }
   }
 
-  async function handleDelete() {
-    setDeleteLoading(true);
-    const result = await deleteLead(leadId);
-
-    if (result.success) {
-      toast.success(result.message);
-      router.push("/admin/leads");
-    } else {
-      toast.error(result.error);
-      setDeleteLoading(false);
-    }
-  }
-
   return (
     <div className="space-y-6">
-      <div className="space-y-2">
+      {!isWon && (
+        <div className="space-y-3">
+          <Button
+            className={cn(
+              "w-full gap-2 h-11 text-base font-semibold transition-all",
+              isReadyToWin
+                ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-200 dark:shadow-none"
+                : "bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed border-dashed border-2 border-slate-200 dark:border-slate-700",
+            )}
+            onClick={handleMarkAsWon}
+            disabled={loading || isWon}
+          >
+            <Trophy
+              className={cn(
+                "h-5 w-5",
+                isReadyToWin ? "animate-bounce" : "opacity-50",
+              )}
+            />
+            Mark as Won
+          </Button>
+
+          {!isReadyToWin && (
+            <div className="flex items-start gap-2 p-2.5 rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-900/50">
+              <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-500 mt-0.5 shrink-0" />
+              <p className="text-[11px] leading-tight text-amber-700 dark:text-amber-400">
+                To enable <strong>Won</strong>, ensure Trip Cost is set and both
+                Itinerary & Documents are uploaded.
+              </p>
+            </div>
+          )}
+
+          <div className="pt-2 border-t">
+            <Button
+              variant="outline"
+              className="w-full h-9 text-xs"
+              onClick={async () => {
+                setLoading(true);
+                const result = await refreshLeadTimer(leadId);
+                setLoading(false);
+                if (result.success) {
+                  toast.success(result.message);
+                } else {
+                  toast.error(result.error);
+                }
+              }}
+              disabled={loading}
+            >
+              <RefreshCw className="mr-2 h-3.5 w-3.5" />
+              Refresh 7-Day Timer
+            </Button>
+            <p className="text-[10px] text-muted-foreground mt-1.5 text-center px-2">
+              Reset the auto-abandon countdown to prevent this lead from going
+              stale.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {isWon && (
+        <div className="p-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/50 text-center space-y-2">
+          <div className="h-10 w-10 bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto">
+            <Trophy className="h-6 w-6" />
+          </div>
+          <p className="text-sm font-bold text-emerald-800 dark:text-emerald-300">
+            This Trip is Won!
+          </p>
+          <p className="text-[11px] text-emerald-600 dark:text-emerald-400">
+            The customer is now a traveler.
+          </p>
+        </div>
+      )}
+
+      <div className="space-y-2 pt-2 border-t">
         <Label>Pipeline Stage</Label>
         <Select
           value={stage}
           onValueChange={handleStageChange}
-          disabled={loading}
+          disabled={loading || isWon}
         >
-          <SelectTrigger className="w-full capitalize">
+          <SelectTrigger className="w-full capitalize bg-background">
             <SelectValue placeholder="Select stage" />
           </SelectTrigger>
           <SelectContent>
             {STAGES.map((s) => (
-              <SelectItem key={s} value={s} className="capitalize">
+              <SelectItem
+                key={s}
+                value={s}
+                className="capitalize"
+                disabled={s === "won"}
+              >
                 {s.replace("_", " ")}
               </SelectItem>
             ))}
+            {isWon && (
+              <SelectItem value="won" className="capitalize">
+                Won
+              </SelectItem>
+            )}
           </SelectContent>
         </Select>
       </div>
 
       {isAdmin && (
-        <div className="space-y-2">
+        <div className="space-y-2 pt-4 border-t">
           <Label>Assigned Agent</Label>
           <Select
             value={agentId}
             onValueChange={handleAgentChange}
             disabled={loading}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full bg-background">
               <SelectValue placeholder="Assign agent" />
             </SelectTrigger>
             <SelectContent>
@@ -167,46 +247,6 @@ export function ActionButtons({
             </SelectContent>
           </Select>
         </div>
-      )}
-
-      {isAdmin && (
-        <>
-          <Separator />
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="destructive"
-                className="w-full"
-                disabled={deleteLoading || loading}
-              >
-                {deleteLoading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Trash2 className="mr-2 h-4 w-4" />
-                )}
-                Delete Lead
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete the
-                  lead and remove the data from our servers.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDelete}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </>
       )}
     </div>
   );

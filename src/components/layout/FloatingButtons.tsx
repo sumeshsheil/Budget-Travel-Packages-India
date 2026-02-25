@@ -31,8 +31,8 @@ export function FloatingButtons() {
     window.location.href = "tel:+919242868839";
   };
 
-  // Hide on dashboard and admin routes
-  if (pathname?.startsWith("/dashboard") || pathname?.startsWith("/admin")) {
+  // Show only on the homepage
+  if (pathname !== "/") {
     return null;
   }
 

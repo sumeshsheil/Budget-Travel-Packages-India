@@ -47,8 +47,10 @@ export async function POST(req: Request) {
     const salt = await bcryptjs.genSalt(12);
     const hashedPassword = await bcryptjs.hash(password, salt);
 
-    // Update user
+    // Update user — also activate the account so newsletter users
+    // who reset their password can log in immediately
     user.password = hashedPassword;
+    user.isActivated = true;
     user.setPasswordToken = undefined;
     user.setPasswordExpires = undefined;
 

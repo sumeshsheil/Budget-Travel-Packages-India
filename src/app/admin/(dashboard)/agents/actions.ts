@@ -7,7 +7,7 @@ import { connectDB } from "@/lib/db/mongoose";
 import User from "@/lib/db/models/User";
 import { verifyAdmin } from "@/lib/auth-check";
 import { generatePassword } from "@/lib/password";
-import { sendAgentWelcomeEmail } from "@/lib/email";
+import { sendAgentWelcomeEmail, sendAgentPromotionEmail } from "@/lib/email";
 
 const createAgentSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -40,11 +40,40 @@ export async function createAgent(prevState: unknown, formData: FormData) {
 
     // Check if user already exists
     const existingUser = await User.findOne({ email: email.toLowerCase() });
+
     if (existingUser) {
-      return {
-        success: false,
-        error: "User with this email already exists.",
-      };
+      if (existingUser.role === "customer") {
+        // Promote customer to agent
+        existingUser.role = "agent";
+        existingUser.status = "active"; // Ensure they are active
+        await existingUser.save();
+
+        const emailRes = await sendAgentPromotionEmail({
+          name: existingUser.name,
+          email: existingUser.email,
+          to: existingUser.email,
+        });
+
+        if (!emailRes.success) {
+          return {
+            success: true,
+            message:
+              "Customer promoted to agent, but failed to send notification email. Check logs.",
+          };
+        }
+
+        revalidatePath("/admin/agents");
+        return {
+          success: true,
+          message:
+            "Existing customer has been promoted to Travel Agent. Notification sent.",
+        };
+      } else {
+        return {
+          success: false,
+          error: `User with this email already exists as an ${existingUser.role}.`,
+        };
+      }
     }
 
     // Generate random password
@@ -151,6 +180,42 @@ export async function deleteAgent(agentId: string) {
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Failed to delete agent";
+    return { success: false, error: message };
+  }
+}
+
+export async function updateAgentVerificationStatus(
+  agentId: string,
+  status: "approved" | "rejected",
+  note?: string,
+) {
+  try {
+    await verifyAdmin();
+    await connectDB();
+
+    const agent = await User.findById(agentId);
+    if (!agent) {
+      return { success: false, error: "Agent not found" };
+    }
+
+    agent.verificationStatus = status;
+    agent.verificationNote = note || "";
+    agent.isVerified = status === "approved";
+
+    await agent.save();
+
+    revalidatePath("/admin/agents");
+    revalidatePath("/admin/profile"); // In case the agent is viewing their own profile
+
+    return {
+      success: true,
+      message: `Agent verification ${status === "approved" ? "approved" : "rejected"} successfully`,
+    };
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to update verification status";
     return { success: false, error: message };
   }
 }

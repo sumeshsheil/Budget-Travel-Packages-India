@@ -24,11 +24,11 @@ const CATEGORY_INFO: Record<
       "Discover affordable international destinations with curated guides, visa tips, and budget-friendly itineraries.",
     icon: "🌍",
   },
-  qa: {
-    title: "Questions & Answers",
+  "travel-insights": {
+    title: "Travel Insights",
     description:
-      "Got travel questions? Find answers about booking, visas, packing, and everything in between.",
-    icon: "❓",
+      "Get expert travel tips, guides, and insights to make your next budget-friendly trip a breeze.",
+    icon: "✨",
   },
 };
 
@@ -39,7 +39,7 @@ export async function generateMetadata({
   const info = CATEGORY_INFO[slug];
 
   return {
-    title: info ? `${info.title} - Travel Blogs` : "Category - Travel Blogs",
+    title: info ? `${info.title} - Blogs` : "Category - Blogs",
     description: info?.description || "Browse travel blog posts by category.",
   };
 }
@@ -66,10 +66,10 @@ export default async function CategoryPage({ params }: PageProps) {
             </Link>
             <span>/</span>
             <Link
-              href="/travel-blogs"
+              href="/blogs"
               className="hover:text-primary transition-colors"
             >
-              Travel Blogs
+              Blogs
             </Link>
             <span>/</span>
             <span className="text-gray-900 font-medium">{info.title}</span>
@@ -108,7 +108,7 @@ export default async function CategoryPage({ params }: PageProps) {
                 Check back later — we&apos;re adding new content soon!
               </p>
               <Link
-                href="/travel-blogs"
+                href="/blogs"
                 className="inline-flex items-center gap-2 mt-6 bg-primary text-white font-bold text-sm px-6 py-3 rounded-xl transition-all shadow-md hover:shadow-lg"
               >
                 ← Back to All Blogs

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontal, Trash2, Power } from "lucide-react";
+import { MoreHorizontal, Trash2, Power, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -24,25 +24,26 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Dialog } from "@/components/ui/dialog";
 import {
   toggleAgentStatus,
   deleteAgent,
 } from "@/app/admin/(dashboard)/agents/actions";
+import { AgentDetailDialog } from "./AgentDetailDialog";
 
 interface AgentActionsProps {
-  agentId: string;
-  agentName: string;
-  isActive: boolean;
+  agent: any;
 }
 
-export function AgentActions({
-  agentId,
-  agentName,
-  isActive,
-}: AgentActionsProps) {
+export function AgentActions({ agent }: AgentActionsProps) {
   const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const router = useRouter();
+
+  const agentId = agent._id.toString();
+  const agentName = agent.name;
+  const isActive = agent.status === "active";
 
   async function onToggleStatus() {
     setIsPending(true);
@@ -90,6 +91,10 @@ export function AgentActions({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>Actions</DropdownMenuLabel>
+          <DropdownMenuItem onClick={() => setShowViewDialog(true)}>
+            <Eye className="mr-2 h-4 w-4" />
+            View Details
+          </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => navigator.clipboard.writeText(agentId)}
           >
@@ -114,6 +119,10 @@ export function AgentActions({
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <Dialog open={showViewDialog} onOpenChange={setShowViewDialog}>
+        <AgentDetailDialog agent={agent} />
+      </Dialog>
 
       <AlertDialog open={showDeleteAlert} onOpenChange={setShowDeleteAlert}>
         <AlertDialogContent>

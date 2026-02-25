@@ -21,11 +21,19 @@ export interface IUser extends Document {
   lastName?: string;
   image?: string;
   gender?: "male" | "female" | "other";
+  age?: number;
+  address?: string;
+  aadhaarNumber?: string;
+  panNumber?: string;
   documents?: {
     aadharCard: string[];
+    panCard: string[];
     passport: string[];
   };
+  verificationStatus: "unverified" | "pending" | "approved" | "rejected";
+  verificationNote?: string;
   isVerified: boolean;
+  isPhoneVerified: boolean;
   members?: IMember[];
 }
 
@@ -34,6 +42,10 @@ export interface IMember {
   email?: string;
   gender: "male" | "female" | "other";
   age: number;
+  documents?: {
+    aadharCard: string[];
+    passport: string[];
+  };
 }
 
 // ============ SCHEMA ============
@@ -43,6 +55,10 @@ const MemberSchema = new Schema<IMember>({
   email: { type: String, lowercase: true, trim: true },
   gender: { type: String, enum: ["male", "female", "other"], required: true },
   age: { type: Number, required: true, min: 0, max: 120 },
+  documents: {
+    aadharCard: [{ type: String }],
+    passport: [{ type: String }],
+  },
 });
 
 const UserSchema = new Schema<IUser>(
@@ -110,11 +126,26 @@ const UserSchema = new Schema<IUser>(
       type: String,
       enum: ["male", "female", "other"],
     },
+    age: { type: Number },
+    address: { type: String, trim: true },
+    aadhaarNumber: { type: String, trim: true },
+    panNumber: { type: String, trim: true },
     documents: {
       aadharCard: [{ type: String }],
+      panCard: [{ type: String }],
       passport: [{ type: String }],
     },
+    verificationStatus: {
+      type: String,
+      enum: ["unverified", "pending", "approved", "rejected"],
+      default: "unverified",
+    },
+    verificationNote: { type: String },
     isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    isPhoneVerified: {
       type: Boolean,
       default: false,
     },

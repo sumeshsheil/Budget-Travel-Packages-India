@@ -16,6 +16,7 @@ import {
   setCurrentStep,
   resetForm,
 } from "@/lib/redux/features/bookingSlice";
+import { useSession } from "next-auth/react";
 import { FormTextarea } from "./FormTextarea";
 import { FormInput } from "./FormInput";
 import { FormSelect } from "./FormSelect";
@@ -33,6 +34,7 @@ export const Step2Form: React.FC = () => {
   const { specialRequests, primaryContact, phoneVerified } = useAppSelector(
     (state) => state.booking.step2,
   );
+  const { data: session } = useSession();
   const contactErrors = useAppSelector(
     (state) => state.booking.validation.contactErrors,
   );
@@ -86,6 +88,13 @@ export const Step2Form: React.FC = () => {
     localStorage.setItem("booking_step2_draft", JSON.stringify(draft));
   }, [specialRequests, primaryContact]);
 
+  // Auto-verify if user is logged in and already phone-verified in DB
+  useEffect(() => {
+    if (session?.user?.isPhoneVerified && !phoneVerified) {
+      dispatch(setPhoneVerified(true));
+    }
+  }, [session, phoneVerified, dispatch]);
+
   // Cooldown timer
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -127,7 +136,7 @@ export const Step2Form: React.FC = () => {
 
       setVerificationId(data.verificationId);
       setOtpSent(true);
-      setCooldown(30);
+      setCooldown(60);
       toast.success(`OTP sent to +91 ${primaryContact.phone}`);
     } catch (err: unknown) {
       const message =

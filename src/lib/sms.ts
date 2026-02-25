@@ -93,12 +93,14 @@ export async function getAuthToken(): Promise<string> {
 interface PhoneRateEntry {
   count: number;
   windowStart: number;
+  lastSentAt: number;
 }
 
 const phoneRateLimits = new Map<string, PhoneRateEntry>();
 
-const MAX_OTP_PER_PHONE = 5; // max OTPs per phone in the window
+const MAX_OTP_PER_PHONE = 3; // max OTPs per phone in the window
 const PHONE_WINDOW_MS = 60 * 60 * 1000; // 1-hour window
+const MIN_GAP_MS = 60 * 1000; // minimum 60s between sends (server-side enforcement)
 
 /**
  * In-memory per-phone rate limiter.
@@ -108,22 +110,35 @@ const PHONE_WINDOW_MS = 60 * 60 * 1000; // 1-hour window
 export function checkPhoneRateLimit(phone: string): {
   allowed: boolean;
   remaining: number;
+  retryAfterSeconds?: number;
 } {
   const now = Date.now();
   const entry = phoneRateLimits.get(phone);
 
   // No previous record or window expired → allow
   if (!entry || now - entry.windowStart > PHONE_WINDOW_MS) {
-    phoneRateLimits.set(phone, { count: 1, windowStart: now });
+    phoneRateLimits.set(phone, { count: 1, windowStart: now, lastSentAt: now });
     return { allowed: true, remaining: MAX_OTP_PER_PHONE - 1 };
   }
 
-  // Within window — check limit
+  // Minimum gap between sends (server-side 30s cooldown)
+  const elapsed = now - entry.lastSentAt;
+  if (elapsed < MIN_GAP_MS) {
+    const waitSeconds = Math.ceil((MIN_GAP_MS - elapsed) / 1000);
+    return {
+      allowed: false,
+      remaining: MAX_OTP_PER_PHONE - entry.count,
+      retryAfterSeconds: waitSeconds,
+    };
+  }
+
+  // Within window — check hourly limit
   if (entry.count >= MAX_OTP_PER_PHONE) {
     return { allowed: false, remaining: 0 };
   }
 
   entry.count += 1;
+  entry.lastSentAt = now;
   return { allowed: true, remaining: MAX_OTP_PER_PHONE - entry.count };
 }
 

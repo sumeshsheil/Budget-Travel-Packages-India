@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 export default function Newsletter() {
   const [email, setEmail] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [status, setStatus] = useState<
     "idle" | "loading" | "success" | "error"
   >("idle");
@@ -17,6 +18,7 @@ export default function Newsletter() {
     if (!email) return;
 
     setStatus("loading");
+    setErrorMessage("");
     try {
       const response = await fetch("/api/newsletter/subscribe", {
         method: "POST",
@@ -35,8 +37,14 @@ export default function Newsletter() {
       setEmail("");
     } catch (error: any) {
       setStatus("error");
+      setErrorMessage(
+        error.message || "Failed to subscribe. Please try again.",
+      );
       toast.error(error.message || "Failed to subscribe. Please try again.");
-      setTimeout(() => setStatus("idle"), 3000);
+      setTimeout(() => {
+        setStatus("idle");
+        setErrorMessage("");
+      }, 5000);
     }
   };
 
@@ -50,7 +58,7 @@ export default function Newsletter() {
           className="max-w-7xl mx-auto  bg-[url('/images/blog/newsletter-bg.png')] bg-cover bg-center bg-no-repeat rounded-xl p-8 md:p-16 text-center relative overflow-hidden shadow-xl"
         >
           {/* Overlay to make text readable */}
-          <div className="absolute inset-0 bg-white/30 backdrop-blur-xs"></div>
+          <div className="absolute inset-0 bg-white/40 backdrop-blur-xs"></div>
 
           <div className="relative z-10">
             <h2 className="text-3xl md:text-5xl font-black text-secondary mb-4 tracking-tight">
@@ -112,15 +120,24 @@ export default function Newsletter() {
                     </button>
                   </div>
                   {status === "error" && (
-                    <p className="mt-3 text-accent text-xs font-bold font-open-sans">
-                      Please enter a valid email.
+                    <p className="mt-3 text-red-500 text-xs font-bold font-open-sans">
+                      {errorMessage || "Please enter a valid email."}
                     </p>
                   )}
                 </form>
               )}
-              <p className="mt-6 text-[11px] text-accent/60 font-medium tracking-wide">
+              <p className="mt-6 text-[13px] text-black font-bold tracking-wide uppercase opacity-80">
                 NO SPAM • ONE-CLICK UNSUBSCRIBE • PRIVACY-FIRST
               </p>
+              <div className="mt-5 flex items-center justify-center gap-2 text-sm font-bold text-secondary">
+                <Mail className="w-4 h-4" />
+                <a
+                  href="mailto:hello@budgettravelpackages.in"
+                  className="hover:underline underline-offset-4"
+                >
+                  hello@budgettravelpackages.in
+                </a>
+              </div>
             </div>
           </div>
         </motion.div>

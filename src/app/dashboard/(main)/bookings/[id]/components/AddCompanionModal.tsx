@@ -106,7 +106,7 @@ export default function AddCompanionModal({
         <Button
           size="sm"
           variant="outline"
-          className="border-emerald-200 text-emerald-700 hover:bg-emerald-50 bg-white"
+          className="border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30"
         >
           <UserPlus className="w-4 h-4 mr-2" /> Add Companion
         </Button>
@@ -121,9 +121,9 @@ export default function AddCompanionModal({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           {availableMembers.length === 0 ? (
-            <div className="text-center p-4 bg-gray-50 rounded-lg">
-              <Users className="w-8 h-8 mx-auto text-gray-400 mb-2" />
-              <p className="text-sm text-gray-600 mb-4">
+            <div className="text-center p-4 bg-muted/50 rounded-lg">
+              <Users className="w-8 h-8 mx-auto text-muted-foreground mb-2" />
+              <p className="text-sm text-muted-foreground mb-4">
                 You have no saved companions
               </p>
               <Button asChild size="sm" variant="outline" className="w-full">

@@ -26,10 +26,10 @@ export default async function BookingsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
           My Bookings
         </h1>
-        <p className="text-muted-foreground mt-1">
+        <p className="text-slate-500 dark:text-slate-400 mt-1">
           Track all your travel inquiries and bookings
         </p>
       </div>
@@ -71,12 +71,12 @@ export default async function BookingsPage() {
                 href={`/dashboard/bookings/${booking._id}`}
                 className="block group"
               >
-                <Card className="border shadow-sm hover:shadow-md transition-all duration-200 group-hover:border-emerald-200">
+                <Card className="border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm hover:shadow-md hover:border-emerald-200 dark:hover:border-emerald-700 transition-all duration-200">
                   <CardContent className="p-4 md:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="text-lg font-bold truncate">
+                          <h3 className="text-lg font-bold truncate text-slate-900 dark:text-white">
                             {booking.destination}
                           </h3>
                           <Badge
@@ -117,7 +117,7 @@ export default async function BookingsPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="text-emerald-600 group-hover:text-emerald-700"
+                          className="text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-700 dark:group-hover:text-emerald-300"
                         >
                           View Details
                           <ArrowRight className="ml-1 h-4 w-4 group-hover:translate-x-1 transition-transform" />

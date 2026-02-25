@@ -15,6 +15,28 @@ export async function proxy(request: NextRequest) {
   const url = request.nextUrl;
   const hostname = request.headers.get("host") || "";
 
+  // 1. Redirect /travel-blogs to /blogs
+  if (url.pathname.startsWith("/travel-blogs")) {
+    const newPath = url.pathname.replace("/travel-blogs", "/blogs");
+    return NextResponse.redirect(new URL(newPath, request.url), 301);
+  }
+
+  // 2. Redirect /travel-portals to portals domain
+  if (url.pathname === "/travel-portals") {
+    // In production, use portals.yourdomain.com
+    const portalUrl = hostname.includes("localhost")
+      ? "http://portals.localhost:3000"
+      : "https://portals.budgettravelpackages.in";
+    return NextResponse.redirect(new URL(portalUrl), 301);
+  }
+
+  // 3. Redirect /privacy-policy and /terms-and-conditions to /legal
+  const legacyPaths = ["/privacy-policy", "/terms-and-conditions"];
+  const pathname = url.pathname; // Extract pathname once
+  if (legacyPaths.includes(pathname)) {
+    return NextResponse.redirect(new URL("/legal", request.url), 301);
+  }
+
   // Determine if this is the portals domain
   // Using portals.localhost:3000 for local testing, normally this would be portals.yourdomain.com
   const isPortalsDomain =

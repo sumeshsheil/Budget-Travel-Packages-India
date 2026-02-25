@@ -57,7 +57,7 @@ const TravelSmartCTA: React.FC = () => {
                   <span className="text-xs font-semibold opacity-90 uppercase tracking-wider">
                     Call Us Now
                   </span>
-                  <span className="font-bold text-lg leading-tight">
+                  <span className="font-bold whitespace-nowrap text-lg leading-tight">
                     +91 92428 68839
                   </span>
                 </div>
@@ -74,7 +74,7 @@ const TravelSmartCTA: React.FC = () => {
                   <span className="text-xs font-semibold opacity-90 uppercase tracking-wider">
                     Send Email
                   </span>
-                  <span className="font-bold text-lg leading-tight">
+                  <span className="font-bold text-base lg:text-lg leading-tight">
                     hello@budgettravelpackages.in
                   </span>
                 </div>

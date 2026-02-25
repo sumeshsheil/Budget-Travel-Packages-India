@@ -10,7 +10,6 @@ export const LEAD_STAGES = [
   "negotiation",
   "won",
   "lost",
-  "stale",
 ] as const;
 
 export type LeadStage = (typeof LEAD_STAGES)[number];
@@ -34,7 +33,15 @@ export interface ITraveler {
   gender: "male" | "female" | "other";
   email?: string;
   phone?: string;
+  altPhone?: string;
   memberId?: string;
+  aadhaarNumber?: string;
+  panNumber?: string;
+  documents?: {
+    aadharCard: string[];
+    panCard: string[];
+    passport: string[];
+  };
 }
 
 export const DOCUMENT_TYPES = [
@@ -98,13 +105,29 @@ export interface ILead extends Document {
   // Trip details — Admin managed
   documents?: IDocument[];
   itinerary?: IItineraryDay[];
+  itineraryPdfUrl?: string;
+  travelDocumentsPdfUrl?: string;
   inclusions?: string[];
   exclusions?: string[];
   hotelName?: string;
   hotelRating?: number;
 
+  // Trip financial details - Admin managed
+  netAmount?: number;
+  tripCost?: number; // Calculated as netAmount + tripProfit
+  tripProfit?: number;
+
+  // Comments/Notes array
+  comments?: Array<{
+    text: string;
+    agentName: string;
+    agentId: mongoose.Types.ObjectId;
+    createdAt: Date;
+  }>;
+
   // Timestamps
   lastActivityAt: Date;
+  stageUpdatedAt: Date;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -140,9 +163,26 @@ const TravelerSchema = new Schema<ITraveler>(
       type: String,
       trim: true,
     },
+    altPhone: {
+      type: String,
+      trim: true,
+    },
     memberId: {
       type: String,
       trim: true,
+    },
+    aadhaarNumber: {
+      type: String,
+      trim: true,
+    },
+    panNumber: {
+      type: String,
+      trim: true,
+    },
+    documents: {
+      aadharCard: { type: [String], default: [] },
+      panCard: { type: [String], default: [] },
+      passport: { type: [String], default: [] },
     },
   },
   { _id: false },
@@ -282,6 +322,14 @@ const LeadSchema = new Schema<ILead>(
       type: [ItineraryDaySchema],
       default: [],
     },
+    itineraryPdfUrl: {
+      type: String,
+      trim: true,
+    },
+    travelDocumentsPdfUrl: {
+      type: String,
+      trim: true,
+    },
     inclusions: {
       type: [String],
       default: [],
@@ -300,8 +348,41 @@ const LeadSchema = new Schema<ILead>(
       max: 5,
     },
 
+    // === FINANCIAL DETAILS (Admin-managed) ===
+    netAmount: {
+      type: Number,
+      min: 0,
+    },
+    tripCost: {
+      type: Number,
+      min: 0,
+    },
+    tripProfit: {
+      type: Number,
+    },
+
+    // === COMMENTS ===
+    comments: [
+      {
+        text: String,
+        agentName: String,
+        agentId: {
+          type: Schema.Types.ObjectId,
+          ref: "User",
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+
     // === ACTIVITY TRACKING ===
     lastActivityAt: {
+      type: Date,
+      default: Date.now,
+    },
+    stageUpdatedAt: {
       type: Date,
       default: Date.now,
     },

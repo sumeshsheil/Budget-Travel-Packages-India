@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     // Find leads that will become stale (we need their IDs for activity logging)
     const staleLeads = await Lead.find({
       stage: { $nin: ["won", "lost", "stale"] },
-      lastActivityAt: { $lt: sevenDaysAgo },
+      stageUpdatedAt: { $lt: sevenDaysAgo },
     })
       .select("_id stage")
       .lean();

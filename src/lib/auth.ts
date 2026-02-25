@@ -10,6 +10,7 @@ declare module "next-auth" {
   interface User {
     role: "admin" | "agent" | "customer";
     mustChangePassword: boolean;
+    isPhoneVerified: boolean;
   }
   interface Session {
     user: {
@@ -18,6 +19,7 @@ declare module "next-auth" {
       name: string;
       role: "admin" | "agent" | "customer";
       mustChangePassword: boolean;
+      isPhoneVerified: boolean;
     };
   }
 }
@@ -27,6 +29,7 @@ declare module "next-auth" {
     role: "admin" | "agent" | "customer";
     userId: string;
     mustChangePassword: boolean;
+    isPhoneVerified: boolean;
   }
 }
 
@@ -59,23 +62,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         // 3. Find user
         const user = await User.findOne({ email: email.toLowerCase() });
         if (!user) {
-          return null;
+          throw new Error("No account found with this email address.");
         }
 
         // 4. Check user is active
         if (user.status !== "active") {
-          return null;
+          throw new Error("This account has been deactivated.");
         }
 
         // 5. Customers must have activated their account
         if (user.role === "customer" && !user.isActivated) {
-          return null;
+          throw new Error(
+            "Please verify your email address to activate your account.",
+          );
         }
 
         // 6. Compare password
         const isPasswordValid = await bcryptjs.compare(password, user.password);
         if (!isPasswordValid) {
-          return null;
+          throw new Error("Incorrect password. Please try again.");
         }
 
         // 7. Return user object
@@ -85,6 +90,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           name: user.name,
           role: user.role,
           mustChangePassword: user.mustChangePassword,
+          isPhoneVerified: user.isPhoneVerified,
         };
       },
     }),
@@ -104,7 +110,25 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = user.role;
         token.userId = user.id!;
         token.mustChangePassword = user.mustChangePassword;
+        token.isPhoneVerified = user.isPhoneVerified;
       }
+
+      // Re-read isPhoneVerified from DB on every token refresh so
+      // mid-session verification is reflected without re-login.
+      if (token.userId && !token.isPhoneVerified) {
+        try {
+          await connectDB();
+          const dbUser = await User.findById(token.userId)
+            .select("isPhoneVerified")
+            .lean();
+          if (dbUser?.isPhoneVerified) {
+            token.isPhoneVerified = true;
+          }
+        } catch {
+          // DB lookup failed; keep current token value
+        }
+      }
+
       return token;
     },
     async session({ session, token }) {
@@ -112,8 +136,29 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.id = token.userId as string;
         session.user.role = token.role as "admin" | "agent" | "customer";
         session.user.mustChangePassword = token.mustChangePassword as boolean;
+        session.user.isPhoneVerified = token.isPhoneVerified as boolean;
       }
       return session;
+    },
+    async redirect({ url, baseUrl }) {
+      // Allows relative callback URLs
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      try {
+        const urlObj = new URL(url);
+        const baseObj = new URL(baseUrl);
+        // Allow same origin
+        if (urlObj.origin === baseObj.origin) return url;
+        // Allow subdomains of the base domain (e.g. portals.localhost when base is localhost)
+        if (
+          urlObj.hostname.endsWith(`.${baseObj.hostname}`) &&
+          urlObj.port === baseObj.port
+        ) {
+          return url;
+        }
+      } catch {
+        // Invalid URL, fall through to baseUrl
+      }
+      return baseUrl;
     },
   },
 });

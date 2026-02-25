@@ -10,13 +10,23 @@ const memberSchema = z.object({
   email: z.string().email().optional().or(z.literal("")),
   gender: z.enum(["male", "female", "other"]),
   age: z.number().min(0).max(120),
+  documents: z.object({
+    aadharCard: z.array(z.string()).min(1, "Aadhar Card is mandatory"),
+    passport: z.array(z.string()).optional().default([]),
+  }),
 });
 
 // GET — return all members for the current user
 export async function GET() {
   try {
     const session = await auth();
-    if (!session || session.user.role !== "customer") {
+    const isAuthorized =
+      session &&
+      (session.user.role === "customer" ||
+        session.user.role === "agent" ||
+        session.user.role === "admin");
+
+    if (!isAuthorized) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -41,7 +51,13 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const session = await auth();
-    if (!session || session.user.role !== "customer") {
+    const isAuthorized =
+      session &&
+      (session.user.role === "customer" ||
+        session.user.role === "agent" ||
+        session.user.role === "admin");
+
+    if (!isAuthorized) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

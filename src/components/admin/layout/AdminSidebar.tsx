@@ -5,9 +5,11 @@ import { usePathname } from "next/navigation";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
 import logo from "@/../public/images/logo/logo.svg";
+import logoDark from "@/../public/images/logo/footer-logo.svg";
 import {
   LayoutDashboard,
   Users,
+  UserCircle,
   FileText,
   Settings,
   Plane,
@@ -23,15 +25,20 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { motion } from "motion/react";
+import { useTheme } from "next-themes";
 
 export function AdminAppSidebar() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "admin";
+  const isDarkMode = useTheme().resolvedTheme === "dark";
+  const { isMobile, state, setOpenMobile } = useSidebar();
 
+  const collapsed = state === "collapsed";
   // Grouped navigation items
   const data = {
     user: {
@@ -66,6 +73,13 @@ export function AdminAppSidebar() {
     navAdmin: isAdmin
       ? [
           {
+            title: "Customers",
+            url: "/admin/customers",
+            icon: UserCircle,
+            isActive: pathname.startsWith("/admin/customers"),
+            items: [],
+          },
+          {
             title: "Team Management",
             url: "/admin/agents",
             icon: Users,
@@ -89,19 +103,35 @@ export function AdminAppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link href="/admin">
-                <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-linear-to-br from-emerald-500 to-emerald-700 text-sidebar-primary-foreground shadow-sm">
-                  <Plane className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <Image
-                    src={logo}
-                    alt="Budget Travel Packages"
-                    width={120}
-                    height={50}
-                    className="h-8 w-auto object-contain"
-                  />
-                </div>
+              <Link
+                href="/admin"
+                onClick={() => isMobile && setOpenMobile(false)}
+              >
+                {collapsed ? (
+                  <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-linear-to-br from-emerald-500 to-emerald-700 text-sidebar-primary-foreground shadow-sm">
+                    <Plane className="size-4" />
+                  </div>
+                ) : (
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    {isDarkMode ? (
+                      <Image
+                        src={logo}
+                        alt="Budget Travel Packages"
+                        width={120}
+                        height={50}
+                        className="h-8 w-auto object-contain"
+                      />
+                    ) : (
+                      <Image
+                        src={logoDark}
+                        alt="Budget Travel Packages"
+                        width={120}
+                        height={50}
+                        className="h-8 w-auto object-contain"
+                      />
+                    )}
+                  </div>
+                )}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -131,6 +161,7 @@ export function AdminAppSidebar() {
                       href={
                         item.url === "#" ? item.items[0]?.url || "#" : item.url
                       }
+                      onClick={() => isMobile && setOpenMobile(false)}
                     >
                       <item.icon />
                       <span>{item.title}</span>
@@ -161,7 +192,10 @@ export function AdminAppSidebar() {
                       isActive={item.isActive}
                       className="transition-all duration-200"
                     >
-                      <Link href={item.url}>
+                      <Link
+                        href={item.url}
+                        onClick={() => isMobile && setOpenMobile(false)}
+                      >
                         <item.icon />
                         <span>{item.title}</span>
                       </Link>

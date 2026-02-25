@@ -1,12 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Loader2, Eye, EyeOff, LogIn } from "lucide-react";
+import {
+  Loader2,
+  Eye,
+  EyeOff,
+  LogIn,
+  ArrowLeft,
+  CheckCircle2,
+  AlertCircle,
+  UserPlus,
+} from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
+import Image from "next/image";
+import logo from "@/../public/images/logo/footer-logo.svg";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,32 +30,97 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { toast } from "sonner";
+import { OtpInput } from "@/components/landing/sections/booking/components/OtpInput";
 
+// Schemas
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
+const forgotPasswordSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
+
+const otpVerificationSchema = z.object({
+  otp: z.string().length(6, "OTP must be 6 digits"),
+});
+
+const resetPasswordSchema = z
+  .object({
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z
+      .string()
+      .min(8, "Confirm Password must be at least 8 characters"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
+
 type LoginFormValues = z.infer<typeof loginSchema>;
+type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
+type OtpVerificationFormValues = z.infer<typeof otpVerificationSchema>;
+type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+
+type AuthView =
+  | "LOGIN"
+  | "REGISTER"
+  | "FORGOT_PASSWORD"
+  | "OTP_VERIFICATION"
+  | "RESET_PASSWORD";
 
 export function LoginForm() {
   const router = useRouter();
+  const [view, setView] = useState<AuthView>("LOGIN");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  const form = useForm<LoginFormValues>({
+  // Flow data
+  const [resetEmail, setResetEmail] = useState<string>("");
+  const [verifiedOtp, setVerifiedOtp] = useState<string>("");
+  const [countdown, setCountdown] = useState(0);
+  const [registerEmail, setRegisterEmail] = useState("");
+
+  // Forms
+  const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
-    defaultValues: {
-      email: "",
-      password: "",
-    },
+    defaultValues: { email: "", password: "" },
   });
 
-  async function onSubmit(values: LoginFormValues) {
+  const forgotPasswordForm = useForm<ForgotPasswordFormValues>({
+    resolver: zodResolver(forgotPasswordSchema),
+    defaultValues: { email: "" },
+  });
+
+  const otpVerificationForm = useForm<OtpVerificationFormValues>({
+    resolver: zodResolver(otpVerificationSchema),
+    defaultValues: { otp: "" },
+  });
+
+  const resetPasswordForm = useForm<ResetPasswordFormValues>({
+    resolver: zodResolver(resetPasswordSchema),
+    defaultValues: { password: "", confirmPassword: "" },
+  });
+
+  // Handle countdown timer
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
+
+  // Handlers
+  async function onLogin(values: LoginFormValues) {
     setIsLoading(true);
     setError(null);
-
     try {
       const result = await signIn("credentials", {
         email: values.email,
@@ -52,10 +129,18 @@ export function LoginForm() {
       });
 
       if (result?.error) {
-        setError("Invalid email or password. Please try again.");
+        if (result.error === "CredentialsSignin") {
+          setError("Invalid email or password. Please try again.");
+        } else {
+          let cleanError = result.error.replace("Error: ", "");
+          setError(
+            cleanError || "Invalid email or password. Please try again.",
+          );
+        }
         return;
       }
 
+      toast.success("Logged in successfully");
       router.push("/admin");
       router.refresh();
     } catch {
@@ -65,115 +150,574 @@ export function LoginForm() {
     }
   }
 
+  async function onForgotPassword(values: ForgotPasswordFormValues) {
+    setIsLoading(true);
+    setError(null);
+    setSuccessMessage(null);
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...values, isAdminFlow: true }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Failed to process request.");
+        return;
+      }
+
+      setResetEmail(values.email);
+      setCountdown(60);
+      setSuccessMessage(
+        `One-Time Password (OTP) has been sent to ${values.email}`,
+      );
+      setView("OTP_VERIFICATION");
+      forgotPasswordForm.reset();
+    } catch {
+      setError("An unexpected error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function resendOtp() {
+    if (countdown > 0) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: resetEmail, isAdminFlow: true }),
+      });
+      if (!res.ok) {
+        setError("Failed to resend OTP.");
+      } else {
+        setCountdown(60);
+        setSuccessMessage(`New OTP sent to ${resetEmail}`);
+      }
+    } catch {
+      setError("An unexpected error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function onVerifyOtp(values: OtpVerificationFormValues) {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/auth/verify-otp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: resetEmail,
+          otp: values.otp,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Invalid OTP");
+        return;
+      }
+      setVerifiedOtp(values.otp);
+      setView("RESET_PASSWORD");
+      otpVerificationForm.reset();
+    } catch {
+      setError("An unexpected error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function onResetPassword(values: ResetPasswordFormValues) {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: resetEmail,
+          otp: verifiedOtp,
+          password: values.password,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Failed to reset password");
+        return;
+      }
+      toast.success("Password reset successfully. Please login.");
+      setSuccessMessage("Password reset successfully. Please login.");
+      setView("LOGIN");
+      resetPasswordForm.reset();
+    } catch {
+      setError("An unexpected error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
   return (
-    <div className="p-8">
-      {error && (
-        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
-          <svg
-            className="w-4 h-4 shrink-0"
-            fill="currentColor"
-            viewBox="0 0 20 20"
-          >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-              clipRule="evenodd"
-            />
-          </svg>
-          {error}
-        </div>
-      )}
+    <div className="relative">
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={view}
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -20 }}
+          transition={{ duration: 0.3 }}
+          className="p-8 pt-4"
+        >
+          {/* View Specific Header */}
+          <div className="mb-8 text-center relative flex flex-col items-center justify-center">
+            {view !== "LOGIN" && (
+              <button
+                onClick={() => {
+                  if (view === "OTP_VERIFICATION") setView("FORGOT_PASSWORD");
+                  else if (view === "REGISTER") setView("LOGIN");
+                  else setView("LOGIN");
+                  setError(null);
+                  setSuccessMessage(null);
+                }}
+                className="absolute -left-4 top-0 p-2 rounded-full hover:bg-gray-100 transition-colors group z-20 cursor-pointer"
+                aria-label="Go back"
+              >
+                <ArrowLeft className="w-5 h-5 text-gray-500 group-hover:text-emerald-600" />
+              </button>
+            )}
 
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <FormField
-            control={form.control}
-            name="email"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-gray-700 text-sm font-bold ml-1">
+            <div className="flex justify-center mb-6 px-10">
+              <Image
+                src={logo}
+                alt="Budget Travel Packages"
+                width={200}
+                height={80}
+                className="h-14 w-auto object-contain"
+                priority
+              />
+            </div>
+
+            {view === "LOGIN" && (
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+                  Portal Dashboard
+                </h1>
+                <p className="text-gray-500 text-sm font-medium">
+                  Please sign in to continue
+                </p>
+              </div>
+            )}
+            {view === "REGISTER" && (
+              <div className="space-y-1">
+                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+                  Agent Registration
+                </h1>
+                <p className="text-gray-500 text-sm font-medium">
+                  Enter your email to get started
+                </p>
+              </div>
+            )}
+            {view === "FORGOT_PASSWORD" && (
+              <div className="space-y-1">
+                <h2 className="text-xl font-bold text-gray-900">
+                  Forgot Password
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Enter email to receive security OTP
+                </p>
+              </div>
+            )}
+            {view === "OTP_VERIFICATION" && (
+              <div className="space-y-1">
+                <h2 className="text-xl font-bold text-gray-900">
+                  Verify Email
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Enter the 6-digit code sent to you
+                </p>
+              </div>
+            )}
+            {view === "RESET_PASSWORD" && (
+              <div className="space-y-1">
+                <h2 className="text-xl font-bold text-gray-900">
+                  New Password
+                </h2>
+                <p className="text-sm text-gray-500">
+                  Create a strong password for your account
+                </p>
+              </div>
+            )}
+          </div>
+
+          {error && (
+            <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              {error}
+            </div>
+          )}
+
+          {successMessage && !error && (
+            <div className="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              {successMessage}
+            </div>
+          )}
+
+          {/* LOGIN VIEW */}
+          {view === "LOGIN" && (
+            <Form {...loginForm}>
+              <form
+                onSubmit={loginForm.handleSubmit(onLogin)}
+                className="space-y-6"
+              >
+                <FormField
+                  control={loginForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-700 text-sm font-bold ml-1">
+                        Email Address
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="email"
+                          placeholder="admin@example.com"
+                          disabled={isLoading}
+                          className="h-12 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/10 transition-all rounded-xl text-base"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={loginForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <div className="flex items-center justify-between">
+                        <FormLabel className="text-gray-700 text-sm font-bold ml-1">
+                          Password
+                        </FormLabel>
+                        <button
+                          type="button"
+                          onClick={() => setView("FORGOT_PASSWORD")}
+                          className="text-xs text-emerald-600 hover:text-emerald-700 hover:underline font-bold cursor-pointer"
+                        >
+                          Forgot password?
+                        </button>
+                      </div>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            {...field}
+                            type={showPassword ? "text" : "password"}
+                            placeholder="••••••••"
+                            disabled={isLoading}
+                            className="h-12 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/10 transition-all rounded-xl text-base pr-12"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-600"
+                          >
+                            {showPassword ? (
+                              <EyeOff className="w-5 h-5" />
+                            ) : (
+                              <Eye className="w-5 h-5" />
+                            )}
+                          </button>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition-all rounded-xl shadow-lg shadow-emerald-500/20"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                  ) : (
+                    <LogIn className="w-5 h-5 mr-2" />
+                  )}
+                  {isLoading ? "Signing in..." : "Sign In to Portal"}
+                </Button>
+
+                <p className="text-center text-sm text-gray-500">
+                  Don&apos;t have an account?{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setView("REGISTER");
+                      setError(null);
+                      setSuccessMessage(null);
+                    }}
+                    className="text-emerald-600 font-bold hover:underline cursor-pointer"
+                  >
+                    Sign up as an agent
+                  </button>
+                </p>
+              </form>
+            </Form>
+          )}
+
+          {/* REGISTER VIEW */}
+          {view === "REGISTER" && (
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                setIsLoading(true);
+                setError(null);
+                setSuccessMessage(null);
+                try {
+                  const res = await fetch("/api/auth/agent-register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email: registerEmail }),
+                  });
+                  const data = await res.json();
+                  if (!res.ok) {
+                    setError(data.error || "Registration failed.");
+                    return;
+                  }
+                  setSuccessMessage(
+                    data.message ||
+                      "Check your email to complete registration!",
+                  );
+                } catch {
+                  setError("An unexpected error occurred.");
+                } finally {
+                  setIsLoading(false);
+                }
+              }}
+              className="space-y-6"
+            >
+              <div className="space-y-2">
+                <label className="text-gray-700 text-sm font-bold ml-1">
                   Email Address
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    type="email"
-                    placeholder="admin@example.com"
-                    disabled={isLoading}
-                    autoComplete="email"
-                    className="h-12 bg-gray-50/50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/10 transition-all rounded-xl text-base"
+                </label>
+                <Input
+                  type="email"
+                  value={registerEmail}
+                  onChange={(e) => setRegisterEmail(e.target.value)}
+                  placeholder="agent@example.com"
+                  disabled={isLoading}
+                  required
+                  className="h-12 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/10 transition-all rounded-xl text-base"
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition-all rounded-xl shadow-lg shadow-emerald-500/20"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                ) : (
+                  <UserPlus className="w-5 h-5 mr-2" />
+                )}
+                {isLoading ? "Registering..." : "Register as Agent"}
+              </Button>
+              <p className="text-center text-sm text-gray-500">
+                Already have an account?{" "}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setView("LOGIN");
+                    setError(null);
+                    setSuccessMessage(null);
+                  }}
+                  className="text-emerald-600 font-bold hover:underline cursor-pointer"
+                >
+                  Sign in
+                </button>
+              </p>
+            </form>
+          )}
+
+          {/* FORGOT PASSWORD VIEW */}
+          {view === "FORGOT_PASSWORD" && (
+            <Form {...forgotPasswordForm}>
+              <form
+                onSubmit={forgotPasswordForm.handleSubmit(onForgotPassword)}
+                className="space-y-6"
+              >
+                <FormField
+                  control={forgotPasswordForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-700 text-sm font-bold ml-1">
+                        Recovery Email
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="email"
+                          placeholder="Enter your registered email"
+                          disabled={isLoading}
+                          className="h-12 bg-gray-50/50 border-gray-200 focus:border-emerald-500 rounded-xl"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    "Send OTP"
+                  )}
+                </Button>
+              </form>
+            </Form>
+          )}
+
+          {/* OTP VERIFICATION VIEW */}
+          {view === "OTP_VERIFICATION" && (
+            <Form {...otpVerificationForm}>
+              <form
+                onSubmit={otpVerificationForm.handleSubmit(onVerifyOtp)}
+                className="space-y-6"
+              >
+                <div className="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-6">
+                  <p className="text-xs text-center text-gray-600 mb-4 font-medium">
+                    OTP sent to{" "}
+                    <span className="text-emerald-700 font-bold">
+                      {resetEmail}
+                    </span>
+                  </p>
+                  <FormField
+                    control={otpVerificationForm.control}
+                    name="otp"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-col items-center">
+                        <FormControl>
+                          <OtpInput
+                            value={field.value}
+                            onChange={field.onChange}
+                            length={6}
+                            disabled={isLoading}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
                   />
-                </FormControl>
-                <FormMessage className="text-red-500 text-xs" />
-              </FormItem>
-            )}
-          />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    "Verify & Continue"
+                  )}
+                </Button>
+                <div className="text-center">
+                  <button
+                    type="button"
+                    disabled={countdown > 0 || isLoading}
+                    onClick={resendOtp}
+                    className={`text-sm font-bold cursor-pointer ${countdown > 0 ? "text-gray-400" : "text-emerald-600 hover:underline"}`}
+                  >
+                    {countdown > 0
+                      ? `Resend code in ${countdown}s`
+                      : "Resend OTP Code"}
+                  </button>
+                </div>
+              </form>
+            </Form>
+          )}
 
-          <FormField
-            control={form.control}
-            name="password"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-gray-700 text-sm font-bold ml-1">
-                  Password
-                </FormLabel>
-                <FormControl>
-                  <div className="relative">
-                    <Input
-                      {...field}
-                      type={showPassword ? "text" : "password"}
-                      placeholder="••••••••"
-                      disabled={isLoading}
-                      autoComplete="current-password"
-                      className="h-12 bg-gray-50/50 border-gray-200 text-gray-900 placeholder:text-gray-400 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/10 transition-all rounded-xl text-base pr-12"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-600 transition-colors"
-                      tabIndex={-1}
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
-                      }
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-5 h-5" />
-                      ) : (
-                        <Eye className="w-5 h-5" />
-                      )}
-                    </button>
-                  </div>
-                </FormControl>
-                <FormMessage className="text-red-500 text-xs" />
-              </FormItem>
-            )}
-          />
+          {/* RESET PASSWORD VIEW */}
+          {view === "RESET_PASSWORD" && (
+            <Form {...resetPasswordForm}>
+              <form
+                onSubmit={resetPasswordForm.handleSubmit(onResetPassword)}
+                className="space-y-6"
+              >
+                <FormField
+                  control={resetPasswordForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-700 text-sm font-bold ml-1">
+                        New Password
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="password"
+                          placeholder="Min 8 characters"
+                          disabled={isLoading}
+                          className="h-12 bg-gray-50/50 border-gray-200 focus:border-emerald-500 rounded-xl"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={resetPasswordForm.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-gray-700 text-sm font-bold ml-1">
+                        Confirm New Password
+                      </FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="password"
+                          placeholder="Re-enter password"
+                          disabled={isLoading}
+                          className="h-12 bg-gray-50/50 border-gray-200 focus:border-emerald-500 rounded-xl"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-lg"
+                >
+                  {isLoading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    "Reset Password"
+                  )}
+                </Button>
+              </form>
+            </Form>
+          )}
 
-          <Button
-            type="submit"
-            disabled={isLoading}
-            className="w-full h-12 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base transition-all duration-200 shadow-lg shadow-emerald-600/20 hover:shadow-emerald-700/30 hover:scale-[1.02] active:scale-95 cursor-pointer rounded-xl"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Signing in...
-              </>
-            ) : (
-              <>
-                <LogIn className="w-5 h-5 mr-2" />
-                Sign In to Admin Panel
-              </>
-            )}
-          </Button>
-        </form>
-      </Form>
-
-      <div className="mt-8 text-center">
-        <p className="text-sm text-gray-400 font-medium">
-          Budget Travel Packages Security Protocol
-        </p>
-      </div>
+          <div className="mt-8 text-center">
+            <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">
+              Budget Travel Packages • Portal Dashboard
+            </p>
+          </div>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

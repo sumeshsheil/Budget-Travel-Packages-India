@@ -5,7 +5,7 @@ import { motion } from "motion/react";
 const Marquee: React.FC = () => {
   const titles = [
     {
-      title: "Book Domestic Packages @ ₹599",
+      title: "Book Domestic Packages @ ₹666",
       icon: YellowStar,
     },
     {
@@ -17,7 +17,7 @@ const Marquee: React.FC = () => {
       icon: YellowStar,
     },
     {
-      title: "Book Domestic Packages @ ₹599",
+      title: "Book Domestic Packages @ ₹666",
       icon: YellowStar,
     },
     {
@@ -29,7 +29,7 @@ const Marquee: React.FC = () => {
       icon: YellowStar,
     },
     {
-      title: "Book Domestic Packages @ ₹599",
+      title: "Book Domestic Packages @ ₹666",
       icon: YellowStar,
     },
     {
@@ -39,7 +39,7 @@ const Marquee: React.FC = () => {
     {
       title: "Book Devotional Packages @ ₹333",
       icon: YellowStar,
-    }
+    },
   ];
   return (
     <div

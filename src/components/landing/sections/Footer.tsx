@@ -8,6 +8,7 @@ import { SOCIAL_LINKS } from "@/lib/constants";
 // Logo and background
 import logo from "@/../public/images/logo/footer-logo.svg";
 import backgroundFooter from "@/../public/images/footer/background-footer.png";
+import backgroundFooterMobile from "@/../public/images/footer/mobile-background-footer.png";
 
 const Footer: React.FC = () => {
   const currentYear = new Date().getFullYear();
@@ -16,15 +17,28 @@ const Footer: React.FC = () => {
     <footer id="contact" className="relative w-full scroll-mt-24">
       {/* Main Footer Content */}
       <div className="relative w-full overflow-hidden">
-        {/* Background Image */}
+        {/* Background Images - Responsive */}
         <div className="absolute inset-0 z-0">
-          <Image
-            src={backgroundFooter}
-            alt="Footer background"
-            fill
-            className="object-cover object-center"
-            priority
-          />
+          {/* Desktop Background */}
+          <div className="hidden lg:block absolute inset-0">
+            <Image
+              src={backgroundFooter}
+              alt="Footer background"
+              fill
+              className="object-cover object-center"
+              priority
+            />
+          </div>
+          {/* Mobile Background */}
+          <div className="block lg:hidden absolute inset-0">
+            <Image
+              src={backgroundFooterMobile}
+              alt="Footer mobile background"
+              fill
+              className="object-cover object-center"
+              priority
+            />
+          </div>
         </div>
 
         {/* Content Overlay */}
@@ -51,7 +65,7 @@ const Footer: React.FC = () => {
                       alt="Verified MSME"
                       width={1800}
                       height={1800}
-                      className="w-[44px] xl:w-[60px] h-auto rounded-full"
+                      className="w-[54px] xl:w-[70px] h-auto rounded-full"
                     />
                     <span className="text-black font-semibold text-sm xl:text-base whitespace-nowrap font-open-sans">
                       UDYAM-WB-14-0235424
@@ -81,7 +95,10 @@ const Footer: React.FC = () => {
 
                   <div className="flex flex-col gap-2 w-full max-w-[280px]">
                     <button className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-4 rounded-lg text-xs xl:text-sm transition-all  w-full cursor-pointer text-center">
-                      Book Domestic @ ₹599
+                      Book Devotional @ ₹333
+                    </button>
+                    <button className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-4 rounded-lg text-xs xl:text-sm transition-all  w-full cursor-pointer text-center">
+                      Book Domestic @ ₹666
                     </button>
                     <button className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-4 rounded-lg text-xs xl:text-sm transition-all  w-full cursor-pointer text-center">
                       Book International @ ₹999
@@ -173,13 +190,13 @@ const Footer: React.FC = () => {
                 </Link>
 
                 <div className="flex flex-wrap justify-center items-center gap-3">
-                  <div className="flex items-center gap-20">
+                  <div className="flex items-center gap-2">
                     <Image
                       src="/images/footer/trust-badge/msme.png"
                       alt="Verified"
                       width={1800}
                       height={1800}
-                      className="w-[32px] h-auto rounded-full"
+                      className="w-[48px] h-auto rounded-full"
                     />
                     <span className="text-black font-medium text-sm font-open-sans">
                       UDYAM-WB-14-0235424
@@ -187,15 +204,15 @@ const Footer: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-5">
                   {["ssl", "lock", "100"].map((badge) => (
                     <Image
                       key={badge}
                       src={`/images/footer/trust-badge/${badge}.svg`}
                       alt="Trusted"
-                      width={40}
-                      height={40}
-                      className="w-[40px] h-auto"
+                      width={48}
+                      height={48}
+                      className="w-[48px] lg:w-[48px] h-auto"
                     />
                   ))}
                 </div>
@@ -209,7 +226,10 @@ const Footer: React.FC = () => {
 
                 <div className="flex flex-col gap-2 w-full max-w-[240px]">
                   <button className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-4 rounded-lg text-sm transition-all shadow-sm w-full cursor-pointer">
-                    Book Domestic @ ₹599
+                    Book Devotional @ ₹333
+                  </button>
+                  <button className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-4 rounded-lg text-sm transition-all shadow-sm w-full cursor-pointer">
+                    Book Domestic @ ₹666
                   </button>
                   <button className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-4 rounded-lg text-sm transition-all shadow-sm w-full cursor-pointer">
                     Book International @ ₹999
@@ -291,25 +311,26 @@ const Footer: React.FC = () => {
           {/* Bottom Bar - Border top with #CECECE, full width */}
           <div className="w-full border-t border-[#CECECE] mt-6">
             <div className="container-box py-4">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <div className="flex flex-col lg:flex-row items-center justify-between gap-3">
                 {/* Left: Links */}
                 <div className="flex items-center gap-2 text-secondary-text text-xs md:text-sm lg:text-base font-open-sans">
                   <Link
-                    href="/travel-blogs"
+                    href="/blogs"
                     className="hover:text-primary transition-colors"
                   >
                     Travel Blogs
                   </Link>
                   <span className="text-gray-400">•</span>
                   <Link
-                    href="/travel-portals"
+                    href="http://portals.localhost:3000"
+                    target="_blank"
                     className="hover:text-primary transition-colors"
                   >
-                    Travel Portals
+                    Travel Portal
                   </Link>
                   <span className="text-gray-400">•</span>
                   <Link
-                    href="/legal-policies"
+                    href="/legal"
                     className="hover:text-primary transition-colors"
                   >
                     Legal Policies

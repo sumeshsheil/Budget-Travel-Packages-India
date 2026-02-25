@@ -7,98 +7,26 @@ import {
   toggleDurationDropdown,
   closeDurationDropdown,
 } from "@/lib/redux/features/bookingSlice";
+import { DurationSelect } from "@/components/shared/DurationSelect";
 import { labelClass, errorTextClass } from "../styles";
 
 export const DurationDropdown: React.FC = () => {
   const dispatch = useAppDispatch();
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const duration = useAppSelector((state) => state.booking.step1.duration);
-  const isDurationOpen = useAppSelector(
-    (state) => state.booking.ui.isDurationOpen,
-  );
   const error = useAppSelector(
     (state) => state.booking.validation.step1Errors.duration,
   );
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        dispatch(closeDurationDropdown());
-      }
-    };
-
-    if (isDurationOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isDurationOpen, dispatch]);
-
-  const handleSelect = (value: string) => {
-    dispatch(setDuration(value));
-    dispatch(closeDurationDropdown());
-  };
-
-  const buttonClass = `w-full border rounded-lg px-4 py-3 bg-[#FFFFF0] bg-opacity-80 flex items-center justify-between text-left focus:outline-none focus:ring-2 text-gray-700 font-medium ${
-    error
-      ? "border-red-500 focus:ring-red-500/50"
-      : "border-primary focus:ring-primary/50"
-  }`;
-
   return (
-    <div className="space-y-2" ref={dropdownRef}>
+    <div className="space-y-2">
       <label className={labelClass}>Trip Duration *</label>
-      <div className="relative">
-        <button
-          type="button"
-          onClick={() => dispatch(toggleDurationDropdown())}
-          className={buttonClass}
-        >
-          <span className={duration ? "text-black" : "text-gray-500"}>
-            {duration || "Day / Night"}
-          </span>
-          <svg
-            className={`w-4 h-4 text-primary transition-transform ${
-              isDurationOpen ? "rotate-180" : ""
-            }`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              d="M19 9l-7 7-7-7"
-            ></path>
-          </svg>
-        </button>
-        {isDurationOpen && (
-          <div
-            data-lenis-prevent
-            className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 max-h-60 overflow-y-auto scrollbar-thin"
-            style={{ overscrollBehavior: "contain" }}
-          >
-            {Array.from({ length: 30 }, (_, i) => i + 1).map((day) => {
-              const value = `${day} Day${day > 1 ? "s" : ""}`;
-              return (
-                <div
-                  key={day}
-                  onClick={() => handleSelect(value)}
-                  className="px-4 py-2 hover:bg-gray-100 cursor-pointer text-gray-700 font-medium"
-                >
-                  {value}
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      <DurationSelect
+        value={duration}
+        onChange={(val) => dispatch(setDuration(val))}
+        error={error}
+        className="bg-[#FFFFF0] bg-opacity-80 py-6 border-primary focus:ring-primary/50 text-gray-700 font-medium h-12"
+        placeholder="Day / Night"
+      />
       {error && <p className={errorTextClass}>{error}</p>}
     </div>
   );

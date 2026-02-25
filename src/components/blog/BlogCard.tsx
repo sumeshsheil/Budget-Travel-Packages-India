@@ -18,6 +18,7 @@ export default function BlogCard({ post, className }: BlogCardProps) {
         return "bg-blue-600";
       case "International":
         return "bg-purple-600";
+      case "Travel insights":
       case "Q&A":
       case "Questions":
         return "bg-orange-600";
@@ -36,7 +37,12 @@ export default function BlogCard({ post, className }: BlogCardProps) {
 
   const image = extractFeaturedImage(post);
 
-  const category = post._embedded?.["wp:term"]?.[0]?.[0]?.name || "Travel";
+  const rawCategory = post._embedded?.["wp:term"]?.[0]?.[0]?.name || "Travel";
+  const category =
+    ["QUESTIONS", "Q&A", "Q&AMP;A", "QA"].includes(rawCategory.toUpperCase()) ||
+    rawCategory === "Travel insights"
+      ? "Travel Insights"
+      : rawCategory;
   const authorName = post._embedded?.author?.[0]?.name || "Budget Travel Team";
   const formattedDate = new Date(post.date).toLocaleDateString("en-US", {
     month: "short",
@@ -46,7 +52,7 @@ export default function BlogCard({ post, className }: BlogCardProps) {
 
   return (
     <Link
-      href={`/travel-blogs/${post.slug}`}
+      href={`/blogs/${post.slug}`}
       className={cn(
         "group flex flex-col sm:flex-row items-stretch bg-white rounded-2xl overflow-hidden shadow-[0_2px_10px_-3px_rgba(0,0,0,0.04),0_4px_12px_-2px_rgba(0,0,0,0.03)] hover:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.12)] transition-all duration-500 border border-gray-100 hover:border-primary/40",
         className,

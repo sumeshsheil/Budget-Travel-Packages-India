@@ -9,6 +9,8 @@ import {
   Phone,
   Banknote,
   Users,
+  AlertTriangle,
+  FileText,
 } from "lucide-react";
 
 import { connectDB } from "@/lib/db/mongoose";
@@ -30,6 +32,11 @@ import { ActionButtons } from "@/components/admin/leads/lead-detail/ActionButton
 import { ActivityTimeline } from "@/components/admin/leads/lead-detail/ActivityTimeline";
 import { DocumentManager } from "@/components/admin/leads/lead-detail/DocumentManager";
 import { ItineraryManager } from "@/components/admin/leads/lead-detail/ItineraryManager";
+import { TripInfoManager } from "@/components/admin/leads/lead-detail/TripInfoManager";
+import { AgentIdentityCard } from "@/components/admin/leads/lead-detail/AgentIdentityCard";
+import { CustomerHistoryCard } from "@/components/admin/leads/lead-detail/CustomerHistoryCard";
+import { LeadCommentsCard } from "@/components/admin/leads/lead-detail/LeadCommentsCard";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { getLeadActivities } from "./activity-actions";
 
 interface PopulatedAgent {
@@ -44,6 +51,7 @@ interface TravelerData {
   gender: string;
   email?: string;
   phone?: string;
+  memberId?: string;
 }
 
 export default async function LeadDetailPage({
@@ -60,7 +68,13 @@ export default async function LeadDetailPage({
   // Ensure valid ID format before query
   if (!id.match(/^[0-9a-fA-F]{24}$/)) return notFound();
 
-  const lead = await Lead.findById(id).populate("agentId", "name email").lean();
+  const lead = await Lead.findById(id)
+    .populate(
+      "agentId",
+      "name email aadhaarNumber panNumber documents isVerified",
+    )
+    .populate("customerId", "aadhaarNumber panNumber documents members")
+    .lean();
 
   if (!lead) return notFound();
 
@@ -85,7 +99,11 @@ export default async function LeadDetailPage({
   // Fetch agents for assignment (Admin only)
   let agents: Array<{ _id: string; name: string; email: string }> = [];
   if (session.user.role === "admin") {
-    const rawAgents = await User.find({ role: "agent", status: "active" })
+    const rawAgents = await User.find({
+      role: "agent",
+      status: "active",
+      isVerified: true,
+    })
       .select("name email _id")
       .lean();
     agents = rawAgents.map((a) => ({
@@ -93,6 +111,19 @@ export default async function LeadDetailPage({
       name: a.name,
       email: a.email,
     }));
+  }
+
+  // Fetch previous leads for this customer (Admin only)
+  let previousLeads: any[] = [];
+  if (session.user.role === "admin" && lead.customerId) {
+    previousLeads = await Lead.find({
+      customerId: (lead.customerId as any)._id,
+      _id: { $ne: lead._id },
+    })
+      .select("destination travelDate stage createdAt")
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .lean();
   }
 
   // Fetch activities
@@ -104,6 +135,34 @@ export default async function LeadDetailPage({
   const inclusions = (lead.inclusions || []) as string[];
   const exclusions = (lead.exclusions || []) as string[];
   const leadId = String(lead._id);
+
+  // Requirement check for 'Mark as Won'
+  const isReadyToWin =
+    (lead.tripCost || 0) > 0 &&
+    (itinerary.length > 0 || !!lead.itineraryPdfUrl) &&
+    (documents.length > 0 || !!lead.travelDocumentsPdfUrl);
+
+  // Fetch ALL leads for this customer to calculate aggregate stats (Admin only)
+  let customerHistoryData = null;
+  if (session.user.role === "admin" && lead.customerId) {
+    const customerId = (lead.customerId as any)._id || lead.customerId;
+    const allCustomerLeads = await Lead.find({
+      customerId: customerId,
+    })
+      .select("stage tripProfit")
+      .lean();
+
+    customerHistoryData = allCustomerLeads.reduce(
+      (acc, l) => {
+        acc.totalLeads++;
+        if (l.stage === "won") acc.wonTrips++;
+        if (l.stage === "lost") acc.lostTrips++;
+        if (l.tripProfit) acc.totalEarnings += l.tripProfit;
+        return acc;
+      },
+      { totalLeads: 0, wonTrips: 0, lostTrips: 0, totalEarnings: 0 },
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -137,62 +196,50 @@ export default async function LeadDetailPage({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Details */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Trip Details Card */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-emerald-600" />
-                Trip Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="grid sm:grid-cols-2 gap-y-4 gap-x-8">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Type
-                </p>
-                <p className="capitalize">{lead.tripType} Trip</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Dates
-                </p>
-                <p>
-                  {lead.travelDate} ({lead.duration})
-                </p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Departure
-                </p>
-                <p>{lead.departureCity}</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Guests
-                </p>
-                <p className="flex items-center gap-1">{lead.guests} People</p>
-              </div>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Budget
-                </p>
-                <p className="flex items-center gap-1 font-medium text-emerald-700">
-                  <Banknote className="h-4 w-4" />₹
-                  {lead.budget.toLocaleString("en-IN")}
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Trip Overview Switchable Component */}
+          <TripInfoManager
+            leadId={leadId}
+            tripType={lead.tripType}
+            destination={lead.destination}
+            departureCity={lead.departureCity}
+            travelDate={lead.travelDate}
+            duration={lead.duration}
+            guests={lead.guests}
+            budget={lead.budget}
+            netAmount={lead.netAmount}
+            tripCost={lead.tripCost}
+            tripProfit={lead.tripProfit}
+            specialRequests={lead.specialRequests}
+          />
 
           {/* Travelers Card */}
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-blue-600" />
-                Traveler Information
-              </CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div className="space-y-0.5">
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5 text-blue-600" />
+                  Traveler Information
+                </CardTitle>
+                <CardDescription>
+                  {lead.travelers?.length || 0} of {lead.guests} records present
+                </CardDescription>
+              </div>
             </CardHeader>
             <CardContent className="space-y-6">
+              {lead.guests > (lead.travelers?.length || 0) && (
+                <Alert
+                  variant="destructive"
+                  className="bg-amber-50 dark:bg-amber-200 border-amber-200 dark:border-amber-400 text-amber-800 dark:text-amber-900"
+                >
+                  <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-900" />
+                  <AlertTitle>Missing Traveler Details</AlertTitle>
+                  <AlertDescription>
+                    Trip is for {lead.guests} people, but only{" "}
+                    {lead.travelers?.length || 0} traveler(s) are recorded.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {lead.travelers && lead.travelers.length > 0 ? (
                 lead.travelers.map((traveler: TravelerData, idx: number) => (
                   <div
@@ -200,8 +247,16 @@ export default async function LeadDetailPage({
                     className="bg-slate-50 dark:bg-muted/50 p-4 rounded-lg space-y-3"
                   >
                     <div className="flex items-center justify-between">
-                      <p className="font-semibold">{traveler.name}</p>
-                      <Badge variant="secondary">
+                      <div className="flex items-center gap-2">
+                        <p className="font-semibold">{traveler.name}</p>
+                        <Badge
+                          variant={idx === 0 ? "default" : "secondary"}
+                          className="text-[10px] h-5"
+                        >
+                          {idx === 0 ? "Primary Traveler" : "Companion"}
+                        </Badge>
+                      </div>
+                      <Badge variant="outline" className="text-xs">
                         {traveler.gender}, {traveler.age}yo
                       </Badge>
                     </div>
@@ -240,6 +295,159 @@ export default async function LeadDetailPage({
                         )}
                       </div>
                     </div>
+
+                    {/* Traveler Identity Documents (New) */}
+                    {(() => {
+                      const customer = lead.customerId as any;
+                      let personDocs: any = null;
+                      const t = traveler as any;
+                      let personAadhaar = t.aadhaarNumber || "";
+                      let personPan = t.panNumber || "";
+
+                      if (idx === 0 && customer) {
+                        // Primary traveler is usually the customer
+                        personDocs = customer.documents;
+                        personAadhaar =
+                          personAadhaar || customer.aadhaarNumber || "";
+                        personPan = personPan || customer.panNumber || "";
+                      } else if (t.memberId && customer?.members) {
+                        // Companion linked to a member
+                        const member = customer.members.find(
+                          (m: any) =>
+                            m._id?.toString() === t.memberId ||
+                            m.id?.toString() === t.memberId,
+                        );
+                        if (member) {
+                          personDocs = member.documents;
+                          personAadhaar =
+                            personAadhaar || member.aadhaarNumber || "";
+                          // For members, PAN might be in documents
+                        }
+                      }
+
+                      const tDocs = t.documents || {};
+
+                      // Check if any documents exist in the nested structure
+                      const hasAadhaar =
+                        personDocs?.aadharCard?.length > 0 ||
+                        tDocs.aadharCard?.length > 0;
+                      const hasPassport =
+                        personDocs?.passport?.length > 0 ||
+                        tDocs.passport?.length > 0;
+                      const hasPan =
+                        personDocs?.panCard?.length > 0 ||
+                        tDocs.panCard?.length > 0;
+
+                      // Also support legacy or simplified document formats if they exist
+                      const aadhaarUrl =
+                        tDocs.aadharCard?.[0] ||
+                        personDocs?.aadharCard?.[0] ||
+                        null;
+                      const passportUrl =
+                        tDocs.passport?.[0] ||
+                        personDocs?.passport?.[0] ||
+                        null;
+                      const panUrl =
+                        tDocs.panCard?.[0] || personDocs?.panCard?.[0] || null;
+
+                      if (
+                        !personAadhaar &&
+                        !personPan &&
+                        !hasAadhaar &&
+                        !hasPassport &&
+                        !hasPan
+                      ) {
+                        // For companions (not primary), show a warning
+                        if (idx > 0) {
+                          return (
+                            <>
+                              <Separator className="my-2" />
+                              <div className="space-y-2">
+                                <p className="text-[10px] font-medium text-muted-foreground uppercase">
+                                  Identity Documents
+                                </p>
+                                <div className="flex items-center gap-1.5 text-amber-700 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-md px-2.5 py-1.5">
+                                  <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+                                  <span className="text-[11px] font-medium">
+                                    No Aadhaar or Passport uploaded
+                                  </span>
+                                </div>
+                              </div>
+                            </>
+                          );
+                        }
+                        return null;
+                      }
+
+                      return (
+                        <>
+                          <Separator className="my-2" />
+                          <div className="space-y-2">
+                            <p className="text-[10px] font-medium text-muted-foreground uppercase">
+                              Identity Documents (View Only)
+                            </p>
+                            <div className="flex flex-wrap gap-2 text-[10px]">
+                              {(personAadhaar || hasAadhaar) && (
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-100 gap-1 font-normal py-0.5"
+                                >
+                                  <FileText className="h-3 w-3" />
+                                  {aadhaarUrl ? (
+                                    <a
+                                      href={aadhaarUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="hover:underline"
+                                    >
+                                      Aadhaar: {personAadhaar || "Uploaded"}
+                                    </a>
+                                  ) : (
+                                    <span>Aadhaar: {personAadhaar}</span>
+                                  )}
+                                </Badge>
+                              )}
+                              {hasPassport && (
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-100 gap-1 font-normal py-0.5"
+                                >
+                                  <FileText className="h-3 w-3" />
+                                  <a
+                                    href={passportUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="hover:underline"
+                                  >
+                                    Passport
+                                  </a>
+                                </Badge>
+                              )}
+                              {(personPan || hasPan) && (
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-100 gap-1 font-normal py-0.5"
+                                >
+                                  <FileText className="h-3 w-3" />
+                                  {panUrl ? (
+                                    <a
+                                      href={panUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="hover:underline"
+                                    >
+                                      PAN: {personPan || "Uploaded"}
+                                    </a>
+                                  ) : (
+                                    <span>PAN: {personPan}</span>
+                                  )}
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 ))
               ) : (
@@ -250,51 +458,53 @@ export default async function LeadDetailPage({
             </CardContent>
           </Card>
 
-          {/* Special Requests */}
-          {lead.specialRequests && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Special Requests</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm leading-relaxed">
-                  {lead.specialRequests}
-                </p>
-              </CardContent>
-            </Card>
+          {/* Customer History Summary (Admin Only) */}
+          {customerHistoryData && (
+            <CustomerHistoryCard history={customerHistoryData} />
           )}
 
-          {/* Documents Manager */}
-          <DocumentManager leadId={leadId} documents={documents} />
-
-          {/* Itinerary & Trip Details Manager */}
+          {/* Itinerary Manager (PDF Only) */}
           <ItineraryManager
             leadId={leadId}
-            itinerary={itinerary}
-            inclusions={inclusions}
-            exclusions={exclusions}
-            hotelName={lead.hotelName as string | undefined}
-            hotelRating={lead.hotelRating as number | undefined}
+            itineraryPdfUrl={lead.itineraryPdfUrl}
+          />
+
+          {/* Documents Manager */}
+          <DocumentManager
+            leadId={leadId}
+            travelDocumentsPdfUrl={lead.travelDocumentsPdfUrl}
           />
         </div>
 
         {/* Right Column - Actions */}
+        {/* Right Column - Status, Activity, Actions */}
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Management</CardTitle>
-              <CardDescription>Update status and assignment</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ActionButtons
-                leadId={lead._id.toString()}
-                currentStage={lead.stage}
-                currentAgentId={lead.agentId?._id?.toString()}
-                agents={JSON.parse(JSON.stringify(agents))}
-                isAdmin={session.user.role === "admin"}
-              />
-            </CardContent>
-          </Card>
+          <ActionButtons
+            leadId={lead._id.toString()}
+            currentStage={lead.stage}
+            currentAgentId={lead.agentId?._id?.toString()}
+            agents={JSON.parse(JSON.stringify(agents))}
+            isAdmin={session.user.role === "admin"}
+            isReadyToWin={isReadyToWin}
+          />
+          {/* QuickActions component is not in the original code, adding it as per instruction snippet */}
+          {/* Assuming 'lead' and 'isAdmin' are available in scope */}
+          {/* <QuickActions lead={lead} /> */}
+
+          {/* Comments Section */}
+          <LeadCommentsCard
+            leadId={leadId}
+            comments={lead.comments || []}
+            disabled={
+              !(session.user.role === "admin") &&
+              lead.agentId?._id.toString() !== session.user.id
+            }
+          />
+
+          {/* Agent Identity Card (Admin Only) */}
+          {lead.agentId && session.user.role === "admin" && (
+            <AgentIdentityCard agent={lead.agentId as any} />
+          )}
 
           <Card>
             <CardHeader>
@@ -341,17 +551,61 @@ export default async function LeadDetailPage({
             </CardContent>
           </Card>
 
-          {/* Activity Timeline */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">
-                Activity History
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ActivityTimeline activities={activities} />
-            </CardContent>
-          </Card>
+          {/* Activity Timeline (Admin Only) */}
+          {session.user.role === "admin" && (
+            <div className="space-y-6">
+              {/* Previous Bookings */}
+              {previousLeads.length > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-sm font-medium">
+                      Booking History
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      Customer's previous travel history
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="divide-y">
+                      {previousLeads.map((prev: any) => (
+                        <Link
+                          key={prev._id.toString()}
+                          href={`/admin/leads/${prev._id}`}
+                          className="flex items-center justify-between p-3 hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="text-xs font-medium truncate">
+                              {prev.destination}
+                            </p>
+                            <p className="text-[10px] text-muted-foreground mt-0.5">
+                              {prev.travelDate}
+                            </p>
+                          </div>
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] h-5 capitalize"
+                          >
+                            {prev.stage.replace("_", " ")}
+                          </Badge>
+                        </Link>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm font-medium">
+                    Activity History
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ActivityTimeline activities={activities} />
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     </div>

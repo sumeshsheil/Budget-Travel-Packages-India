@@ -52,12 +52,13 @@ export async function POST(request: Request) {
     }
 
     // Per-phone rate limit
-    const { allowed } = checkPhoneRateLimit(phone);
+    const { allowed, retryAfterSeconds } = checkPhoneRateLimit(phone);
     if (!allowed) {
       return NextResponse.json(
         {
-          error:
-            "Too many OTP requests for this number. Please try again later.",
+          error: retryAfterSeconds
+            ? `Please wait ${retryAfterSeconds} seconds before requesting a new OTP.`
+            : "Too many OTP requests for this number. Please try again later.",
         },
         { status: 429 },
       );
@@ -88,6 +89,16 @@ export async function POST(request: Request) {
       if (mcCode === 800) {
         return NextResponse.json(
           { error: "Maximum OTP limit reached. Please try again later." },
+          { status: 429 },
+        );
+      }
+
+      if (mcCode === 506 || mcMessage === "REQUEST_ALREADY_EXISTS") {
+        return NextResponse.json(
+          {
+            error:
+              "An OTP was already sent. Please wait at least 30 seconds before requesting a new one.",
+          },
           { status: 429 },
         );
       }

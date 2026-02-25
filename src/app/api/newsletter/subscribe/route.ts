@@ -45,13 +45,10 @@ export async function POST(request: Request) {
     let setPasswordUrl: string | undefined;
 
     if (user) {
-      // If user exists, we don't need to create a new one.
-      // But we can still send them a welcome email if they are not activated?
-      // For newsletter, if they already have an account, just say thanks for subscribing.
-      return NextResponse.json({
-        success: true,
-        message: "Thank you for subscribing to our newsletter!",
-      });
+      return NextResponse.json(
+        { error: "You have already subscribed to our newsletter." },
+        { status: 400 },
+      );
     }
 
     // Create new account logic
@@ -72,11 +69,12 @@ export async function POST(request: Request) {
       name: "Traveler", // Default name
       role: "customer",
       isActivated: false,
+      isPhoneVerified: false,
       setPasswordToken: hashedToken,
       setPasswordExpires: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72 hours
     });
 
-    setPasswordUrl = `${process.env.NEXTAUTH_URL}/dashboard/set-password?token=${rawToken}`;
+    setPasswordUrl = `${process.env.NEXTAUTH_URL}/?token=${rawToken}&action=set-password`;
 
     // Send Welcome Email with Account Activation Link
     await sendWelcomeEmail({

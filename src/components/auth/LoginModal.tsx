@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -31,9 +31,12 @@ const loginSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
-const registerSchema = z
+const registerSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+});
+
+const setPasswordSchema = z
   .object({
-    email: z.string().email("Please enter a valid email address"),
     password: z.string().min(8, "Password must be at least 8 characters"),
     confirmPassword: z
       .string()
@@ -70,6 +73,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 type OtpVerificationFormValues = z.infer<typeof otpVerificationSchema>;
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
+type SetPasswordFormValues = z.infer<typeof setPasswordSchema>;
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -81,11 +85,13 @@ type AuthView =
   | "REGISTER"
   | "FORGOT_PASSWORD"
   | "OTP_VERIFICATION"
-  | "RESET_PASSWORD";
+  | "RESET_PASSWORD"
+  | "SET_PASSWORD";
 
 export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const router = useRouter();
   const [view, setView] = useState<AuthView>("LOGIN");
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,7 +112,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   const registerForm = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
-    defaultValues: { email: "", password: "", confirmPassword: "" },
+    defaultValues: { email: "" },
   });
 
   const forgotPasswordForm = useForm<ForgotPasswordFormValues>({
@@ -124,10 +130,23 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     defaultValues: { password: "", confirmPassword: "" },
   });
 
+  const setPasswordForm = useForm<SetPasswordFormValues>({
+    resolver: zodResolver(setPasswordSchema),
+    defaultValues: { password: "", confirmPassword: "" },
+  });
+
   // Reset state when modal opens/closes
   useEffect(() => {
     if (isOpen) {
-      setView("LOGIN");
+      const token = searchParams.get("token");
+      const action = searchParams.get("action");
+
+      if (token && action === "set-password") {
+        setView("SET_PASSWORD");
+      } else {
+        setView("LOGIN");
+      }
+
       setError(null);
       setSuccessMessage(null);
       setResetEmail("");
@@ -138,8 +157,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       forgotPasswordForm.reset();
       otpVerificationForm.reset();
       resetPasswordForm.reset();
+      setPasswordForm.reset();
     }
-  }, [isOpen]);
+  }, [isOpen, searchParams]);
 
   // Handle countdown timer
   useEffect(() => {
@@ -157,6 +177,24 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setIsLoading(true);
     setError(null);
     try {
+      // Step 1: Pre-validate to get specific error messages
+      const validateRes = await fetch("/api/auth/validate-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
+      });
+
+      const validateData = await validateRes.json();
+
+      if (!validateRes.ok) {
+        setError(validateData.error || "Invalid email or password.");
+        return;
+      }
+
+      // Step 2: Validation passed — proceed with NextAuth signIn
       const result = await signIn("credentials", {
         email: values.email,
         password: values.password,
@@ -164,7 +202,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       });
 
       if (result?.error) {
-        setError("Invalid email or password.");
+        // This shouldn't happen since we pre-validated, but handle as fallback
+        setError("Invalid email or password. Please try again.");
         return;
       }
 
@@ -196,17 +235,57 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         return;
       }
 
-      // Auto login after registration
-      await signIn("credentials", {
-        email: values.email,
+      setSuccessMessage(
+        data.message || "Check your email to activate your account.",
+      );
+      registerForm.reset();
+    } catch {
+      setError("An unexpected error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function onSetPassword(values: SetPasswordFormValues) {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const token = searchParams.get("token");
+      const res = await fetch("/api/auth/set-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          token,
+          password: values.password,
+          confirmPassword: values.confirmPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Failed to set password.");
+        return;
+      }
+
+      toast.success("Password set successfully! Logging you in...");
+
+      // Auto-login after setting password
+      const loginResult = await signIn("credentials", {
+        email: data.email,
         password: values.password,
         redirect: false,
       });
 
+      if (loginResult?.error) {
+        setView("LOGIN");
+        setError("Account activated. Please login with your new password.");
+        return;
+      }
+
       onClose();
       router.push("/dashboard");
       router.refresh();
-      toast.success("Account created successfully");
     } catch {
       setError("An unexpected error occurred.");
     } finally {
@@ -234,7 +313,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
       setResetEmail(values.email);
       // Start countdown when OTP is successfully sent
-      setCountdown(30);
+      setCountdown(60);
       setSuccessMessage(`OTP sent to ${values.email}`);
       setView("OTP_VERIFICATION");
       forgotPasswordForm.reset();
@@ -262,7 +341,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
       if (!res.ok) {
         setError("Failed to resend OTP. Please try again.");
       } else {
-        setCountdown(30);
+        setCountdown(60);
         setSuccessMessage(`OTP resent to ${resetEmail}`);
       }
     } catch {
@@ -405,6 +484,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     {view === "FORGOT_PASSWORD" && "Forgot Password"}
                     {view === "OTP_VERIFICATION" && "Verify Email"}
                     {view === "RESET_PASSWORD" && "Reset Password"}
+                    {view === "SET_PASSWORD" && "Set Password"}
                   </h2>
                   <p className="text-gray-500 text-sm mt-1 px-6 text-center">
                     {view === "LOGIN" && "Sign in to access your account"}
@@ -413,6 +493,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                       "Enter your email to receive an OTP"}
                     {view === "RESET_PASSWORD" &&
                       "Create a new password for your account"}
+                    {view === "SET_PASSWORD" &&
+                      "Secure your account with a new password"}
                   </p>
                 </div>
 
@@ -494,7 +576,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                 <button
                                   type="button"
                                   onClick={() => setView("FORGOT_PASSWORD")}
-                                  className="text-xs text-emerald-600 hover:text-emerald-700 hover:underline font-medium"
+                                  className="text-xs text-emerald-600 hover:text-emerald-700 hover:underline font-medium cursor-pointer"
                                 >
                                   Forgot password?
                                 </button>
@@ -575,20 +657,45 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                           )}
                         />
 
+                        <Button
+                          type="submit"
+                          disabled={isLoading}
+                          className="w-full h-11 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg shadow-lg shadow-emerald-500/20 transition-all duration-200 mt-2"
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                              Processing...
+                            </>
+                          ) : (
+                            "Join Budget Travel"
+                          )}
+                        </Button>
+                      </form>
+                    </Form>
+                  )}
+
+                  {/* SET PASSWORD FORM */}
+                  {view === "SET_PASSWORD" && (
+                    <Form {...setPasswordForm}>
+                      <form
+                        onSubmit={setPasswordForm.handleSubmit(onSetPassword)}
+                        className="space-y-5"
+                      >
                         <FormField
-                          control={registerForm.control}
+                          control={setPasswordForm.control}
                           name="password"
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="text-gray-700 font-medium">
-                                Password
+                                New Password
                               </FormLabel>
                               <FormControl>
                                 <div className="relative">
                                   <Input
                                     {...field}
                                     type={showPassword ? "text" : "password"}
-                                    placeholder="Min 8 chars"
+                                    placeholder="••••••••"
                                     disabled={isLoading}
                                     className="h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/20 transition-all duration-200 pr-10"
                                   />
@@ -597,7 +704,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                     onClick={() =>
                                       setShowPassword(!showPassword)
                                     }
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors focus:outline-none cursor-pointer"
                                   >
                                     {showPassword ? (
                                       <EyeOff className="w-4 h-4" />
@@ -613,7 +720,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                         />
 
                         <FormField
-                          control={registerForm.control}
+                          control={setPasswordForm.control}
                           name="confirmPassword"
                           render={({ field }) => (
                             <FormItem>
@@ -621,15 +728,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                                 Confirm Password
                               </FormLabel>
                               <FormControl>
-                                <div className="relative">
-                                  <Input
-                                    {...field}
-                                    type={showPassword ? "text" : "password"}
-                                    placeholder="Confirm password"
-                                    disabled={isLoading}
-                                    className="h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/20 transition-all duration-200 pr-10"
-                                  />
-                                </div>
+                                <Input
+                                  {...field}
+                                  type={showPassword ? "text" : "password"}
+                                  placeholder="Confirm your password"
+                                  disabled={isLoading}
+                                  className="h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/20 transition-all duration-200 pr-10"
+                                />
                               </FormControl>
                               <FormMessage className="text-xs" />
                             </FormItem>
@@ -644,10 +749,10 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                           {isLoading ? (
                             <>
                               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                              Creating Account...
+                              Setting Password...
                             </>
                           ) : (
-                            "Create Account"
+                            "Activate Account"
                           )}
                         </Button>
                       </form>
@@ -766,7 +871,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                             type="button"
                             disabled={countdown > 0 || isLoading}
                             onClick={resendOtp}
-                            className={`text-sm font-medium flex items-center justify-center w-full ${
+                            className={`text-sm font-medium flex items-center justify-center w-full cursor-pointer ${
                               countdown > 0
                                 ? "text-gray-400 cursor-not-allowed"
                                 : "text-emerald-600 hover:text-emerald-700 hover:underline"
@@ -877,7 +982,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                         Don't have an account?{" "}
                         <button
                           onClick={() => setView("REGISTER")}
-                          className="text-emerald-600 hover:text-emerald-700 hover:underline font-semibold"
+                          className="text-emerald-600 hover:text-emerald-700 hover:underline font-semibold cursor-pointer"
                         >
                           Sign up
                         </button>
@@ -888,7 +993,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                         Already have an account?{" "}
                         <button
                           onClick={() => setView("LOGIN")}
-                          className="text-emerald-600 hover:text-emerald-700 hover:underline font-semibold"
+                          className="text-emerald-600 hover:text-emerald-700 hover:underline font-semibold cursor-pointer"
                         >
                           Sign in
                         </button>

@@ -6,6 +6,9 @@ import {
   MC_ERROR_MESSAGES,
   getMCErrorStatus,
 } from "@/lib/sms";
+import { auth } from "@/lib/auth";
+import { connectDB } from "@/lib/db/mongoose";
+import User from "@/lib/db/models/User";
 
 const MC_BASE_URL = "https://cpaas.messagecentral.com";
 const MC_CUSTOMER_ID = process.env.MC_CUSTOMER_ID!;
@@ -24,6 +27,14 @@ export async function POST(request: Request) {
 
     // --- TEST MODE BYPASS ---
     if (isTestVerification(verificationId, otp)) {
+      // Still persist to DB for logged-in users
+      const session = await auth();
+      if (session?.user?.id) {
+        await connectDB();
+        await User.findByIdAndUpdate(session.user.id, {
+          isPhoneVerified: true,
+        });
+      }
       return NextResponse.json(getTestVerifyResponse());
     }
 
@@ -73,6 +84,15 @@ export async function POST(request: Request) {
       validateJson.responseCode === 200 &&
       validateJson.data?.verificationStatus === "VERIFICATION_COMPLETED"
     ) {
+      // If user is logged in, update their verification status
+      const session = await auth();
+      if (session?.user?.id) {
+        await connectDB();
+        await User.findByIdAndUpdate(session.user.id, {
+          isPhoneVerified: true,
+        });
+      }
+
       return NextResponse.json({
         success: true,
         verified: true,
@@ -81,6 +101,15 @@ export async function POST(request: Request) {
 
     // Also accept plain 200 without status field
     if (validateJson.responseCode === 200) {
+      // If user is logged in, update their verification status
+      const session = await auth();
+      if (session?.user?.id) {
+        await connectDB();
+        await User.findByIdAndUpdate(session.user.id, {
+          isPhoneVerified: true,
+        });
+      }
+
       return NextResponse.json({
         success: true,
         verified: true,

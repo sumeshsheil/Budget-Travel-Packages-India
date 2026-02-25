@@ -36,11 +36,10 @@ export default async function SettingsPage() {
           <div className="p-6">
             <h3 className="text-lg font-medium mb-4 flex items-center gap-2">
               <UserIcon className="h-5 w-5 text-emerald-600" />
-              Profile Information
+              Account Information
             </h3>
             <p className="text-sm text-muted-foreground mb-6">
-              Update your name and contact details. This information is visible
-              to admins.
+              Update your personal information and contact details.
             </p>
             <ProfileForm
               initialData={{

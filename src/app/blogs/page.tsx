@@ -28,16 +28,16 @@ const CATEGORIES = [
     accentColor: "purple",
   },
   {
-    slug: "qa",
-    title: "Questions & Answers",
+    slug: "travel-insights",
+    title: "Travel Insights",
     description:
-      "Got travel questions? We've got answers. From booking tips to visa processes and packing guides — find everything you need to know before your next trip.",
+      "Get expert travel tips, guides, and insights from seasoned travelers. From booking hacks to destination deep-dives, we cover everything you need to know before your next adventure.",
     icon: "",
     accentColor: "orange",
   },
 ];
 
-export default async function TravelBlogsPage() {
+export default async function BlogsPage() {
   // Fetch featured post
   const featuredPosts = await getFeaturedPosts(1);
   const featuredPost = featuredPosts[0];

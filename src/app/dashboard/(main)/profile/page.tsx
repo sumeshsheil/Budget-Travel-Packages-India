@@ -38,6 +38,10 @@ import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
+import { OtpInput } from "@/components/landing/sections/booking/components/OtpInput";
+
+const OTP_LENGTH = 4;
+const INDIA_PHONE_REGEX = /^[6-9]\d{9}$/;
 
 interface UserProfile {
   _id: string;
@@ -53,6 +57,7 @@ interface UserProfile {
   role: string;
   createdAt: string;
   isVerified: boolean;
+  isPhoneVerified: boolean;
   documents?: {
     aadharCard: string[];
     passport: string[];
@@ -73,11 +78,20 @@ export default function ProfilePage() {
   const [phone, setPhone] = useState("");
   const [altPhone, setAltPhone] = useState("");
   const [gender, setGender] = useState<string>("");
+  const [isPhoneVerified, setIsPhoneVerified] = useState(false);
 
   // Upload States
   const [profileImage, setProfileImage] = useState<string[]>([]);
   const [aadharCards, setAadharCards] = useState<string[]>([]);
   const [passports, setPassports] = useState<string[]>([]);
+
+  // OTP Verification States
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [otpError, setOtpError] = useState("");
+  const [verificationId, setVerificationId] = useState("");
+  const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
     fetchProfile();
@@ -97,6 +111,7 @@ export default function ProfilePage() {
         setPhone(data.user.phone || "");
         setAltPhone(data.user.altPhone || "");
         setGender(data.user.gender || "");
+        setIsPhoneVerified(data.user.isPhoneVerified || false);
 
         if (data.user.image) {
           setProfileImage([data.user.image]);
@@ -157,6 +172,96 @@ export default function ProfilePage() {
     }
   };
 
+  const handleSendOtp = async () => {
+    if (!phone || !INDIA_PHONE_REGEX.test(phone)) {
+      toast.error("Please enter a valid 10-digit Indian phone number");
+      return;
+    }
+
+    setIsVerifying(true);
+    setOtpError("");
+    try {
+      const res = await fetch("/api/otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, countryCode: "91" }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to send OTP");
+
+      setVerificationId(data.verificationId);
+      setOtpSent(true);
+      setCooldown(60);
+      toast.success(`OTP sent to +91 ${phone}`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to send OTP.");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleVerifyOtp = async (otpValue?: string) => {
+    const currentOtp = typeof otpValue === "string" ? otpValue : otp;
+
+    if (currentOtp.length !== OTP_LENGTH) {
+      setOtpError("Please enter the complete OTP");
+      return;
+    }
+
+    setIsVerifying(true);
+    setOtpError("");
+    try {
+      const res = await fetch("/api/otp/verify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          verificationId,
+          otp: currentOtp,
+          phone,
+          countryCode: "91",
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "OTP verification failed");
+
+      setIsPhoneVerified(true);
+      setOtpSent(false);
+      setOtp("");
+      toast.success("Phone verified successfully!");
+
+      // Save phone to profile
+      try {
+        const profileRes = await fetch("/api/customer/profile", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ phone }),
+        });
+        const profileData = await profileRes.json();
+        if (profileRes.ok) {
+          setProfile(profileData.user);
+        }
+      } catch {
+        // Phone save failed, but verification was successful
+        console.error("Failed to save phone to profile");
+      }
+
+      await update(); // Update session
+    } catch (err: any) {
+      setOtpError(err.message || "Invalid OTP.");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -168,14 +273,16 @@ export default function ProfilePage() {
   return (
     <div className="max-w-4xl mx-auto pb-10 px-4 md:px-0 space-y-8">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">Your Profile</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+          Your Profile
+        </h1>
+        <p className="text-slate-500 dark:text-slate-400">
           Manage your details and travel companions.
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-[250px_1fr]">
-        <Card className="h-fit">
+      <div className="grid gap-6 lg:grid-cols-[250px_1fr]">
+        <Card className="h-fit border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
           <CardHeader>
             <CardTitle className="text-base text-center">
               Profile Picture
@@ -226,7 +333,7 @@ export default function ProfilePage() {
               </div>
             ) : (
               <div className="group relative">
-                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md relative bg-white mx-auto mb-4">
+                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-card shadow-md relative bg-card mx-auto mb-4">
                   {profile?.image ? (
                     <Image
                       src={profile.image}
@@ -235,21 +342,21 @@ export default function ProfilePage() {
                       className="object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gray-100 text-gray-400">
+                    <div className="w-full h-full flex items-center justify-center bg-muted text-muted-foreground">
                       <User className="w-12 h-12" />
                     </div>
                   )}
                 </div>
                 <Button
                   size="icon"
-                  variant="secondary"
-                  className="absolute bottom-2 right-2 h-8 w-8 rounded-full shadow-md"
+                  variant="outline"
+                  className="absolute bottom-2 right-2 h-8 w-8 rounded-full shadow-md bg-white dark:bg-slate-900 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-700"
                   onClick={() => {
                     setProfileImage(profile?.image ? [profile.image] : []);
                     setEditingField("image");
                   }}
                 >
-                  <Pencil className="h-4 w-4 text-gray-600" />
+                  <Pencil className="h-4 w-4" />
                 </Button>
               </div>
             )}
@@ -261,7 +368,7 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="flex items-center gap-2">
@@ -271,10 +378,10 @@ export default function ProfilePage() {
             </div>
             {editingField !== "personal" && (
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={() => setEditingField("personal")}
-                className="text-emerald-700"
+                className="bg-white dark:bg-slate-900 border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-700"
               >
                 <Pencil className="h-4 w-4 mr-2" /> Edit Info
               </Button>
@@ -313,7 +420,7 @@ export default function ProfilePage() {
                       <Input
                         value={email}
                         disabled
-                        className="pl-9 bg-gray-50 text-gray-500"
+                        className="pl-9 bg-muted/50 text-muted-foreground"
                       />
                     </div>
                   </div>
@@ -326,7 +433,7 @@ export default function ProfilePage() {
                       <Input
                         value={phone}
                         disabled
-                        className="pl-9 bg-gray-50 text-gray-500"
+                        className="pl-9 bg-muted/50 text-muted-foreground"
                       />
                     </div>
                   </div>
@@ -398,75 +505,244 @@ export default function ProfilePage() {
             ) : (
               <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-4">
                 <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                     Full Name
                   </dt>
-                  <dd className="text-base font-medium">
+                  <dd className="text-base font-semibold text-slate-900 dark:text-white">
                     {profile?.firstName || profile?.lastName
                       ? `${profile.firstName || ""} ${profile.lastName || ""}`
                       : profile?.name}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                     Email Address
                   </dt>
-                  <dd className="text-base font-medium">{profile?.email}</dd>
-                </div>
-                <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
-                    Phone Number
-                  </dt>
-                  <dd className="text-base font-medium">
-                    {profile?.phone || "Not provided"}
+                  <dd className="text-base font-medium text-slate-900 dark:text-white">
+                    {profile?.email}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
+                    Phone Number
+                  </dt>
+                  <dd className="text-base font-medium text-slate-900 dark:text-white flex items-center gap-2">
+                    {phone || profile?.phone ? (
+                      <>
+                        +91 {phone || profile?.phone}
+                        {isPhoneVerified ? (
+                          <Badge
+                            variant="secondary"
+                            className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400 border-0 h-5 text-[10px] px-1.5"
+                          >
+                            <ShieldCheck className="w-3 h-3 mr-0.5" /> Verified
+                          </Badge>
+                        ) : (
+                          <Badge
+                            variant="secondary"
+                            className="bg-red-100 text-red-600 dark:bg-red-900/50 dark:text-red-400 border-0 h-5 text-[10px] px-1.5"
+                          >
+                            <ShieldAlert className="w-3 h-3 mr-0.5" />{" "}
+                            Unverified
+                          </Badge>
+                        )}
+                      </>
+                    ) : (
+                      <span className="text-slate-400 dark:text-slate-500">
+                        Not provided
+                      </span>
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                     Alternative Phone
                   </dt>
-                  <dd className="text-base font-medium">
+                  <dd className="text-base font-medium text-slate-900 dark:text-white">
                     {profile?.altPhone || "Not provided"}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                     Gender
                   </dt>
-                  <dd className="text-base font-medium capitalize">
+                  <dd className="text-base font-medium capitalize text-slate-900 dark:text-white">
                     {profile?.gender || "Not specified"}
                   </dd>
                 </div>
                 <div>
-                  <dt className="text-sm font-medium text-muted-foreground">
+                  <dt className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-1">
                     Verification
                   </dt>
                   <dd className="text-base font-medium">
                     {profile?.isVerified ? (
-                      <span className="text-emerald-600 flex items-center gap-1 text-sm">
+                      <span className="text-emerald-500 dark:text-emerald-400 flex items-center gap-1 text-sm">
                         <ShieldCheck className="w-4 h-4" /> Verified
                       </span>
                     ) : (
-                      <span className="text-red-500 flex items-center gap-1 text-sm">
+                      <span className="text-red-500 dark:text-red-400 flex items-center gap-1 text-sm">
                         <ShieldAlert className="w-4 h-4" /> Unverified
                       </span>
                     )}
                   </dd>
                 </div>
+
+                {/* Phone Verification Flow — only when NOT verified */}
+                {!isPhoneVerified && (
+                  <div className="sm:col-span-2">
+                    {otpSent ? (
+                      <div className="p-4 bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800 rounded-xl space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                              Enter Verification Code
+                            </h4>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
+                              4-digit code sent to{" "}
+                              <span className="font-bold text-slate-700 dark:text-slate-300">
+                                +91 {phone}
+                              </span>
+                            </p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setOtpSent(false);
+                              setOtp("");
+                              setOtpError("");
+                            }}
+                            className="h-7 w-7 p-0 rounded-full"
+                          >
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                        <div className="flex justify-center">
+                          <OtpInput
+                            value={otp}
+                            onChange={(val) => {
+                              setOtp(val);
+                              setOtpError("");
+                              if (val.length === OTP_LENGTH)
+                                handleVerifyOtp(val);
+                            }}
+                            length={OTP_LENGTH}
+                            error={otpError}
+                            disabled={isVerifying}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                          <button
+                            onClick={() => {
+                              setOtpSent(false);
+                              setOtp("");
+                              setOtpError("");
+                            }}
+                            className="text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                          >
+                            Change Number
+                          </button>
+                          {cooldown > 0 ? (
+                            <span className="text-slate-400 dark:text-slate-500 tabular-nums">
+                              Resend in {cooldown}s
+                            </span>
+                          ) : (
+                            <button
+                              onClick={handleSendOtp}
+                              className="text-emerald-600 dark:text-emerald-400 font-bold hover:underline"
+                              disabled={isVerifying}
+                            >
+                              Resend Code
+                            </button>
+                          )}
+                        </div>
+                        <Button
+                          className="w-full bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 h-10"
+                          onClick={() => handleVerifyOtp()}
+                          disabled={isVerifying || otp.length !== OTP_LENGTH}
+                        >
+                          {isVerifying ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          ) : (
+                            <Check className="h-4 w-4 mr-2" />
+                          )}
+                          Verify Phone
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="p-4 bg-red-50/50 dark:bg-red-900/10 border border-red-100 dark:border-red-800 rounded-xl space-y-3 animate-in fade-in duration-300">
+                        <div className="flex items-start gap-3">
+                          <ShieldAlert className="h-5 w-5 text-red-500 dark:text-red-400 shrink-0 mt-0.5" />
+                          <div>
+                            <p className="text-sm font-bold text-red-800 dark:text-red-200">
+                              Phone Not Verified
+                            </p>
+                            <p className="text-xs text-red-600/70 dark:text-red-400/70 mt-0.5">
+                              Verify your phone to unlock trip planning from the
+                              dashboard.
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10 font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1.5 select-none pointer-events-none border-r border-slate-300 dark:border-slate-600 pr-2 h-5">
+                              <Image
+                                src="/images/flag/india.jpg"
+                                alt="India"
+                                width={20}
+                                height={14}
+                                className="rounded-sm object-cover"
+                              />
+                              <span className="text-xs">+91</span>
+                            </div>
+                            <Input
+                              type="tel"
+                              value={phone}
+                              onChange={(e) => {
+                                const val = e.target.value
+                                  .replace(/\D/g, "")
+                                  .slice(0, 10);
+                                setPhone(val);
+                              }}
+                              placeholder="Enter phone number"
+                              maxLength={10}
+                              className="pl-22 h-10 bg-white dark:bg-slate-800"
+                            />
+                          </div>
+                          <Button
+                            onClick={handleSendOtp}
+                            disabled={
+                              isVerifying ||
+                              !phone ||
+                              !INDIA_PHONE_REGEX.test(phone)
+                            }
+                            className="bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 h-10 px-5 shrink-0"
+                          >
+                            {isVerifying ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              "Send OTP"
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </dl>
             )}
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <Card className="border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <CardHeader className="flex flex-row  justify-between pb-2">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-emerald-600" /> Official
-              Document Verification
+            <CardTitle className="flex items-center whitespace-nowrap mb-2 gap-2">
+              <ShieldCheck className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />{" "}
+              Official Document Verification
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="text-sm">
               Submit your government-issued identification to complete your
               profile verification.
             </CardDescription>
@@ -478,15 +754,15 @@ export default function ProfilePage() {
               onClick={() => setEditingField("identity")}
               className="text-emerald-700"
             >
-              <Pencil className="h-4 w-4 mr-2" /> Update Documents
+              <Pencil className="h-4 w-4 mr-2" />
             </Button>
           )}
         </CardHeader>
         <CardContent className="pt-4">
           {editingField === "identity" ? (
             <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="bg-emerald-50/50 border border-emerald-100 rounded-2xl p-4 mb-6">
-                <p className="text-xs text-emerald-800 leading-relaxed flex items-start gap-2">
+              <div className="bg-emerald-50/50 dark:bg-emerald-950/30 border border-emerald-100 dark:border-emerald-900/50 rounded-2xl p-4 mb-6">
+                <p className="text-xs text-emerald-800 dark:text-emerald-400 leading-relaxed flex items-start gap-2">
                   <ShieldCheck className="h-4 w-4 mt-0.5 shrink-0" />
                   <span>
                     <strong>Verification Guidelines:</strong> Please upload a
@@ -504,7 +780,7 @@ export default function ProfilePage() {
                     <label className="text-sm font-bold">Aadhar Card</label>
                     <Badge
                       variant="secondary"
-                      className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-0 text-[10px] px-2"
+                      className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 border-0 text-[10px] px-2"
                     >
                       Required for 100% Profile
                     </Badge>
@@ -589,11 +865,11 @@ export default function ProfilePage() {
                   profile.documents.aadharCard.map((url, i) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between p-3 border rounded-xl bg-emerald-50/50 border-emerald-100"
+                      className="flex items-center justify-between p-3 border rounded-xl bg-emerald-50/50 dark:bg-emerald-950/30 border-emerald-100 dark:border-emerald-900/50"
                     >
                       <div className="flex items-center gap-3">
                         <FileText className="h-5 w-5 text-emerald-600" />
-                        <span className="text-sm font-medium text-emerald-950">
+                        <span className="text-sm font-medium text-emerald-950 dark:text-emerald-300">
                           Aadhar #{i + 1}
                         </span>
                       </div>
@@ -605,7 +881,7 @@ export default function ProfilePage() {
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-red-500 font-medium bg-red-50 p-3 rounded-xl border border-red-100 flex items-center gap-2">
+                  <p className="text-sm text-red-500 dark:text-red-400 font-medium bg-red-50 dark:bg-red-950/30 p-3 rounded-xl border border-red-100 dark:border-red-900/50 flex items-center gap-2">
                     <X className="w-4 h-4" /> No Aadhar uploaded
                   </p>
                 )}
@@ -618,11 +894,11 @@ export default function ProfilePage() {
                   profile.documents.passport.map((url, i) => (
                     <div
                       key={i}
-                      className="flex items-center justify-between p-3 border rounded-xl bg-purple-50/50 border-purple-100"
+                      className="flex items-center justify-between p-3 border rounded-xl bg-purple-50/50 dark:bg-purple-950/30 border-purple-100 dark:border-purple-900/50"
                     >
                       <div className="flex items-center gap-3">
                         <Plane className="h-5 w-5 text-purple-600" />
-                        <span className="text-sm font-medium text-purple-950">
+                        <span className="text-sm font-medium text-purple-950 dark:text-purple-300">
                           Passport #{i + 1}
                         </span>
                       </div>
@@ -634,7 +910,7 @@ export default function ProfilePage() {
                     </div>
                   ))
                 ) : (
-                  <p className="text-sm text-muted-foreground bg-gray-50 p-3 rounded-xl border border-gray-100">
+                  <p className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-xl border border-border">
                     No passport uploaded.
                   </p>
                 )}

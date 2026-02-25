@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import MenuIcon from "../icons/Menu";
 import { motion, AnimatePresence } from "motion/react";
@@ -14,8 +14,26 @@ import { Button } from "../ui/button";
 import { SOCIAL_LINKS } from "@/lib/constants";
 
 import { useSession } from "next-auth/react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import LoginModal from "../auth/LoginModal";
+
+/**
+ * Inner component that reads search params and opens the login modal
+ * when a set-password token is present. Wrapped in Suspense by Header.
+ */
+function SearchParamsHandler({ onOpenLogin }: { onOpenLogin: () => void }) {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const token = searchParams.get("token");
+    const action = searchParams.get("action");
+    if (token && action === "set-password") {
+      onOpenLogin();
+    }
+  }, [searchParams, onOpenLogin]);
+
+  return null;
+}
 
 // Logos
 import logoPrimary from "@/../public/images/logo/logo.svg";
@@ -91,6 +109,10 @@ const Header: React.FC = () => {
   const toggleMenu = () => {
     setIsOpen(!isOpen);
   };
+
+  const openLoginModal = React.useCallback(() => {
+    setIsLoginModalOpen(true);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -245,7 +267,7 @@ const Header: React.FC = () => {
                               {searchResults.map((post) => (
                                 <Link
                                   key={post.id}
-                                  href={`/travel-blogs/${post.slug}`}
+                                  href={`/blogs/${post.slug}`}
                                   onClick={() => {
                                     setIsSearchOpen(false);
                                     setSearchQuery("");
@@ -428,10 +450,15 @@ const Header: React.FC = () => {
           )}
         </AnimatePresence>
 
-        <LoginModal
-          isOpen={isLoginModalOpen}
-          onClose={() => setIsLoginModalOpen(false)}
-        />
+        <Suspense fallback={null}>
+          <SearchParamsHandler onOpenLogin={openLoginModal} />
+        </Suspense>
+        <Suspense fallback={null}>
+          <LoginModal
+            isOpen={isLoginModalOpen}
+            onClose={() => setIsLoginModalOpen(false)}
+          />
+        </Suspense>
       </motion.header>
     </>
   );

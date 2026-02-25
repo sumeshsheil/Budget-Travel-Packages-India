@@ -164,7 +164,7 @@ export default function ThankYouPage() {
                   Back to Home
                 </Button>
               </Link>
-              <Link href="/travel-blogs">
+              <Link href="/blogs">
                 <Button
                   className="bg-white/40 hover:bg-white/60 lg:px-16 px-8 text-gray-900 border border-white/60 min-w-[200px] backdrop-blur-md"
                   size="lg"

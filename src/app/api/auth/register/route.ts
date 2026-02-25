@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/db/mongoose";
 import User from "@/lib/db/models/User";
-import bcryptjs from "bcryptjs";
 import { z } from "zod";
+import crypto from "crypto";
+import bcryptjs from "bcryptjs";
+import { sendWelcomeEmail } from "@/lib/email";
 
 const registerSchema = z.object({
   email: z.string().email("Invalid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 export async function POST(req: Request) {
@@ -25,12 +26,13 @@ export async function POST(req: Request) {
       );
     }
 
-    const { email, password } = validation.data;
+    const { email } = validation.data;
+    const customerEmail = email.toLowerCase();
 
     await connectDB();
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email: email.toLowerCase() });
+    const existingUser = await User.findOne({ email: customerEmail });
     if (existingUser) {
       return NextResponse.json(
         { error: "User with this email already exists" },
@@ -38,28 +40,51 @@ export async function POST(req: Request) {
       );
     }
 
-    // Hash password
-    const salt = await bcryptjs.genSalt(12);
-    const hashedPassword = await bcryptjs.hash(password, salt);
+    // Generate token for password setting
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
 
-    // Create user
+    // Create inactive user with placeholder password
+    // We need a password field in the DB to satisfy schema if it's required (usually is)
+    const placeholderPassword = await bcryptjs.hash(
+      crypto.randomBytes(16).toString("hex"),
+      12,
+    );
+
+    const name = customerEmail.split("@")[0];
     const newUser = await User.create({
-      email: email.toLowerCase(),
-      password: hashedPassword,
-      name: email.split("@")[0], // Default name from email part
+      email: customerEmail,
+      password: placeholderPassword,
+      name: name,
       role: "customer",
       status: "active",
-      isActivated: true, // Auto-activate for now as per requirements "needs only email and pass"
+      isActivated: false,
+      isPhoneVerified: false,
+      setPasswordToken: hashedToken,
+      setPasswordExpires: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72 hours
+    });
+
+    // The link will open a popup on the landing page
+    const setPasswordUrl = `${process.env.NEXTAUTH_URL}/?token=${rawToken}&action=set-password`;
+
+    // Send Welcome Email
+    await sendWelcomeEmail({
+      name: name,
+      to: customerEmail,
+      setPasswordUrl,
     });
 
     return NextResponse.json(
       {
         success: true,
-        message: "Registration successful",
+        message:
+          "Check your email to set your password and activate your account.",
         user: {
           id: newUser._id,
           email: newUser.email,
-          role: newUser.role,
         },
       },
       { status: 201 },

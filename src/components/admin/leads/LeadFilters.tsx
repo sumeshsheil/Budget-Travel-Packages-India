@@ -10,12 +10,16 @@ import {
 } from "@/components/ui/select";
 import { Filter } from "lucide-react";
 
+import { useSession } from "next-auth/react";
+
 export function LeadFilters() {
+  const { data: session } = useSession();
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
 
   const currentStage = searchParams.get("stage") || "all";
+  const isAdmin = session?.user?.role === "admin";
 
   const handleStageChange = (value: string) => {
     const params = new URLSearchParams(searchParams);
@@ -41,7 +45,7 @@ export function LeadFilters() {
           <SelectItem value="qualified">Qualified</SelectItem>
           <SelectItem value="proposal_sent">Proposal Sent</SelectItem>
           <SelectItem value="negotiation">Negotiation</SelectItem>
-          <SelectItem value="won">Won</SelectItem>
+          {isAdmin && <SelectItem value="won">Won</SelectItem>}
           <SelectItem value="lost">Lost</SelectItem>
           <SelectItem value="stale">Stale</SelectItem>
         </SelectContent>

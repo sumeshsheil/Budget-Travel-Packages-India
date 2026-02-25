@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { LayoutGrid, List } from "lucide-react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
@@ -9,7 +10,23 @@ export function ViewToggle() {
   const pathname = usePathname();
   const { replace } = useRouter();
 
-  const view = searchParams.get("view") || "list";
+  const view = searchParams.get("view") || "board";
+
+  useEffect(() => {
+    // Initial check for screen size on mount and view change
+    const checkViewport = () => {
+      const isSmallScreen = window.innerWidth < 1024; // lg breakpoint in Tailwind
+      if (isSmallScreen && searchParams.get("view") !== "board") {
+        const params = new URLSearchParams(searchParams);
+        params.set("view", "board");
+        replace(`${pathname}?${params.toString()}`);
+      }
+    };
+
+    checkViewport();
+    window.addEventListener("resize", checkViewport);
+    return () => window.removeEventListener("resize", checkViewport);
+  }, [searchParams, pathname, replace]);
 
   const handleViewChange = (newView: string) => {
     if (!newView) return; // Prevent unselecting

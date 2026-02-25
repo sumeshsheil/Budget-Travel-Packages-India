@@ -20,7 +20,13 @@ export async function PATCH(
 ) {
   try {
     const session = await auth();
-    if (!session || session.user.role !== "customer") {
+    const isAuthorized =
+      session &&
+      (session.user.role === "customer" ||
+        session.user.role === "agent" ||
+        session.user.role === "admin");
+
+    if (!isAuthorized) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

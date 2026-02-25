@@ -9,6 +9,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import crypto from "crypto";
 import bcryptjs from "bcryptjs";
+import { auth } from "@/lib/auth";
 import {
   sendLeadConfirmationEmail,
   sendLeadNotificationEmail,
@@ -33,6 +34,18 @@ const leadSchema = z.object({
     email: z.string().email(),
     phone: z.string().min(10),
   }),
+  travelers: z
+    .array(
+      z.object({
+        name: z.string().min(2),
+        age: z.number().min(0),
+        gender: z.enum(["male", "female", "other"]),
+        email: z.string().email().optional().or(z.literal("")),
+        phone: z.string().optional().or(z.literal("")),
+        memberId: z.string().optional(),
+      }),
+    )
+    .optional(),
 });
 
 export async function POST(request: Request) {
@@ -68,8 +81,25 @@ export async function POST(request: Request) {
         { status: 429 },
       );
     }
+    // 4. Phone verification guard for authenticated (dashboard) users
+    const session = await auth();
+    if (session?.user?.id) {
+      const authenticatedUser = await User.findById(session.user.id);
+      if (authenticatedUser && !authenticatedUser.isPhoneVerified) {
+        console.log(
+          `[Lead Submit] Blocked: authenticated user ${session.user.id} has not verified phone`,
+        );
+        return NextResponse.json(
+          {
+            error:
+              "Phone verification required. Please verify your phone number in your profile before submitting a trip plan.",
+          },
+          { status: 403 },
+        );
+      }
+    }
 
-    // 4. Find or create customer account
+    // 5. Find or create customer account
     const { primaryContact, ...rest } = validatedData;
     const customerEmail = primaryContact.email.toLowerCase();
 
@@ -83,6 +113,8 @@ export async function POST(request: Request) {
 
     if (customer) {
       console.log(`[Lead Submit] Found existing customer: ${customer._id}`);
+      // No automatic phone verification for existing customers here.
+      // They must already be verified in the DB from the OTP flow.
     }
 
     if (!customer) {
@@ -108,6 +140,7 @@ export async function POST(request: Request) {
           role: "customer",
           phone: primaryContact.phone,
           isActivated: false,
+          isPhoneVerified: true,
           setPasswordToken: hashedToken,
           setPasswordExpires: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72 hours
         });
@@ -145,17 +178,25 @@ export async function POST(request: Request) {
     const customerId = customer._id;
     console.log(`[Lead Submit] Creating lead with customerId: ${customerId}`);
 
+    const { travelers: submittedTravelers, ...restWithoutPrimary } = rest;
+
+    // Use submitted travelers if provided, otherwise default to primary contact only
+    const leadTravelers =
+      submittedTravelers && submittedTravelers.length > 0
+        ? submittedTravelers
+        : [
+            {
+              name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
+              age: primaryContact.age,
+              gender: primaryContact.gender,
+              email: primaryContact.email,
+              phone: primaryContact.phone,
+            },
+          ];
+
     const lead = await Lead.create({
-      ...rest,
-      travelers: [
-        {
-          name: `${primaryContact.firstName} ${primaryContact.lastName}`.trim(),
-          age: primaryContact.age,
-          gender: primaryContact.gender,
-          email: primaryContact.email,
-          phone: primaryContact.phone,
-        },
-      ],
+      ...restWithoutPrimary,
+      travelers: leadTravelers,
       source: "website",
       ipAddress: ip,
       customerId: customerId,

@@ -110,6 +110,7 @@ const faqData: FAQItem[] = [
 const FAQ: React.FC = () => {
   const [openId, setOpenId] = useState<number | null>(1);
   const [visibleCount, setVisibleCount] = useState(5);
+  const sectionRef = useRef<HTMLElement>(null);
 
   const toggleFAQ = (id: number) => {
     setOpenId(openId === id ? null : id);
@@ -121,9 +122,12 @@ const FAQ: React.FC = () => {
 
   const handleShowLess = () => {
     setVisibleCount(5);
-    // Mimic the menu behavior by pushing the hash to the router
-    // This respects scroll-mt (scroll-margin-top) and smooth scrolling CSS
-    window.location.hash = "faqs";
+    setTimeout(() => {
+      sectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 150);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, id: number) => {
@@ -149,6 +153,7 @@ const FAQ: React.FC = () => {
 
   return (
     <section
+      ref={sectionRef}
       id="faqs"
       className="py-20 lg:py-25 relative overflow-x-hidden scroll-mt-24"
       aria-labelledby="faq-heading"

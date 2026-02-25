@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { connectDB } from "@/lib/db/mongoose";
 import Lead from "@/lib/db/models/Lead";
+import User from "@/lib/db/models/User";
 import { auth } from "@/lib/auth";
 import mongoose from "mongoose";
 import { z } from "zod";
@@ -40,23 +41,8 @@ const createLeadSchema = z.object({
     .max(50, "Maximum 50 guests"),
   budget: z.coerce.number().min(1, "Budget must be at least 1"),
   specialRequests: z.string().max(500).optional().default(""),
-  primaryTravelerName: z
-    .string()
-    .min(2, "Traveler name must be at least 2 characters")
-    .max(100),
-  primaryTravelerEmail: z.string().email("Invalid email address"),
-  primaryTravelerPhone: z.string().min(10, "Phone must be at least 10 digits"),
-  primaryTravelerAge: z.coerce
-    .number()
-    .int()
-    .min(1, "Age must be at least 1")
-    .max(120, "Age must be 120 or less")
-    .optional()
-    .default(30),
-  primaryTravelerGender: z
-    .enum(["male", "female", "other"])
-    .optional()
-    .default("other"),
+  // Support for multiple travelers via JSON string
+  travelersJSON: z.string().min(1, "Traveler data is required"),
 });
 
 // ============ SERVER ACTIONS ============
@@ -76,11 +62,7 @@ export async function createLead(prevState: unknown, formData: FormData) {
       guests: formData.get("guests"),
       budget: formData.get("budget"),
       specialRequests: formData.get("specialRequests") || "",
-      primaryTravelerName: formData.get("primaryTravelerName"),
-      primaryTravelerEmail: formData.get("primaryTravelerEmail"),
-      primaryTravelerPhone: formData.get("primaryTravelerPhone"),
-      primaryTravelerAge: formData.get("primaryTravelerAge") || 30,
-      primaryTravelerGender: formData.get("primaryTravelerGender") || "other",
+      travelersJSON: formData.get("travelers"), // JSON string from client
     };
 
     // Validate with Zod
@@ -88,7 +70,6 @@ export async function createLead(prevState: unknown, formData: FormData) {
 
     if (!validation.success) {
       const fieldErrors = validation.error.flatten().fieldErrors;
-      // Return the first error message for user-facing feedback
       const firstError = Object.values(fieldErrors).flat()[0];
       return {
         success: false,
@@ -98,6 +79,15 @@ export async function createLead(prevState: unknown, formData: FormData) {
     }
 
     const validated = validation.data;
+    let travelers = [];
+    try {
+      travelers = JSON.parse(validated.travelersJSON);
+      if (!Array.isArray(travelers) || travelers.length === 0) {
+        throw new Error("At least one traveler is required");
+      }
+    } catch (e) {
+      return { success: false, error: "Invalid traveler data format" };
+    }
 
     // Build lead document
     const leadData = {
@@ -109,15 +99,20 @@ export async function createLead(prevState: unknown, formData: FormData) {
       guests: validated.guests,
       budget: validated.budget,
       specialRequests: validated.specialRequests,
-      travelers: [
-        {
-          name: validated.primaryTravelerName,
-          email: validated.primaryTravelerEmail,
-          phone: validated.primaryTravelerPhone,
-          age: validated.primaryTravelerAge,
-          gender: validated.primaryTravelerGender,
+      travelers: travelers.map((t: any) => ({
+        name: t.name,
+        email: t.email || undefined,
+        phone: t.phone || undefined,
+        age: Number(t.age) || 30,
+        gender: t.gender || "other",
+        aadhaarNumber: t.aadhaarNumber || undefined,
+        panNumber: t.panNumber || undefined,
+        documents: {
+          aadharCard: Array.isArray(t.aadharCard) ? t.aadharCard : [],
+          panCard: Array.isArray(t.panCard) ? t.panCard : [],
+          passport: Array.isArray(t.passport) ? t.passport : [],
         },
-      ],
+      })),
       source: "manual" as const,
       agentId: session.user.role === "agent" ? session.user.id : undefined,
       lastActivityAt: new Date(),
@@ -130,7 +125,7 @@ export async function createLead(prevState: unknown, formData: FormData) {
       leadId: newLead._id.toString(),
       userId: session.user.id,
       action: "created",
-      details: `Lead created manually for ${validated.primaryTravelerName}`,
+      details: `Manual lead created for ${travelers[0].name} + ${travelers.length - 1} others`,
     });
 
     revalidatePath("/admin/leads");
@@ -175,10 +170,44 @@ export async function updateLeadStage(leadId: string, newStage: string) {
     const lead = await Lead.findById(leadId);
     if (!lead) return { success: false, error: "Lead not found" };
 
+    // === BUSINESS LOGIC CONSTRAINTS FOR 'WON' STAGE ===
+    if (newStage === "won") {
+      // 1. Check Trip Cost
+      if (!lead.tripCost || lead.tripCost <= 0) {
+        return {
+          success: false,
+          error: "Trip Cost must be set before marking as Won.",
+        };
+      }
+
+      // 2. Check Itinerary (either PDF or list)
+      const hasItinerary =
+        (lead.itinerary && lead.itinerary.length > 0) || lead.itineraryPdfUrl;
+      if (!hasItinerary) {
+        return {
+          success: false,
+          error: "Trip Itinerary must be uploaded before marking as Won.",
+        };
+      }
+
+      // 3. Check Travel Documents (either PDF or list)
+      const hasDocuments =
+        (lead.documents && lead.documents.length > 0) ||
+        lead.travelDocumentsPdfUrl;
+      if (!hasDocuments) {
+        return {
+          success: false,
+          error:
+            "Travel Documents/Tickets must be uploaded before marking as Won.",
+        };
+      }
+    }
+
     const previousStage = lead.stage;
     lead.previousStage = lead.stage;
     lead.stage = newStage as typeof lead.stage;
     lead.lastActivityAt = new Date();
+    lead.stageUpdatedAt = new Date();
     await lead.save();
 
     // Log activity
@@ -221,8 +250,23 @@ export async function assignAgent(leadId: string, agentId: string) {
     const isUnassigning =
       !agentId || agentId === "unassigned" || agentId === "";
 
-    if (!isUnassigning && !mongoose.Types.ObjectId.isValid(agentId)) {
-      return { success: false, error: "Invalid agent ID" };
+    if (!isUnassigning) {
+      if (!mongoose.Types.ObjectId.isValid(agentId)) {
+        return { success: false, error: "Invalid agent ID" };
+      }
+
+      // Ensure the agent is verified
+      const agent = await User.findById(agentId);
+      if (!agent || agent.role !== "agent") {
+        return { success: false, error: "Target user is not an agent" };
+      }
+
+      if (!agent.isVerified) {
+        return {
+          success: false,
+          error: "Only verified agents can be assigned to leads.",
+        };
+      }
     }
 
     await Lead.findByIdAndUpdate(leadId, {
@@ -291,6 +335,178 @@ export async function deleteLead(leadId: string) {
   } catch (error: unknown) {
     const message =
       error instanceof Error ? error.message : "Failed to delete lead";
+    return { success: false, error: message };
+  }
+}
+
+export async function bulkAssignAgents(leadIds: string[], agentId: string) {
+  try {
+    const session = await verifySession();
+    if (session.user.role !== "admin") {
+      return { success: false, error: "Only admins can perform bulk actions" };
+    }
+
+    if (!leadIds || leadIds.length === 0) {
+      return { success: false, error: "No leads selected" };
+    }
+
+    await connectDB();
+
+    const isUnassigning =
+      !agentId || agentId === "unassigned" || agentId === "";
+
+    if (!isUnassigning) {
+      if (!mongoose.Types.ObjectId.isValid(agentId)) {
+        return { success: false, error: "Invalid agent ID" };
+      }
+
+      const agent = await User.findById(agentId);
+      if (!agent || agent.role !== "agent") {
+        return { success: false, error: "Target user is not an agent" };
+      }
+
+      if (!agent.isVerified) {
+        return {
+          success: false,
+          error: "Only verified agents can be assigned to leads.",
+        };
+      }
+    }
+
+    const objectLeadIds = leadIds.map((id) => new mongoose.Types.ObjectId(id));
+
+    await Lead.updateMany(
+      { _id: { $in: objectLeadIds } },
+      {
+        agentId: isUnassigning ? null : new mongoose.Types.ObjectId(agentId),
+        lastActivityAt: new Date(),
+      },
+    );
+
+    // Log activity for each lead
+    for (const leadId of leadIds) {
+      await logLeadActivity({
+        leadId,
+        userId: session.user.id,
+        action: isUnassigning ? "agent_unassigned" : "agent_assigned",
+        details: isUnassigning
+          ? "Agent unassigned from lead (Bulk Action)"
+          : `Agent ${agentId} assigned to lead (Bulk Action)`,
+      });
+    }
+
+    // Notify agent once if assigned
+    if (!isUnassigning) {
+      await createNotification({
+        userId: agentId,
+        title: "Bulk Leads Assigned",
+        message: `You have been assigned ${leadIds.length} new leads.`,
+        type: "info",
+        link: `/admin/leads`,
+      });
+    }
+
+    revalidatePath("/admin/leads");
+    return {
+      success: true,
+      message: `${leadIds.length} leads ${isUnassigning ? "unassigned" : "assigned"} successfully`,
+    };
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Failed to perform bulk assignment";
+    return { success: false, error: message };
+  }
+}
+
+export async function refreshLeadTimer(leadId: string) {
+  try {
+    await verifySession();
+    await connectDB();
+
+    if (!mongoose.Types.ObjectId.isValid(leadId)) {
+      return { success: false, error: "Invalid lead ID" };
+    }
+
+    const lead = await Lead.findById(leadId);
+    if (!lead) return { success: false, error: "Lead not found" };
+
+    lead.stageUpdatedAt = new Date();
+    lead.lastActivityAt = new Date();
+    await lead.save();
+
+    const session = await auth();
+    await logLeadActivity({
+      leadId,
+      userId: session?.user?.id,
+      action: "details_updated",
+      details:
+        "Lead timer refreshed. The 7-day auto-abandon limit has been reset.",
+    });
+
+    revalidatePath(`/admin/leads/${leadId}`);
+
+    return { success: true, message: "Lead timer refreshed." };
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Failed to refresh timer";
+    return { success: false, error: message };
+  }
+}
+
+export async function addLeadComment(leadId: string, text: string) {
+  try {
+    const session = await verifySession();
+    await connectDB();
+
+    if (!mongoose.Types.ObjectId.isValid(leadId)) {
+      return { success: false, error: "Invalid lead ID" };
+    }
+
+    if (!text || text.trim().length === 0) {
+      return { success: false, error: "Comment text cannot be empty" };
+    }
+
+    const lead = await Lead.findById(leadId);
+    if (!lead) return { success: false, error: "Lead not found" };
+
+    // Prevent previous agents from commenting if reassigned
+    if (
+      session.user.role === "agent" &&
+      lead.agentId &&
+      lead.agentId.toString() !== session.user.id
+    ) {
+      return {
+        success: false,
+        error: "You are no longer assigned to this lead.",
+      };
+    }
+
+    lead.comments = lead.comments || [];
+    lead.comments.push({
+      text: text.trim(),
+      agentName: session.user.name || "Unknown Agent",
+      agentId: new mongoose.Types.ObjectId(session.user.id),
+      createdAt: new Date(),
+    });
+
+    lead.lastActivityAt = new Date();
+    await lead.save();
+
+    await logLeadActivity({
+      leadId,
+      userId: session.user.id,
+      action: "note_added",
+      details: "Added a new comment.",
+    });
+
+    revalidatePath(`/admin/leads/${leadId}`);
+
+    return { success: true, message: "Comment added successfully." };
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Failed to add comment";
     return { success: false, error: message };
   }
 }

@@ -13,7 +13,11 @@ export async function requireCustomerAuth() {
     redirect("/dashboard/login");
   }
 
-  if (session.user.role !== "customer") {
+  if (
+    session.user.role !== "customer" &&
+    session.user.role !== "agent" &&
+    session.user.role !== "admin"
+  ) {
     redirect("/dashboard/login");
   }
 

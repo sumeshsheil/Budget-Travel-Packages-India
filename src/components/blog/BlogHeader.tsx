@@ -1,9 +1,10 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Search, Home } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export default function BlogHeader() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -11,10 +12,10 @@ export default function BlogHeader() {
   const pathname = usePathname();
 
   const navLinks = [
-    { name: "Travel Blogs", href: "/travel-blogs" },
-    { name: "Domestic", href: "/travel-blogs/category/domestic" },
-    { name: "International", href: "/travel-blogs/category/international" },
-    { name: "Q&A", href: "/travel-blogs/category/qa" },
+    { name: "Blogs", href: "/blogs" },
+    { name: "Domestic", href: "/blogs/category/domestic" },
+    { name: "International", href: "/blogs/category/international" },
+    { name: "Travel insights", href: "/blogs/category/travel-insights" },
   ];
 
   return (
@@ -38,6 +39,23 @@ export default function BlogHeader() {
             <nav className="flex items-center overflow-x-auto scrollbar-hide gap-5 md:gap-8 py-4 -mb-px">
               {navLinks.map((link) => {
                 const isActive = pathname === link.href;
+                if (link.name === "Blogs") {
+                  return (
+                    <Link
+                      key={link.name}
+                      href={link.href}
+                      className={cn(
+                        "flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap",
+                        isActive
+                          ? "bg-primary text-white shadow-sm"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200",
+                      )}
+                    >
+                      <Home className="w-4 h-4" />
+                      {link.name}
+                    </Link>
+                  );
+                }
                 return (
                   <Link
                     key={link.name}
@@ -77,7 +95,7 @@ export default function BlogHeader() {
               </div>
               <input
                 type="text"
-                placeholder="Search travel blogs..."
+                placeholder="Search blogs..."
                 autoFocus
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}

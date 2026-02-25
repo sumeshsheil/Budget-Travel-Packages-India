@@ -76,11 +76,8 @@ export default async function BlogPostPage({ params }: PageProps) {
             Home
           </Link>
           <span>/</span>
-          <Link
-            href="/travel-blogs"
-            className="hover:text-primary transition-colors"
-          >
-            Travel Blogs
+          <Link href="/blogs" className="hover:text-primary transition-colors">
+            Blogs
           </Link>
           <span>/</span>
           <span className="text-gray-900 font-medium truncate max-w-[200px]">
@@ -151,7 +148,7 @@ export default async function BlogPostPage({ params }: PageProps) {
               {CATEGORIES.map((cat) => (
                 <Link
                   key={cat.slug}
-                  href={`/travel-blogs/category/${cat.slug}`}
+                  href={`/blogs/category/${cat.slug}`}
                   className="text-sm font-medium text-gray-600 hover:text-secondary transition-colors"
                 >
                   {cat.title}
@@ -162,7 +159,7 @@ export default async function BlogPostPage({ params }: PageProps) {
             {/* Back Link */}
             <div>
               <Link
-                href="/travel-blogs"
+                href="/blogs"
                 className="text-sm font-bold text-secondary hover:underline underline-offset-4"
               >
                 ← Back to All Stories

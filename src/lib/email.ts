@@ -170,7 +170,7 @@ export async function sendWelcomeEmail({
 
             <p style="${styles.p}">Our team is already reviewing your request, and you’ll receive a detailed confirmation shortly.</p>
 
-            <p style="${styles.p}">In the meantime, feel free to explore our <a href="${process.env.NEXTAUTH_URL}/travel-blogs" style="color: #000; font-weight: 700; text-decoration: underline;">Travel Blogs</a> for inspiration or browse our <a href="${process.env.NEXTAUTH_URL}/packages" style="color: #000; font-weight: 700; text-decoration: underline;">Exclusive Packages</a>.</p>
+            <p style="${styles.p}">In the meantime, feel free to explore our <a href="${process.env.NEXTAUTH_URL}/blogs" style="color: #000; font-weight: 700; text-decoration: underline;">Travel Blogs</a> for inspiration or browse our <a href="${process.env.NEXTAUTH_URL}/packages" style="color: #000; font-weight: 700; text-decoration: underline;">Exclusive Packages</a>.</p>
             
             <div style="text-align: center;">
               <a href="${process.env.NEXTAUTH_URL}" style="${styles.button}">Explore Destinations</a>
@@ -248,6 +248,61 @@ export async function sendAgentWelcomeEmail({
     return { success: true, data };
   } catch (error) {
     console.error("Email Exception (Agent Welcome):", error);
+    return { success: false, error };
+  }
+}
+
+// 2b. Agent Promotion Email (For existing customers)
+export async function sendAgentPromotionEmail({
+  name,
+  email,
+  to,
+}: {
+  name: string;
+  email: string;
+  to: string;
+}) {
+  try {
+    const { data, error } = await resend.emails.send({
+      from: BOOKINGS_EMAIL,
+      to: [to],
+      subject: "New Privileges: Agent Access Granted",
+      html: `
+        <div style="${styles.container}">
+          <div style="${styles.header}">
+            <h1 style="${styles.headerTitle}">Agent Access Granted</h1>
+          </div>
+          <div style="${styles.body}">
+            <h2 style="${styles.h2}">Hello, ${name}!</h2>
+            <p style="${styles.p}">Good news! Your Budget Travel Packages account has been upgraded with Agent privileges.</p>
+            <p style="${styles.p}">You can now manage leads and access the admin portal using your existing login credentials:</p>
+            
+            <div style="${styles.dataBox}">
+              <p style="${styles.dataItem}"><strong style="width: 120px; display: inline-block;">Email:</strong> ${email}</p>
+              <p style="${styles.dataItem}"><strong style="width: 120px; display: inline-block;">Password:</strong> (Use your existing password)</p>
+            </div>
+            
+            <p style="${styles.p}">You will now see more options when you log in to the portal.</p>
+            
+            <div style="text-align: center;">
+              <a href="${process.env.NEXTAUTH_URL}/admin/login" style="${styles.button}">Access Admin Portal</a>
+            </div>
+          </div>
+          <div style="${styles.footer}">
+            <p>Budget Travel Admin Notification System</p>
+            <p>&copy; ${new Date().getFullYear()} Budget Travel Packages. All rights reserved.</p>
+          </div>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error("Resend Error (Agent Promotion):", error);
+      return { success: false, error };
+    }
+    return { success: true, data };
+  } catch (error) {
+    console.error("Email Exception (Agent Promotion):", error);
     return { success: false, error };
   }
 }
@@ -404,6 +459,116 @@ export async function sendOtpEmail({ email, otp }: OtpEmailProps) {
     return { success: true, data };
   } catch (error) {
     console.error("Email Exception (OTP):", error);
+    return { success: false, error };
+  }
+}
+
+// 6. Send Agent Onboarding Email (From HELLO_EMAIL)
+export async function sendAgentOnboardingEmail({
+  name,
+  to,
+  onboardingUrl,
+}: {
+  name: string;
+  to: string;
+  onboardingUrl: string;
+}) {
+  try {
+    const { data, error } = await resend.emails.send({
+      from: HELLO_EMAIL,
+      to: [to],
+      subject: "Complete Your Agent Registration - Budget Travel Packages ✈️",
+      html: `
+        <div style="${styles.container}">
+          <div style="${styles.header}">
+            <h1 style="${styles.headerTitle}">Welcome Aboard!</h1>
+          </div>
+          <div style="${styles.body}">
+            <h2 style="${styles.h2}">Hello ${name},</h2>
+            <p style="${styles.p}">Thank you for registering as a travel agent with Budget Travel Packages. To complete your registration, click the button below.</p>
+            
+            <div style="${styles.dataBox}">
+              <p style="${styles.p}; margin-bottom: 8px;">You will need:</p>
+              <p style="${styles.p}; margin: 4px 0;">• Your personal details (name, phone, address)</p>
+              <p style="${styles.p}; margin: 4px 0;">• Aadhaar card for photo capture</p>
+              <p style="${styles.p}; margin: 4px 0;">• PAN card for photo capture</p>
+              <p style="${styles.p}; margin: 4px 0;">• A webcam for face verification</p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${onboardingUrl}" style="${styles.button}">Complete Registration</a>
+            </div>
+
+            <p style="${styles.p}">This link is valid for 72 hours. After completing your profile, an admin will review and verify your account.</p>
+            <p style="${styles.p}">If you did not register, please ignore this email.</p>
+            
+            <p style="${styles.p}">Warm regards,<br/>The Budget Travel Team</p>
+          </div>
+          <div style="${styles.footer}">
+             <p>&copy; ${new Date().getFullYear()} Budget Travel Packages. All rights reserved.</p>
+          </div>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error("Resend Error (Agent Onboarding):", error);
+      return { success: false, error };
+    }
+    return { success: true, data };
+  } catch (error) {
+    console.error("Email Exception (Agent Onboarding):", error);
+    return { success: false, error };
+  }
+}
+
+// 7. Send Admin Notification for Agent Verification (From BOOKINGS_EMAIL)
+export async function sendAgentVerificationNotification({
+  agentName,
+  agentEmail,
+}: {
+  agentName: string;
+  agentEmail: string;
+}) {
+  try {
+    const { data, error } = await resend.emails.send({
+      from: BOOKINGS_EMAIL,
+      to: [ADMIN_EMAIL],
+      subject: `New Agent Pending Verification - ${agentName}`,
+      html: `
+        <div style="${styles.container}">
+          <div style="${styles.header}">
+            <h1 style="${styles.headerTitle}">New Agent Registration</h1>
+          </div>
+          <div style="${styles.body}">
+            <h2 style="${styles.h2}">Agent Verification Required</h2>
+            <p style="${styles.p}">A new agent has completed onboarding and is pending verification.</p>
+            
+            <div style="${styles.dataBox}">
+              <p style="${styles.dataItem}"><span style="${styles.accentText}">Name:</span> ${agentName}</p>
+              <p style="${styles.dataItem}"><span style="${styles.accentText}">Email:</span> ${agentEmail}</p>
+            </div>
+
+            <p style="${styles.p}">Log in to the admin portal to review their documents and verify.</p>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.NEXTAUTH_URL}/admin" style="${styles.button}">Go to Admin Portal</a>
+            </div>
+          </div>
+          <div style="${styles.footer}">
+             <p>&copy; ${new Date().getFullYear()} Budget Travel Packages. All rights reserved.</p>
+          </div>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error("Resend Error (Agent Verification):", error);
+      return { success: false, error };
+    }
+    return { success: true, data };
+  } catch (error) {
+    console.error("Email Exception (Agent Verification):", error);
     return { success: false, error };
   }
 }

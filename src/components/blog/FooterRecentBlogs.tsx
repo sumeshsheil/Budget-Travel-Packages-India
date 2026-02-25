@@ -55,7 +55,7 @@ export default function FooterRecentBlogs() {
         {posts.map((post) => (
           <Link
             key={post.slug}
-            href={`/travel-blogs/${post.slug}`}
+            href={`/blogs/${post.slug}`}
             className="group flex items-start gap-3 hover:opacity-80 transition-opacity"
           >
             {/* Small Thumbnail */}
