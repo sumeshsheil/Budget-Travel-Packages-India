@@ -1,38 +1,20 @@
 /**
- * Custom server entry point for Hostinger cPanel (shared hosting).
+ * Hostinger cPanel entry point.
  *
- * Hostinger's "Setup Node.js App" expects a root-level server.js.
- * This file bootstraps the Next.js standalone server with proper
- * hostname/port bindings for the Passenger reverse proxy.
+ * This is a thin wrapper that sets HOSTNAME and PORT before
+ * handing off to the Next.js standalone server.
  *
- * Usage (cPanel sets PORT automatically):
- *   NODE_ENV=production node server.js
+ * - cPanel Passenger sets PORT automatically.
+ * - HOSTNAME must be 0.0.0.0 so Passenger can proxy to it.
+ * - The actual Next.js server logic lives in the auto-generated
+ *   .next/standalone/server.js — we never overwrite it.
+ *
+ * In cPanel "Setup Node.js App", set startup file to: server.js
  */
 
-const { createServer } = require("http");
-const { parse } = require("url");
-const next = require("next");
-const path = require("path");
+// Ensure correct binding for Passenger reverse proxy
+process.env.HOSTNAME = process.env.HOSTNAME || "0.0.0.0";
+process.env.PORT = process.env.PORT || "3000";
 
-const port = parseInt(process.env.PORT || "3000", 10);
-const hostname = process.env.HOSTNAME || "0.0.0.0";
-
-const app = next({
-  dev: false,
-  dir: __dirname,
-  hostname,
-  port,
-});
-
-const handle = app.getRequestHandler();
-
-app.prepare().then(() => {
-  createServer((req, res) => {
-    const parsedUrl = parse(req.url, true);
-    handle(req, res, parsedUrl);
-  }).listen(port, hostname, () => {
-    console.log(
-      `> Next.js production server running on http://${hostname}:${port}`,
-    );
-  });
-});
+// Load and run the Next.js standalone server
+require("./server.js.next");
