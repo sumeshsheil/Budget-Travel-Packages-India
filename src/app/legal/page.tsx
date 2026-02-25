@@ -136,7 +136,7 @@ export default function LegalPoliciesPage() {
                       <strong className="text-slate-900">Contact Email:</strong>{" "}
                       <a
                         href="mailto:hello@budgettravelpackages.in"
-                        className="text-emerald-600 hover:underline"
+                        className="text-emerald-600 hover:underline break-all"
                       >
                         hello@budgettravelpackages.in
                       </a>
@@ -147,7 +147,7 @@ export default function LegalPoliciesPage() {
                       </strong>{" "}
                       <a
                         href="https://budgettravelpackages.in/blogs"
-                        className="text-emerald-600 hover:underline"
+                        className="text-emerald-600 hover:underline break-all"
                       >
                         https://budgettravelpackages.in/blogs
                       </a>
@@ -170,7 +170,7 @@ export default function LegalPoliciesPage() {
                             href="https://www.facebook.com/budgettravelpackages"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-emerald-600 hover:underline"
+                            className="text-emerald-600 hover:underline break-all"
                           >
                             https://www.facebook.com/budgettravelpackages
                           </a>
@@ -181,7 +181,7 @@ export default function LegalPoliciesPage() {
                             href="https://www.instagram.com/budgettravelpackages.in"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-emerald-600 hover:underline"
+                            className="text-emerald-600 hover:underline break-all"
                           >
                             https://www.instagram.com/budgettravelpackages.in
                           </a>
@@ -192,7 +192,7 @@ export default function LegalPoliciesPage() {
                             href="https://www.youtube.com/@budgettravelpackages"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-emerald-600 hover:underline"
+                            className="text-emerald-600 hover:underline break-all"
                           >
                             https://www.youtube.com/@budgettravelpackages
                           </a>

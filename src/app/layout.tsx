@@ -30,12 +30,11 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL("https://budgettravelpackages.in"),
   title: {
-    default:
-      "Budget Travel Packages - Customized Tours from Kolkata, Delhi, Mumbai",
+    default: "Book Domestic & International Tour Packages from India",
     template: "%s | Budget Travel Packages",
   },
   description:
-    "Book affordable, fully customized domestic and international travel packages. Expert planned itineraries from Kolkata, Delhi, Mumbai & 75+ cities.",
+    "Book customized domestic & international vacation plan from India. Flights, Trains, Hotels, Sightseeing & much more... Explore More, Spend Less!",
   keywords: [
     "Budget Travel Packages",
     "Customized Tour Packages",

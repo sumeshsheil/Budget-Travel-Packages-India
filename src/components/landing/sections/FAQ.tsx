@@ -120,14 +120,51 @@ const FAQ: React.FC = () => {
     setVisibleCount((prev) => Math.min(prev + 5, faqData.length));
   };
 
-  const handleShowLess = () => {
+  const smoothScrollTo = (targetY: number, duration = 400): Promise<void> => {
+    return new Promise((resolve) => {
+      const startY = window.scrollY;
+      const distance = targetY - startY;
+
+      if (Math.abs(distance) < 1) {
+        resolve();
+        return;
+      }
+
+      const startTime = performance.now();
+
+      const step = (currentTime: number) => {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        // easeInOutCubic
+        const ease =
+          progress < 0.5
+            ? 4 * progress * progress * progress
+            : 1 - Math.pow(-2 * progress + 2, 3) / 2;
+
+        window.scrollTo(0, startY + distance * ease);
+
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          resolve();
+        }
+      };
+
+      requestAnimationFrame(step);
+    });
+  };
+
+  const handleShowLess = async () => {
+    // Scroll to FAQ section top FIRST while layout is stable (all items rendered),
+    // then collapse items only after the scroll animation has fully completed.
+    const section = document.getElementById("faqs");
+    if (section) {
+      const navbarOffset = 96; // matches scroll-mt-24 (24 * 4 = 96px)
+      const top =
+        section.getBoundingClientRect().top + window.scrollY - navbarOffset;
+      await smoothScrollTo(top);
+    }
     setVisibleCount(5);
-    setTimeout(() => {
-      sectionRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }, 150);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent, id: number) => {
@@ -257,8 +294,8 @@ const FAQ: React.FC = () => {
         </div>
 
         {/* Show More / Show Less Buttons */}
-        <div className="flex justify-center mt-10">
-          {visibleCount < faqData.length ? (
+        <div className="flex justify-center gap-4 mt-10">
+          {visibleCount < faqData.length && (
             <Button
               onClick={handleShowMore}
               variant="outline"
@@ -266,7 +303,8 @@ const FAQ: React.FC = () => {
             >
               Show More <ChevronDown className="w-4 h-4" />
             </Button>
-          ) : (
+          )}
+          {visibleCount > 5 && (
             <Button
               onClick={handleShowLess}
               variant="outline"
