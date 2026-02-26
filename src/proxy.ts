@@ -8,7 +8,7 @@ import { getToken } from "next-auth/jwt";
  * Protects /admin/* routes and /api/admin/* routes.
  * Enforces role-based access control:
  * - Admin: full access
- * - Agent: no access to /admin/agents, /admin/settings
+ *  Agent: no access to /admin/agents, /admin/settings
  * - Unauthenticated: redirected to /admin/login
  */
 export async function proxy(request: NextRequest) {
