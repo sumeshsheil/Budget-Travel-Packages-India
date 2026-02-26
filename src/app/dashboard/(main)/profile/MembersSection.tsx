@@ -429,7 +429,7 @@ export default function MembersSection() {
                         <ShieldAlert className="h-3 w-3" /> No Aadhar
                       </span>
                     )}
-                    {member.documents?.passport?.[0] && (
+                    {member.documents?.passport?.[0] ? (
                       <a
                         href={member.documents.passport[0]}
                         target="_blank"
@@ -438,6 +438,10 @@ export default function MembersSection() {
                       >
                         <Plane className="h-3 w-3" /> Passport
                       </a>
+                    ) : (
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 px-2 py-1 rounded-lg border border-red-100 dark:border-red-900/50">
+                        <Plane className="h-3 w-3" /> No Passport
+                      </span>
                     )}
                   </div>
                 </div>

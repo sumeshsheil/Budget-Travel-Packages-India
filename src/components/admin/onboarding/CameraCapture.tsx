@@ -8,12 +8,14 @@ interface CameraCaptureProps {
   onCapture: (dataUrl: string) => void;
   label: string;
   capturedImage?: string | null;
+  autoStart?: boolean;
 }
 
 export function CameraCapture({
   onCapture,
   label,
   capturedImage,
+  autoStart,
 }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -24,6 +26,15 @@ export function CameraCapture({
 
   const startCamera = useCallback(async () => {
     setError(null);
+
+    // Check for Secure Context (Browser hardware protection)
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      setError(
+        "Camera access requires a Secure Context. Please use 'localhost' or an HTTPS connection.",
+      );
+      return;
+    }
+
     try {
       const mediaStream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: "user", width: 640, height: 480 },
@@ -37,7 +48,7 @@ export function CameraCapture({
       }
     } catch {
       setError(
-        "Camera access denied. Please allow camera access and try again.",
+        "Camera access denied. Please allow camera access in your browser settings and try again.",
       );
     }
   }, []);
@@ -79,6 +90,13 @@ export function CameraCapture({
       }
     };
   }, [stream]);
+
+  // Auto-start camera if prop is set
+  useEffect(() => {
+    if (autoStart && !preview && !isCameraActive && !error) {
+      startCamera();
+    }
+  }, [autoStart, preview, isCameraActive, error, startCamera]);
 
   return (
     <div className="space-y-3">

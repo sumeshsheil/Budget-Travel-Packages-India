@@ -486,6 +486,7 @@ export default async function LeadDetailPage({
             agents={JSON.parse(JSON.stringify(agents))}
             isAdmin={session.user.role === "admin"}
             isReadyToWin={isReadyToWin}
+            currentUserId={session.user.id}
           />
           {/* QuickActions component is not in the original code, adding it as per instruction snippet */}
           {/* Assuming 'lead' and 'isAdmin' are available in scope */}

@@ -388,7 +388,7 @@ export function LoginForm() {
                           type="email"
                           placeholder="admin@example.com"
                           disabled={isLoading}
-                          className="h-12 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/10 transition-all rounded-xl text-base"
+                          className="h-12 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/10 transition-all rounded-xl text-base text-slate-900"
                         />
                       </FormControl>
                       <FormMessage />
@@ -420,7 +420,7 @@ export function LoginForm() {
                             type={showPassword ? "text" : "password"}
                             placeholder="••••••••"
                             disabled={isLoading}
-                            className="h-12 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/10 transition-all rounded-xl text-base pr-12"
+                            className="h-12 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/10 transition-all rounded-xl text-base pr-12 text-slate-900"
                           />
                           <button
                             type="button"
@@ -513,7 +513,7 @@ export function LoginForm() {
                   placeholder="agent@example.com"
                   disabled={isLoading}
                   required
-                  className="h-12 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/10 transition-all rounded-xl text-base"
+                  className="h-12 bg-gray-50/50 border-gray-200 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500/10 transition-all rounded-xl text-base text-slate-900"
                 />
               </div>
               <Button
@@ -566,7 +566,7 @@ export function LoginForm() {
                           type="email"
                           placeholder="Enter your registered email"
                           disabled={isLoading}
-                          className="h-12 bg-gray-50/50 border-gray-200 focus:border-emerald-500 rounded-xl"
+                          className="h-12 bg-gray-50/50 border-gray-200 focus:border-emerald-500 rounded-xl text-slate-900"
                         />
                       </FormControl>
                       <FormMessage />
@@ -668,7 +668,7 @@ export function LoginForm() {
                           type="password"
                           placeholder="Min 8 characters"
                           disabled={isLoading}
-                          className="h-12 bg-gray-50/50 border-gray-200 focus:border-emerald-500 rounded-xl"
+                          className="h-12 bg-gray-50/50 border-gray-200 focus:border-emerald-500 rounded-xl text-slate-900"
                         />
                       </FormControl>
                       <FormMessage />
@@ -689,7 +689,7 @@ export function LoginForm() {
                           type="password"
                           placeholder="Re-enter password"
                           disabled={isLoading}
-                          className="h-12 bg-gray-50/50 border-gray-200 focus:border-emerald-500 rounded-xl"
+                          className="h-12 bg-gray-50/50 border-gray-200 focus:border-emerald-500 rounded-xl text-slate-900"
                         />
                       </FormControl>
                       <FormMessage />

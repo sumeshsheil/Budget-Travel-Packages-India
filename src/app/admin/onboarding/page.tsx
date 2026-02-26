@@ -339,7 +339,7 @@ function OnboardingContent() {
                             <Input
                               {...field}
                               placeholder="John"
-                              className="h-11 rounded-xl"
+                              className="h-11 rounded-xl text-slate-900"
                             />
                           </FormControl>
                           <FormMessage />
@@ -358,7 +358,7 @@ function OnboardingContent() {
                             <Input
                               {...field}
                               placeholder="Doe"
-                              className="h-11 rounded-xl"
+                              className="h-11 rounded-xl text-slate-900"
                             />
                           </FormControl>
                           <FormMessage />
@@ -409,7 +409,7 @@ function OnboardingContent() {
                               type="number"
                               min={18}
                               placeholder="25"
-                              className="h-11 rounded-xl"
+                              className="h-11 rounded-xl text-slate-900"
                             />
                           </FormControl>
                           <FormMessage />
@@ -431,7 +431,7 @@ function OnboardingContent() {
                             {...field}
                             type="tel"
                             placeholder="+91 9876543210"
-                            className="h-11 rounded-xl"
+                            className="h-11 rounded-xl text-slate-900"
                           />
                         </FormControl>
                         <FormMessage />
@@ -451,7 +451,7 @@ function OnboardingContent() {
                           <Input
                             {...field}
                             placeholder="Full address"
-                            className="h-11 rounded-xl"
+                            className="h-11 rounded-xl text-slate-900"
                           />
                         </FormControl>
                         <FormMessage />
@@ -493,12 +493,13 @@ function OnboardingContent() {
                     onChange={(e) => setAadhaarNumber(e.target.value)}
                     placeholder="1234 5678 9012"
                     maxLength={14}
-                    className="h-11 rounded-xl"
+                    className="h-11 rounded-xl text-slate-900"
                   />
                   <CameraCapture
                     label="Capture Aadhaar Card"
                     onCapture={setAadhaarImage}
                     capturedImage={aadhaarImage}
+                    autoStart={true}
                   />
                 </div>
 
@@ -512,7 +513,7 @@ function OnboardingContent() {
                     onChange={(e) => setPanNumber(e.target.value.toUpperCase())}
                     placeholder="ABCDE1234F"
                     maxLength={10}
-                    className="h-11 rounded-xl"
+                    className="h-11 rounded-xl text-slate-900"
                   />
                   <CameraCapture
                     label="Capture PAN Card"
@@ -559,6 +560,7 @@ function OnboardingContent() {
                   label="Capture Your Face"
                   onCapture={setFaceImage}
                   capturedImage={faceImage}
+                  autoStart={step === 3}
                 />
 
                 <div className="border-t border-slate-100 pt-6">
@@ -581,7 +583,7 @@ function OnboardingContent() {
                                   {...field}
                                   type={showPassword ? "text" : "password"}
                                   placeholder="Min 8 characters"
-                                  className="h-11 rounded-xl pr-12"
+                                  className="h-11 rounded-xl pr-12 text-slate-900"
                                 />
                                 <button
                                   type="button"
@@ -613,7 +615,7 @@ function OnboardingContent() {
                                 {...field}
                                 type="password"
                                 placeholder="Re-enter password"
-                                className="h-11 rounded-xl"
+                                className="h-11 rounded-xl text-slate-900"
                               />
                             </FormControl>
                             <FormMessage />

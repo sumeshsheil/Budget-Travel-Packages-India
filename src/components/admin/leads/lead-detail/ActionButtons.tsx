@@ -35,6 +35,7 @@ interface ActionButtonsProps {
   agents: Agent[];
   isAdmin: boolean;
   isReadyToWin: boolean;
+  currentUserId: string;
 }
 
 const STAGES = [
@@ -53,6 +54,7 @@ export function ActionButtons({
   agents,
   isAdmin,
   isReadyToWin,
+  currentUserId,
 }: ActionButtonsProps) {
   const router = useRouter();
   const [stage, setStage] = useState(currentStage);
@@ -121,6 +123,17 @@ export function ActionButtons({
     <div className="space-y-6">
       {!isWon && (
         <div className="space-y-3">
+          {/* Admin Self-Assignment Button */}
+          {isAdmin && agentId !== currentUserId && (
+            <Button
+              className="w-full gap-2 h-11 bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg font-semibold"
+              onClick={() => handleAgentChange(currentUserId)}
+              disabled={loading}
+            >
+              Assign to Me
+            </Button>
+          )}
+
           <Button
             className={cn(
               "w-full gap-2 h-11 text-base font-semibold transition-all",

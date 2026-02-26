@@ -51,7 +51,13 @@ export async function POST(req: Request) {
         );
         await existingUser.save();
 
-        const onboardingUrl = `${process.env.NEXTAUTH_URL}/admin/onboarding?token=${rawToken}`;
+        const hostname = req.headers.get("host") || "";
+        const isLocalhost = hostname.includes("localhost");
+        const portalBaseUrl = isLocalhost
+          ? "http://portals.localhost:3000"
+          : "https://portals.budgettravelpackages.in";
+
+        const onboardingUrl = `${portalBaseUrl}/admin/onboarding?token=${rawToken}`;
         await sendAgentOnboardingEmail({
           name: existingUser.name,
           to: agentEmail,
@@ -101,7 +107,13 @@ export async function POST(req: Request) {
       setPasswordExpires: new Date(Date.now() + 72 * 60 * 60 * 1000), // 72 hours
     });
 
-    const onboardingUrl = `${process.env.NEXTAUTH_URL}/admin/onboarding?token=${rawToken}`;
+    const hostname = req.headers.get("host") || "";
+    const isLocalhost = hostname.includes("localhost");
+    const portalBaseUrl = isLocalhost
+      ? "http://portals.localhost:3000"
+      : "https://portals.budgettravelpackages.in";
+
+    const onboardingUrl = `${portalBaseUrl}/admin/onboarding?token=${rawToken}`;
 
     await sendAgentOnboardingEmail({
       name,

@@ -143,14 +143,6 @@ const DEPARTURE_CITIES = [
   "Warangal",
 ];
 
-const travelerSchema = z.object({
-  name: z.string().min(2, "Name is required"),
-  age: z.coerce.number().min(0, "Age is required"),
-  gender: z.enum(["male", "female", "other"]),
-  email: z.string().email().optional().or(z.literal("")),
-  phone: z.string().optional().or(z.literal("")),
-});
-
 const tripFormSchema = z.object({
   tripType: z.enum(["domestic", "international"]),
   departureCity: z.string().min(2, "Departure city is required"),
@@ -160,7 +152,6 @@ const tripFormSchema = z.object({
   guests: z.coerce.number().min(1, "At least 1 guest is required"),
   budget: z.coerce.number().min(1, "Budget is required"),
   specialRequests: z.string().optional(),
-  travelers: z.array(travelerSchema).optional(),
 });
 
 type TripFormValues = z.infer<typeof tripFormSchema>;
@@ -185,30 +176,7 @@ export const PlanTripModal: React.FC<PlanTripModalProps> = ({
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDepartureOpen, setIsDepartureOpen] = useState(false);
-  const [profileMembers, setProfileMembers] = useState<any[]>([]);
-  const [isLoadingMembers, setIsLoadingMembers] = useState(false);
-  const [openPopoverIndex, setOpenPopoverIndex] = useState<number | null>(null);
-
-  useEffect(() => {
-    if (isOpen) {
-      fetchProfileMembers();
-    }
-  }, [isOpen]);
-
-  const fetchProfileMembers = async () => {
-    try {
-      setIsLoadingMembers(true);
-      const res = await fetch("/api/customer/members");
-      const data = await res.json();
-      if (res.ok) {
-        setProfileMembers(data.members || []);
-      }
-    } catch (error) {
-      console.error("Failed to fetch profile members", error);
-    } finally {
-      setIsLoadingMembers(false);
-    }
-  };
+  const [isDurationLoading, setIsDurationLoading] = useState(false);
 
   const form = useForm<TripFormValues>({
     resolver: zodResolver(tripFormSchema) as any,
@@ -220,13 +188,7 @@ export const PlanTripModal: React.FC<PlanTripModalProps> = ({
       guests: 1,
       budget: 0,
       specialRequests: "",
-      travelers: [],
     },
-  });
-
-  const { fields, append, remove, update } = useFieldArray({
-    control: form.control,
-    name: "travelers",
   });
 
   const guests = form.watch("guests");
@@ -234,22 +196,6 @@ export const PlanTripModal: React.FC<PlanTripModalProps> = ({
   const duration = form.watch("duration");
   const budget = form.watch("budget");
   const { setValue } = form;
-
-  // Sync companions with guest count
-  useEffect(() => {
-    const requiredCompanions = Math.max(0, guests - 1);
-    if (fields.length !== requiredCompanions) {
-      if (fields.length < requiredCompanions) {
-        for (let i = fields.length; i < requiredCompanions; i++) {
-          append({ name: "", age: 0, gender: "male" });
-        }
-      } else {
-        for (let i = fields.length - 1; i >= requiredCompanions; i--) {
-          remove(i);
-        }
-      }
-    }
-  }, [guests, fields.length, append, remove]);
 
   // Dynamic Budget Calculation
   React.useEffect(() => {
@@ -268,16 +214,6 @@ export const PlanTripModal: React.FC<PlanTripModalProps> = ({
       const firstName = names[0] || "Customer";
       const lastName = names.slice(1).join(" ") || "-";
 
-      const primaryTraveler = {
-        name: user.name,
-        email: user.email,
-        phone: user.phone || "0000000000",
-        age: 25,
-        gender: (user.gender as any) || "male",
-      };
-
-      const allTravelers = [primaryTraveler, ...(values.travelers || [])];
-
       const payload = {
         tripType: values.tripType,
         departureCity: values.departureCity,
@@ -295,7 +231,6 @@ export const PlanTripModal: React.FC<PlanTripModalProps> = ({
           age: 25,
           gender: (user.gender as any) || "male",
         },
-        travelers: allTravelers,
       };
 
       const res = await fetch("/api/leads/submit", {
@@ -732,192 +667,6 @@ export const PlanTripModal: React.FC<PlanTripModalProps> = ({
               </div>
 
               <Separator className="bg-slate-100 dark:bg-slate-800" />
-
-              {/* Travel Companions Section */}
-              <div className="space-y-8">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div>
-                    <h3 className="text-sm font-bold flex items-center gap-2 text-slate-900 dark:text-white uppercase tracking-[0.15em]">
-                      <Users className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                      Travel Companions ({Math.max(0, guests - 1)} required)
-                    </h3>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1">
-                      {guests > 1
-                        ? `Please select the ${guests - 1} companion(s) traveling with you.`
-                        : "Traveling alone? No companions needed."}
-                    </p>
-                  </div>
-                </div>
-
-                {guests > 1 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {fields.map((field, index) => {
-                      const travelerData = form.watch(`travelers.${index}`);
-                      const isSelected = !!travelerData?.name;
-
-                      return (
-                        <div
-                          key={field.id}
-                          className="p-3.5 border border-slate-200 dark:border-slate-700/60 rounded-2xl bg-slate-50/50 dark:bg-slate-800/40 flex items-center justify-between group hover:border-emerald-200 dark:hover:border-emerald-500/30 hover:bg-emerald-50/50 dark:hover:bg-slate-800/70 transition-all shadow-sm"
-                        >
-                          <div className="flex items-center gap-3 overflow-hidden flex-1">
-                            <div className="h-10 w-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0 border border-emerald-100 dark:border-emerald-500/20 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-500/20 transition-colors shadow-sm">
-                              {isSelected ? (
-                                <span className="text-sm font-bold">
-                                  {travelerData.name.charAt(0).toUpperCase()}
-                                </span>
-                              ) : (
-                                <Plus className="h-4 w-4" />
-                              )}
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              {isSelected ? (
-                                <div className="flex flex-col">
-                                  <p className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                                    {travelerData.name}
-                                  </p>
-                                  <p className="text-[10px] text-slate-500 dark:text-slate-400 font-semibold tracking-wide flex items-center gap-1.5">
-                                    <span>{travelerData.age}y</span>
-                                    <span className="opacity-30">•</span>
-                                    <span className="capitalize">
-                                      {travelerData.gender}
-                                    </span>
-                                  </p>
-                                </div>
-                              ) : (
-                                <p className="text-xs font-medium text-slate-400 dark:text-slate-500 italic">
-                                  Not selected
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          <Popover
-                            open={openPopoverIndex === index}
-                            onOpenChange={(open) =>
-                              setOpenPopoverIndex(open ? index : null)
-                            }
-                          >
-                            <PopoverTrigger asChild>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="ghost"
-                                className="rounded-xl h-9 px-2.5 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 hover:text-emerald-700 dark:hover:text-emerald-300 font-bold text-xs ring-1 ring-emerald-100 dark:ring-emerald-500/20 hover:ring-emerald-200 dark:hover:ring-emerald-500/40 transition-all ml-3 shrink-0"
-                              >
-                                {isSelected ? "Change" : "Select"}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              className="w-[300px] p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 shadow-2xl"
-                              align="end"
-                            >
-                              <div className="space-y-1">
-                                <div className="px-1 py-1">
-                                  <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2 mb-2">
-                                    Select Traveler
-                                  </p>
-                                  {profileMembers.length > 0 ? (
-                                    <div className="max-h-[280px] overflow-y-auto space-y-1">
-                                      {profileMembers.map((member, idx) => {
-                                        const isAddedInOtherSlot = fields.some(
-                                          (f, i) =>
-                                            i !== index &&
-                                            f.name === member.name,
-                                        );
-                                        const isSelectedInThisSlot =
-                                          travelerData?.name === member.name;
-                                        const isMissingAadhar =
-                                          !member.documents?.aadharCard?.length;
-
-                                        return (
-                                          <button
-                                            key={idx}
-                                            type="button"
-                                            disabled={
-                                              isAddedInOtherSlot ||
-                                              isSelectedInThisSlot ||
-                                              isMissingAadhar
-                                            }
-                                            className={cn(
-                                              "w-full text-left p-3 rounded-xl transition-all flex items-center justify-between group",
-                                              isAddedInOtherSlot ||
-                                                isSelectedInThisSlot ||
-                                                isMissingAadhar
-                                                ? "opacity-50 cursor-not-allowed bg-slate-50 dark:bg-slate-800/50"
-                                                : "hover:bg-emerald-50/80 dark:hover:bg-emerald-500/10",
-                                            )}
-                                            onClick={() => {
-                                              update(index, {
-                                                name: member.name,
-                                                age: member.age,
-                                                gender: member.gender,
-                                                email: member.email || "",
-                                              });
-                                              setOpenPopoverIndex(null);
-                                            }}
-                                          >
-                                            <div className="flex-1 min-w-0">
-                                              <div className="flex items-center gap-2">
-                                                <p className="text-sm font-semibold text-slate-900 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 truncate">
-                                                  {member.name}
-                                                </p>
-                                                {isMissingAadhar && (
-                                                  <Badge
-                                                    variant="destructive"
-                                                    className="h-4 px-1.5 text-[8px] uppercase tracking-tighter"
-                                                  >
-                                                    Missing Aadhar
-                                                  </Badge>
-                                                )}
-                                              </div>
-                                              <p className="text-[10px] text-slate-500 dark:text-slate-400 truncate">
-                                                {member.age} yrs •{" "}
-                                                {member.gender}
-                                              </p>
-                                            </div>
-                                            {isAddedInOtherSlot ||
-                                            isSelectedInThisSlot ? (
-                                              <Check className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                                            ) : isMissingAadhar ? (
-                                              <ShieldAlert className="h-4 w-4 text-red-400 shrink-0" />
-                                            ) : (
-                                              <Plus className="h-4 w-4 text-slate-300 dark:text-slate-600 group-hover:text-emerald-500 dark:group-hover:text-emerald-400 shrink-0" />
-                                            )}
-                                          </button>
-                                        );
-                                      })}
-                                    </div>
-                                  ) : (
-                                    <div className="text-center py-6">
-                                      <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                                        No saved members found.
-                                      </p>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                      );
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 border-2 border-dashed border-slate-200 dark:border-slate-700/60 rounded-2xl bg-slate-50/30 dark:bg-slate-800/20">
-                    <div className="bg-white dark:bg-slate-800/60 h-14 w-14 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm border border-slate-100 dark:border-slate-700/50 text-slate-300 dark:text-slate-600">
-                      <Users className="h-7 w-7" />
-                    </div>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 font-bold tracking-tight">
-                      Solo Trip
-                    </p>
-                    <p className="text-[11px] text-slate-400 dark:text-slate-500 max-w-[220px] mx-auto mt-2 leading-relaxed">
-                      Increase the guest count if you&apos;re traveling with
-                      family or friends.
-                    </p>
-                  </div>
-                )}
-              </div>
 
               {/* Special Requests */}
               <FormField

@@ -235,8 +235,13 @@ export async function updateLeadStage(leadId: string, newStage: string) {
 export async function assignAgent(leadId: string, agentId: string) {
   try {
     const session = await verifySession();
+
+    // Only admins can assign agents or themselves to leads
     if (session.user.role !== "admin") {
-      return { success: false, error: "Only admins can assign agents" };
+      return {
+        success: false,
+        error: "Unauthorized: Only administrators can assign leads",
+      };
     }
 
     await connectDB();
@@ -255,13 +260,16 @@ export async function assignAgent(leadId: string, agentId: string) {
         return { success: false, error: "Invalid agent ID" };
       }
 
-      // Ensure the agent is verified
-      const agent = await User.findById(agentId);
-      if (!agent || agent.role !== "agent") {
-        return { success: false, error: "Target user is not an agent" };
+      // Ensure the target is an agent or an admin
+      const targetUser = await User.findById(agentId);
+      if (!targetUser || !["agent", "admin"].includes(targetUser.role)) {
+        return {
+          success: false,
+          error: "Target user must be an agent or admin",
+        };
       }
 
-      if (!agent.isVerified) {
+      if (targetUser.role === "agent" && !targetUser.isVerified) {
         return {
           success: false,
           error: "Only verified agents can be assigned to leads.",

@@ -1,7 +1,6 @@
 import { requireCustomerAuth } from "@/lib/customer-auth-guard";
 import { connectDB } from "@/lib/db/mongoose";
 import Lead from "@/lib/db/models/Lead";
-import LeadActivity from "@/lib/db/models/LeadActivity";
 import User from "@/lib/db/models/User";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -52,7 +51,9 @@ export default async function BookingDetailPage({
   const lead = await Lead.findOne({
     _id: id,
     customerId: session.user.id,
-  }).lean();
+  })
+    .populate("agentId", "name email")
+    .lean();
   if (!lead) {
     notFound();
   }
@@ -64,13 +65,6 @@ export default async function BookingDetailPage({
     : [];
 
   const booking = JSON.parse(JSON.stringify(lead));
-
-  // Fetch activity timeline
-  const rawActivities = await LeadActivity.find({ leadId: id })
-    .sort({ createdAt: -1 })
-    .limit(20)
-    .lean();
-  const activities = JSON.parse(JSON.stringify(rawActivities));
 
   const currentStageIndex = STAGES.findIndex((s) => s.key === booking.stage);
   const isLostOrStale = ["lost", "stale"].includes(booking.stage);
@@ -91,9 +85,9 @@ export default async function BookingDetailPage({
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
             {booking.destination}
           </h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-slate-500 dark:text-slate-400 mt-1 capitalize">
             {booking.tripType} trip • Booked on{" "}
-            {format(new Date(booking.createdAt), "MMMM d, yyyy")}
+            {format(new Date(booking.createdAt), "MMMM d, yyyy 'at' h:mm a")}
           </p>
         </div>
         <Badge
@@ -227,20 +221,7 @@ export default async function BookingDetailPage({
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Clock className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0" />
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
-                  Booked At
-                </p>
-                <p className="font-semibold text-slate-900 dark:text-white">
-                  {format(
-                    new Date(booking.createdAt),
-                    "MMMM d, yyyy 'at' h:mm a",
-                  )}
-                </p>
-              </div>
-            </div>
+
             <div className="flex items-center gap-3">
               <Clock className="h-4 w-4 text-slate-400 dark:text-slate-500 shrink-0" />
               <div>
@@ -667,58 +648,38 @@ export default async function BookingDetailPage({
           </CardContent>
         </Card>
 
-        {/* Activity Timeline */}
-        <Card className="border-0 shadow-sm h-full">
+        {/* Assigned Agent */}
+        <Card className="border-0 shadow-sm h-full bg-slate-50/50 dark:bg-slate-900/50">
           <CardHeader>
-            <CardTitle className="text-lg">Activity Timeline</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2 text-slate-900 dark:text-white">
+              <Users className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              Assigned Agent
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            {activities.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-4">
-                No activity recorded yet.
-              </p>
+            {booking.agentId ? (
+              <div className="flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                <div className="h-12 w-12 rounded-full bg-emerald-100 dark:bg-emerald-900/50 flex items-center justify-center text-emerald-700 dark:text-emerald-300 font-bold text-lg">
+                  {booking.agentId.name.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="font-semibold text-slate-900 dark:text-white">
+                    {booking.agentId.name}
+                  </p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">
+                    Your Dedicated Travel Expert
+                  </p>
+                </div>
+              </div>
             ) : (
-              <div className="space-y-4">
-                {activities.map(
-                  (
-                    activity: {
-                      _id: string;
-                      action: string;
-                      details: string;
-                      createdAt: string;
-                    },
-                    index: number,
-                  ) => (
-                    <div key={activity._id} className="flex gap-3">
-                      <div className="relative flex flex-col items-center">
-                        <div
-                          className={`h-3 w-3 rounded-full mt-1.5 ${
-                            index === 0
-                              ? "bg-emerald-500"
-                              : "bg-muted-foreground/30"
-                          }`}
-                        />
-                        {index < activities.length - 1 && (
-                          <div className="w-px flex-1 bg-border mt-1" />
-                        )}
-                      </div>
-                      <div className="pb-4">
-                        <p className="text-sm font-medium capitalize">
-                          {activity.action.replace("_", " ")}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {activity.details}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
-                          {format(
-                            new Date(activity.createdAt),
-                            "MMM d, yyyy 'at' h:mm a",
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  ),
-                )}
+              <div className="flex flex-col items-center justify-center py-8 text-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                <Users className="h-10 w-10 text-slate-300 dark:text-slate-700 mb-2" />
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                  Agent Pending Assignment
+                </p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 max-w-[200px]">
+                  An agent will be assigned to your trip shortly.
+                </p>
               </div>
             )}
           </CardContent>

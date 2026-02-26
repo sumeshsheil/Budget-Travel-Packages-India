@@ -40,7 +40,9 @@ export async function proxy(request: NextRequest) {
   // Determine if this is the portals domain
   // Using portals.localhost:3000 for local testing, normally this would be portals.yourdomain.com
   const isPortalsDomain =
-    hostname.includes("portals.") || hostname === "portals.localhost:3000";
+    hostname.includes("portals.") ||
+    hostname === "portals.localhost:3000" ||
+    hostname === "portals.5.1.1.15:3000";
 
   // 1. ALWAYS allow global API routes (non-admin) to pass through without rewrites
   if (
@@ -69,7 +71,12 @@ export async function proxy(request: NextRequest) {
   }
 
   // 2. If on the public domain and trying to access admin routes (Security)
-  if (!isPortalsDomain && url.pathname.startsWith("/admin")) {
+  // Allow /admin/onboarding for direct access via IP or localhost
+  if (
+    !isPortalsDomain &&
+    url.pathname.startsWith("/admin") &&
+    url.pathname !== "/admin/onboarding"
+  ) {
     return new NextResponse(null, { status: 404 });
   }
 
@@ -91,8 +98,8 @@ export async function proxy(request: NextRequest) {
 
   // ─── PROTECTED: All /admin/* routes ───
   if (effectivePathname.startsWith("/admin")) {
-    // Not logged in → redirect to login
-    if (!token) {
+    // Not logged in → redirect to login (allow /admin/onboarding publicly)
+    if (!token && effectivePathname !== "/admin/onboarding") {
       const loginUrl = new URL("/admin/login", request.url);
       loginUrl.searchParams.set("callbackUrl", effectivePathname);
       return NextResponse.redirect(loginUrl);
@@ -100,6 +107,7 @@ export async function proxy(request: NextRequest) {
 
     // ─── Must Change Password Enforcement ───
     if (
+      token &&
       token.mustChangePassword &&
       !effectivePathname.startsWith("/admin/change-password")
     ) {
@@ -109,7 +117,7 @@ export async function proxy(request: NextRequest) {
     }
 
     // Agent trying to access admin-only routes
-    if (token.role === "agent") {
+    if (token && token.role === "agent") {
       if (
         effectivePathname.startsWith("/admin/agents") ||
         effectivePathname.startsWith("/admin/settings")
