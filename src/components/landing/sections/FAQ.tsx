@@ -89,9 +89,9 @@ const faqData: FAQItem[] = [
   },
   {
     id: 13,
-    question: "Do you provide flight and hotel bookings separately?",
+    question: "Do you provide flight bookings separately?",
     answer:
-      "Yes, we can arrange flights, hotels, or both as part of your customized travel plan.",
+      "No, we do not provide flight bookings separately.",
   },
   {
     id: 14,

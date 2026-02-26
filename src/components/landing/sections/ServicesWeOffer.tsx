@@ -24,16 +24,16 @@ const services = [
     title: "Transfers, Sightseeing & Activities",
     icon: icon2,
   },
-  {
-    id: 3,
-    title: "Flight & Train Tickets",
-    icon: icon3,
-  },
-  {
-    id: 4,
-    title: "Visa & travel insurance support",
-    icon: icon4,
-  },
+  // {
+  //   id: 3,
+  //   title: "Flight & Train Tickets",
+  //   icon: icon3,
+  // },
+  // {
+  //   id: 4,
+  //   title: "Visa & travel insurance support",
+  //   icon: icon4,
+  // },
   {
     id: 5,
     title: "Hotels, Resorts & Cruise Bookings",
@@ -42,7 +42,7 @@ const services = [
   {
     id: 6,
     title: "Special Request Accepted",
-    icon: icon6,
+    icon: icon4,
   },
 ];
 

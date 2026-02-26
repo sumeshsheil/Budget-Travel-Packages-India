@@ -5,39 +5,39 @@ import { motion } from "motion/react";
 const Marquee: React.FC = () => {
   const titles = [
     {
-      title: "Book Domestic Packages @ ₹666",
+      title: "Pre-Book Domestic Packages @ ₹666",
       icon: YellowStar,
     },
     {
-      title: "Book International Packages @ ₹999",
+      title: "Pre-Book International Packages @ ₹999",
       icon: YellowStar,
     },
     {
-      title: "Book Devotional Packages @ ₹333",
+      title: "Pre-Book Devotional Packages @ ₹333",
       icon: YellowStar,
     },
     {
-      title: "Book Domestic Packages @ ₹666",
+      title: "Pre-Book Domestic Packages @ ₹666",
       icon: YellowStar,
     },
     {
-      title: "Book International Packages @ ₹999",
+      title: "Pre-Book International Packages @ ₹999",
       icon: YellowStar,
     },
     {
-      title: "Book Devotional Packages @ ₹333",
+      title: "Pre-Book Devotional Packages @ ₹333",
       icon: YellowStar,
     },
     {
-      title: "Book Domestic Packages @ ₹666",
+      title: "Pre-Book Domestic Packages @ ₹666",
       icon: YellowStar,
     },
     {
-      title: "Book International Packages @ ₹999",
+      title: "Pre-Book International Packages @ ₹999",
       icon: YellowStar,
     },
     {
-      title: "Book Devotional Packages @ ₹333",
+      title: "Pre-Book Devotional Packages @ ₹333",
       icon: YellowStar,
     },
   ];

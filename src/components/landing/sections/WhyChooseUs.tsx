@@ -47,7 +47,7 @@ const features = [
   {
     id: 6,
     title: "Hassle-Free Bookings",
-    description: "Flights, hotels, visas & sightseeing handled for you",
+    description: "We handle everything for you",
     icon: icon6,
   },
 ];

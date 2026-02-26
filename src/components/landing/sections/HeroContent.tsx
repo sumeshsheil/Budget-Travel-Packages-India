@@ -16,9 +16,8 @@ const HeroContent: React.FC = () => {
         <span className="text-primary">Budget Travel Packages</span>
       </h1>
 
-      <p className="font-open-sans font-semibold text-lg md:text-2xl lg:text-3xl mt-6 mb-8 max-w-3xl text-white/90 px-4 leading-relaxed drop-shadow-md">
+      <p className="font-open-sans font-semibold text-lg md:text-2xl lg:text-[40px]  mt-6 mb-8 max-w-4xl text-white/90 px-4 leading-relaxed drop-shadow-md">
         Book customized domestic & international vacation plan from India.
-        Flights, Trains, Hotels, Sightseeing & much more...
       </p>
 
       <div className="inline-block px-6 py-2">

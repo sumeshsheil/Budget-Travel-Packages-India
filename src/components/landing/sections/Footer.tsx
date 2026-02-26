@@ -95,13 +95,13 @@ const Footer: React.FC = () => {
 
                   <div className="flex flex-col gap-2 w-full max-w-[280px]">
                     <button className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-4 rounded-lg text-xs xl:text-sm transition-all  w-full cursor-pointer text-center">
-                      Book Devotional @ ₹333
+                      Pre-Book Devotional @ ₹333
                     </button>
                     <button className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-4 rounded-lg text-xs xl:text-sm transition-all  w-full cursor-pointer text-center">
-                      Book Domestic @ ₹666
+                      Pre-Book Domestic @ ₹666
                     </button>
                     <button className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-4 rounded-lg text-xs xl:text-sm transition-all  w-full cursor-pointer text-center">
-                      Book International @ ₹999
+                      Pre-Book International @ ₹999
                     </button>
                   </div>
                   <p className="text-[10px] xl:text-xs text-red-500 font-medium italic bg-red-50 px-2 py-1 rounded w-fit">
@@ -226,13 +226,13 @@ const Footer: React.FC = () => {
 
                 <div className="flex flex-col gap-2 w-full max-w-[240px]">
                   <button className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-4 rounded-lg text-sm transition-all shadow-sm w-full cursor-pointer">
-                    Book Devotional @ ₹333
+                    Pre-Book Devotional @ ₹333
                   </button>
                   <button className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-4 rounded-lg text-sm transition-all shadow-sm w-full cursor-pointer">
-                    Book Domestic @ ₹666
+                    Pre-Book Domestic @ ₹666
                   </button>
                   <button className="bg-white border border-primary text-primary hover:bg-primary hover:text-white font-semibold py-2.5 px-4 rounded-lg text-sm transition-all shadow-sm w-full cursor-pointer">
-                    Book International @ ₹999
+                    Pre-Book International @ ₹999
                   </button>
                 </div>
                 <p className="text-[10px] text-red-500 font-medium italic opacity-80">
